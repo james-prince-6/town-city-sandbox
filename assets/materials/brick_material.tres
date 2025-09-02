@@ -1,0 +1,7 @@
+[gd_resource type="StandardMaterial3D" load_steps=2 format=3 uid="uid://cdiqrcoe7atmn"]
+
+[ext_resource type="Texture2D" uid="uid://2xu053tpvaql" path="res://assets/textures/dark brick - flipped.png" id="1_ygkwu"]
+
+[resource]
+albedo_texture = ExtResource("1_ygkwu")
+uv1_scale = Vector3(7.075, 19.77, 10)

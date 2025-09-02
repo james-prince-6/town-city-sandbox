@@ -1,0 +1,172 @@
+[gd_scene load_steps=19 format=3 uid="uid://cv2bwoenjqc7o"]
+
+[ext_resource type="PackedScene" uid="uid://cppmnlasls1hp" path="res://entities/player/player.tscn" id="1_g72ax"]
+[ext_resource type="PackedScene" uid="uid://caxk4h520ic4c" path="res://assets/models/environment/volcano/volcano.gltf" id="1_yjppj"]
+[ext_resource type="PackedScene" uid="uid://cnpj4qndm604j" path="res://assets/models/environment/road_asphalt/road_straight.gltf" id="2_fdiwn"]
+[ext_resource type="PackedScene" uid="uid://cp0qa6qc83cay" path="res://assets/models/buildings/house1/house1.tscn" id="2_lwlql"]
+[ext_resource type="PackedScene" uid="uid://de3tlpggck1ls" path="res://assets/models/buildings/store1/store1.tscn" id="3_2gvps"]
+[ext_resource type="PackedScene" uid="uid://bb37iwmal4u77" path="res://assets/models/environment/road_asphalt/road_turn.tscn" id="3_fdiwn"]
+[ext_resource type="PackedScene" uid="uid://bn2d82ms7uuke" path="res://assets/models/environment/road_asphalt/sidewalk.gltf" id="4_lwlql"]
+[ext_resource type="PackedScene" uid="uid://sbccd4at7sdl" path="res://global/teleport area/teleport_raycast.tscn" id="8_2gvps"]
+[ext_resource type="PackedScene" uid="uid://ct4ux6dspw2tb" path="res://assets/models/buildings/lavatownbar/lavatownbar.tscn" id="9_tx3ym"]
+[ext_resource type="Texture2D" uid="uid://co200753xocqk" path="res://assets/textures/skytexture1.png" id="10_4kqrw"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1ir4s"]
+albedo_color = Color(6.97896e-07, 0.414589, 0.141062, 1)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_1ir4s"]
+material = SubResource("StandardMaterial3D_1ir4s")
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_fdiwn"]
+size = Vector3(0.87915, 1, 1.01227)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_tx3ym"]
+size = Vector3(1.7002, 1, 0.455566)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_4kqrw"]
+size = Vector3(0.129333, 2.07428, 1.50397)
+
+[sub_resource type="PanoramaSkyMaterial" id="PanoramaSkyMaterial_7uftf"]
+panorama = ExtResource("10_4kqrw")
+
+[sub_resource type="Sky" id="Sky_6qvqh"]
+sky_material = SubResource("PanoramaSkyMaterial_7uftf")
+
+[sub_resource type="Environment" id="Environment_ws7y3"]
+background_mode = 2
+sky = SubResource("Sky_6qvqh")
+
+[node name="TownSquare" type="Node3D"]
+
+[node name="World" type="StaticBody3D" parent="."]
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="World"]
+transform = Transform3D(89.0188, 0, 0, 0, 1.29482, 0, 0, 0, 107.58, 0, 0, 0)
+mesh = SubResource("PlaneMesh_1ir4s")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="World"]
+transform = Transform3D(103.872, 0, 0, 0, 0.162276, 0, 0, 0, 110.674, -0.0662298, 0.252851, 0.285869)
+shape = SubResource("BoxShape3D_fdiwn")
+
+[node name="blockbench_export" parent="World" instance=ExtResource("1_yjppj")]
+transform = Transform3D(-0.423025, 0, -4.84982, 0, 4.86824, 0, 4.84982, 0, -0.423025, 34.0775, 0.333989, 39.443)
+
+[node name="Player" parent="." instance=ExtResource("1_g72ax")]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(-0.887413, 0.414455, -0.201803, 0, 0.437775, 0.899085, 0.460974, 0.79786, -0.388487, 0, 54.4085, -45.4559)
+
+[node name="Buildings" type="Node3D" parent="."]
+
+[node name="Roads" type="Node3D" parent="Buildings"]
+
+[node name="blockbench_export2" parent="Buildings/Roads" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 9.30859, 0, -12.0735)
+
+[node name="blockbench_export3" parent="Buildings/Roads/blockbench_export2" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8)
+
+[node name="blockbench_export4" parent="Buildings/Roads/blockbench_export2" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12)
+
+[node name="blockbench_export2" parent="Buildings/Roads/blockbench_export2" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4)
+
+[node name="blockbench_export5" parent="Buildings/Roads/blockbench_export2" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -16)
+
+[node name="blockbench_export" parent="Buildings/Roads" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.486, 0, 7.29456)
+
+[node name="blockbench_export3" parent="Buildings/Roads/blockbench_export" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8)
+
+[node name="blockbench_export4" parent="Buildings/Roads/blockbench_export" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12)
+
+[node name="blockbench_export2" parent="Buildings/Roads/blockbench_export" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4)
+
+[node name="blockbench_export5" parent="Buildings/Roads/blockbench_export" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -16)
+
+[node name="blockbench_export6" parent="Buildings/Roads" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 9.32858, 0, 12.115)
+
+[node name="blockbench_export7" parent="Buildings/Roads/blockbench_export6" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8)
+
+[node name="blockbench_export8" parent="Buildings/Roads/blockbench_export6" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12)
+
+[node name="blockbench_export9" parent="Buildings/Roads/blockbench_export6" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4)
+
+[node name="blockbench_export10" parent="Buildings/Roads/blockbench_export6" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -16)
+
+[node name="blockbench_export6" parent="Buildings/Roads/blockbench_export6" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 19.7714, 0, 4.7962)
+
+[node name="blockbench_export7" parent="Buildings/Roads/blockbench_export6/blockbench_export6" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8)
+
+[node name="blockbench_export8" parent="Buildings/Roads/blockbench_export6/blockbench_export6" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12)
+
+[node name="blockbench_export9" parent="Buildings/Roads/blockbench_export6/blockbench_export6" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4)
+
+[node name="blockbench_export10" parent="Buildings/Roads/blockbench_export6/blockbench_export6" instance=ExtResource("2_fdiwn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -16)
+
+[node name="RoadTurn" parent="Buildings/Roads" instance=ExtResource("3_fdiwn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10.4801, 0, 12.3)
+
+[node name="RoadTurn4" parent="Buildings/Roads" instance=ExtResource("3_fdiwn")]
+transform = Transform3D(1.31134e-07, 0, -1, 0, 1, 0, 1, 0, 1.31134e-07, -10.6761, 0, -12.4491)
+
+[node name="RoadTurn3" parent="Buildings/Roads" instance=ExtResource("3_fdiwn")]
+transform = Transform3D(-1, 0, -8.74228e-08, 0, 1, 0, 8.74228e-08, 0, -1, 14.1152, 0, -12.6457)
+
+[node name="RoadTurn2" parent="Buildings/Roads" instance=ExtResource("3_fdiwn")]
+transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, 14.3226, 0, 12.1135)
+
+[node name="blockbench_export3" parent="Buildings/Roads" instance=ExtResource("4_lwlql")]
+transform = Transform3D(1.77645, 0, 0, 0, 1, 0, 0, 0, 1, -2.06484, -0.00712627, 15.0753)
+
+[node name="blockbench_export3" parent="Buildings/Roads/blockbench_export3" instance=ExtResource("4_lwlql")]
+transform = Transform3D(-6.27193e-08, 0, 1.05163, 0, 0.999999, 0, -1.43485, 0, -4.59684e-08, 11.5565, -0.00712627, -2.24552)
+
+[node name="House1" parent="Buildings" instance=ExtResource("2_lwlql")]
+transform = Transform3D(1.31134e-07, 0, 1, 0, 1, 0, -1, 0, 1.31134e-07, -16.1303, 0.333989, 8.74924)
+
+[node name="Store1" parent="Buildings" instance=ExtResource("3_2gvps")]
+transform = Transform3D(-3.43668, 0, 3.00444e-07, 0, 3.43668, 0, -3.00444e-07, 0, -3.43668, 1.25334, 0.0834189, 19.8)
+
+[node name="TeleportRaycast" parent="." instance=ExtResource("8_2gvps")]
+transform = Transform3D(1, 0, 0, 0, 4.74891, 0, 0, 0, 1, 1.28906, 0.333989, 16.3218)
+target_scene_path = "uid://dx85is8alaroo"
+prompt_text = "Enter Shop"
+
+[node name="CollisionShape3D" parent="TeleportRaycast" index="0"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.182129, 0, 0.272217)
+shape = SubResource("BoxShape3D_tx3ym")
+
+[node name="TeleportRaycast2" parent="." instance=ExtResource("8_2gvps")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.8283, 1.13178, 10.2496)
+target_scene_path = "uid://dds576pm6bnxr"
+prompt_text = "Enter Bar"
+
+[node name="CollisionShape3D" parent="TeleportRaycast2" index="0"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.435333, 0.210052, -0.0273132)
+shape = SubResource("BoxShape3D_4kqrw")
+
+[node name="Lavatownbar" parent="." instance=ExtResource("9_tx3ym")]
+transform = Transform3D(-6.82138e-08, 0, -1.56055, 0, 1.56055, 0, 1.56055, 0, -6.82138e-08, 22.3478, 0.113999, 14.3357)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_ws7y3")
+
+[editable path="TeleportRaycast"]
+[editable path="TeleportRaycast2"]

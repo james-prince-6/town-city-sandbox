@@ -1,0 +1,8 @@
+[gd_scene load_steps=2 format=3 uid="uid://sbccd4at7sdl"]
+
+[ext_resource type="Script" uid="uid://dm68qf0hx2ap" path="res://global/teleport area/teleport_raycast.gd" id="1_ltnp1"]
+
+[node name="TeleportRaycast" type="StaticBody3D"]
+script = ExtResource("1_ltnp1")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]

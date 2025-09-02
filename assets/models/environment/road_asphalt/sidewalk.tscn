@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3 uid="uid://bo3oq1ef0vvbi"]
+
+[ext_resource type="PackedScene" uid="uid://bn2d82ms7uuke" path="res://assets/models/environment/road_asphalt/sidewalk.gltf" id="1_xtxhd"]
+
+[sub_resource type="ConcavePolygonShape3D" id="ConcavePolygonShape3D_lu0f0"]
+data = PackedVector3Array(0.3125, 0.0625, -1.5, 0.3125, 0, 2.5, 0.3125, 0.0625, 2.5, 0.3125, 0.0625, -1.5, 0.3125, 0, -1.5, 0.3125, 0, 2.5, -0.6875, 0, 2.5, -0.6875, 0.0625, -1.5, -0.6875, 0.0625, 2.5, -0.6875, 0, 2.5, -0.6875, 0, -1.5, -0.6875, 0.0625, -1.5, -0.6875, 0.0625, 2.5, 0.3125, 0.0625, -1.5, 0.3125, 0.0625, 2.5, -0.6875, 0.0625, 2.5, -0.6875, 0.0625, -1.5, 0.3125, 0.0625, -1.5, 0.3125, 0, -1.5, -0.6875, 0, 2.5, 0.3125, 0, 2.5, 0.3125, 0, -1.5, -0.6875, 0, -1.5, -0.6875, 0, 2.5, 0.3125, 0, 2.5, -0.6875, 0.0625, 2.5, 0.3125, 0.0625, 2.5, 0.3125, 0, 2.5, -0.6875, 0, 2.5, -0.6875, 0.0625, 2.5, -0.6875, 0.0625, -1.5, 0.3125, 0, -1.5, 0.3125, 0.0625, -1.5, -0.6875, 0.0625, -1.5, -0.6875, 0, -1.5, 0.3125, 0, -1.5)
+
+[node name="Sidewalk" type="StaticBody3D"]
+
+[node name="blockbench_export" parent="." instance=ExtResource("1_xtxhd")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -1)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+shape = SubResource("ConcavePolygonShape3D_lu0f0")
+
+[editable path="blockbench_export"]

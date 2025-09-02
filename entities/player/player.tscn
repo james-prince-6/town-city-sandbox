@@ -1,0 +1,31 @@
+[gd_scene load_steps=5 format=3 uid="uid://cppmnlasls1hp"]
+
+[ext_resource type="Script" uid="uid://boq4ilcpva3qr" path="res://entities/player/player.gd" id="1_w7xyi"]
+[ext_resource type="PackedScene" uid="uid://bknv61y26kc3e" path="res://ui/dialog/dialogue_ui.tscn" id="2_1ic1w"]
+[ext_resource type="PackedScene" uid="uid://df40x646kfehy" path="res://ui/interactions/interaction_ui.tscn" id="3_ygwbr"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_wccpv"]
+height = 2.538
+
+[node name="Player" type="CharacterBody3D"]
+script = ExtResource("1_w7xyi")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(0.755789, 0, 0, 0, 0.755789, 0, 0, 0, 0.755789, 0.0468905, 0.765479, 0.00835347)
+shape = SubResource("CapsuleShape3D_wccpv")
+
+[node name="Head" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.000339866, 1.40264, 0.000978351)
+
+[node name="Camera3D" type="Camera3D" parent="Head"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.196151, 0)
+fov = 64.4169
+
+[node name="InteractionRayCast" type="RayCast3D" parent="Head/Camera3D"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00738168, 4.76837e-07, -0.0153739)
+target_position = Vector3(0, 0, -4)
+
+[node name="InteractionUI" parent="." instance=ExtResource("3_ygwbr")]
+
+[node name="DialogueUI" parent="." instance=ExtResource("2_1ic1w")]
+script = null
