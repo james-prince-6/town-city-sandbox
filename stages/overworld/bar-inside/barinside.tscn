@@ -33,171 +33,183 @@ size = Vector3(1.58781, 2.73505, 0.945374)
 
 [node name="BarInside" type="Node3D"]
 
-[node name="Furnature" type="Node3D" parent="."]
+[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+stretch_shrink = 3
 
-[node name="Node3D" parent="Furnature" instance=ExtResource("2_n2ar2")]
+[node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
+size = Vector2i(384, 216)
+
+[node name="Furnature" type="Node3D" parent="SubViewportContainer/SubViewport"]
+
+[node name="Node3D" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_n2ar2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.09366, 0.0406299, -6.04328)
 
-[node name="Node3D2" parent="Furnature" instance=ExtResource("2_n2ar2")]
+[node name="Node3D2" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_n2ar2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.286286, 0.0406308, -6.16978)
 
-[node name="Node3D3" parent="Furnature" instance=ExtResource("2_n2ar2")]
+[node name="Node3D3" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_n2ar2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.260097, 0.0406308, 4.61938)
 
-[node name="Node3D4" parent="Furnature" instance=ExtResource("2_n2ar2")]
+[node name="Node3D4" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_n2ar2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.79531, 0.0406303, -0.679631)
 
-[node name="Node3D5" parent="Furnature" instance=ExtResource("2_n2ar2")]
+[node name="Node3D5" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_n2ar2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.29846, 0.0406303, -0.298202)
 
-[node name="Node3D6" parent="Furnature" instance=ExtResource("2_n2ar2")]
+[node name="Node3D6" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_n2ar2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.79818, 0.0406303, 4.66049)
 
-[node name="blockbench_export" parent="Furnature" instance=ExtResource("2_vqqet")]
+[node name="blockbench_export" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_vqqet")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.71667, 0.0846842, 5.09917)
 
-[node name="blockbench_export2" parent="Furnature" instance=ExtResource("2_vqqet")]
+[node name="blockbench_export2" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_vqqet")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.81731, 0.0846842, 3.89951)
 
-[node name="blockbench_export3" parent="Furnature" instance=ExtResource("2_vqqet")]
+[node name="blockbench_export3" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_vqqet")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.65943, 0.0846842, 0.64418)
 
-[node name="blockbench_export4" parent="Furnature" instance=ExtResource("2_vqqet")]
+[node name="blockbench_export4" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_vqqet")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.65339, 0.0846842, -1.98679)
 
-[node name="blockbench_export5" parent="Furnature" instance=ExtResource("2_vqqet")]
+[node name="blockbench_export5" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_vqqet")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.907755, 0.0846842, 3.67758)
 
-[node name="blockbench_export6" parent="Furnature" instance=ExtResource("2_vqqet")]
+[node name="blockbench_export6" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_vqqet")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.868451, 0.0846842, 4.25444)
 
-[node name="blockbench_export7" parent="Furnature" instance=ExtResource("2_vqqet")]
+[node name="blockbench_export7" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_vqqet")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.42402, 0.0846842, -0.805537)
 
-[node name="blockbench_export8" parent="Furnature" instance=ExtResource("2_vqqet")]
+[node name="blockbench_export8" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_vqqet")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.403732, 0.0846842, 1.15567)
 
-[node name="blockbench_export9" parent="Furnature" instance=ExtResource("2_vqqet")]
+[node name="blockbench_export9" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_vqqet")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.00438, 0.0846842, -1.02208)
 
-[node name="blockbench_export10" parent="Furnature" instance=ExtResource("2_vqqet")]
+[node name="blockbench_export10" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_vqqet")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.834872, 0.0846842, -5.92869)
 
-[node name="blockbench_export11" parent="Furnature" instance=ExtResource("2_vqqet")]
+[node name="blockbench_export11" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_vqqet")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.2278, 0.0846832, -7.03871)
 
-[node name="blockbench_export12" parent="Furnature" instance=ExtResource("2_vqqet")]
+[node name="blockbench_export12" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_vqqet")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.45486, 0.0846842, -5.358)
 
-[node name="blockbench_export13" parent="Furnature" instance=ExtResource("2_vqqet")]
+[node name="blockbench_export13" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_vqqet")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.53393, 0.0846832, -5.54219)
 
-[node name="blockbench_export14" parent="Furnature" instance=ExtResource("2_vqqet")]
+[node name="blockbench_export14" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("2_vqqet")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.44982, 0.0846832, -7.70428)
 
-[node name="StaticBody3D2" parent="Furnature" instance=ExtResource("4_k0ej7")]
+[node name="StaticBody3D2" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("4_k0ej7")]
 transform = Transform3D(-4.36536e-08, 0, 0.998677, 0, 0.964422, 0, -0.998677, 0, -4.36536e-08, 6.47531, 0.0728192, -0.098599)
 
-[node name="Barback-variant" parent="Furnature" instance=ExtResource("5_qa774")]
+[node name="Barback-variant" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("5_qa774")]
 transform = Transform3D(-4.36536e-08, 0, 0.998677, 0, 0.964422, 0, -0.998677, 0, -4.36536e-08, 6.27635, 0.0763196, -4.89374)
 
-[node name="Barback-variant2" parent="Furnature" instance=ExtResource("5_qa774")]
+[node name="Barback-variant2" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("5_qa774")]
 transform = Transform3D(-4.36536e-08, 0, 0.998677, 0, 0.964422, 0, -0.998677, 0, -4.36536e-08, 6.28708, 0.0742955, 5.68726)
 
-[node name="Bartop2" parent="Furnature" instance=ExtResource("6_vg7rl")]
+[node name="Bartop2" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("6_vg7rl")]
 transform = Transform3D(-0.00285847, 0, 0.998673, 0, 0.964422, 0, -0.998673, 0, -0.00285847, 3.65404, -0.425065, -4.81386)
 
-[node name="Bartop" parent="Furnature" instance=ExtResource("6_vg7rl")]
+[node name="Bartop" parent="SubViewportContainer/SubViewport/Furnature" instance=ExtResource("6_vg7rl")]
 transform = Transform3D(0.00501986, 0, 0.998665, 0, 0.964422, 0, -0.998665, 0, 0.00501986, 3.65493, -0.431508, 0.277261)
 
-[node name="StaticBody3D" type="StaticBody3D" parent="."]
+[node name="StaticBody3D" type="StaticBody3D" parent="SubViewportContainer/SubViewport"]
 
-[node name="CSGBox3D2" type="CSGBox3D" parent="StaticBody3D"]
+[node name="CSGBox3D2" type="CSGBox3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0561, 3.03403, 0.137767)
 material_override = ExtResource("7_vvclf")
 size = Vector3(0.148315, 6.06067, 16.7702)
 
-[node name="CSGBakedCollisionShape3D2" type="CollisionShape3D" parent="StaticBody3D"]
+[node name="CSGBakedCollisionShape3D2" type="CollisionShape3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.0561, 3.03403, 0.137767)
 shape = SubResource("ConcavePolygonShape3D_n2ar2")
 
-[node name="CSGBox3D4" type="CSGBox3D" parent="StaticBody3D"]
+[node name="CSGBox3D4" type="CSGBox3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.01403, 3.03874, 0.275534)
 material_override = ExtResource("7_vvclf")
 size = Vector3(0.148315, 6.06067, 16.7702)
 
-[node name="CSGBakedCollisionShape3D3" type="CollisionShape3D" parent="StaticBody3D"]
+[node name="CSGBakedCollisionShape3D3" type="CollisionShape3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.01403, 3.03874, 0.275534)
 shape = SubResource("ConcavePolygonShape3D_vqqet")
 
-[node name="CSGBox3D3" type="CSGBox3D" parent="StaticBody3D"]
+[node name="CSGBox3D3" type="CSGBox3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -0.0676661, 3.09036, -8.22601)
 material_override = ExtResource("7_vvclf")
 size = Vector3(0.148315, 6.06067, 16.1911)
 
-[node name="CSGBakedCollisionShape3D4" type="CollisionShape3D" parent="StaticBody3D"]
+[node name="CSGBakedCollisionShape3D4" type="CollisionShape3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -0.0676661, 3.09036, -8.22601)
 shape = SubResource("ConcavePolygonShape3D_8rcal")
 
-[node name="CSGBox3D5" type="CSGBox3D" parent="StaticBody3D"]
+[node name="CSGBox3D5" type="CSGBox3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -0.163419, 3.03509, 8.55594)
 size = Vector3(0.148315, 6.06067, 16.4027)
 material = ExtResource("7_vvclf")
 
-[node name="CSGBakedCollisionShape3D5" type="CollisionShape3D" parent="StaticBody3D"]
+[node name="CSGBakedCollisionShape3D5" type="CollisionShape3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
 transform = Transform3D(-4.37114e-08, 0, 1, 0, 1, 0, -1, 0, -4.37114e-08, -0.269212, 3.03509, 8.55594)
 shape = SubResource("ConcavePolygonShape3D_sb2fk")
 
-[node name="CSGBox3D6" type="CSGBox3D" parent="StaticBody3D"]
+[node name="CSGBox3D6" type="CSGBox3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.13064, 1.3946, 8.53232)
 size = Vector3(1.64539, 2.54736, 0.236938)
 material = SubResource("StandardMaterial3D_vddkq")
 
-[node name="CSGBox3D" type="CSGBox3D" parent="StaticBody3D"]
+[node name="CSGBox3D" type="CSGBox3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0797424, -0.231445, 0.171326)
 size = Vector3(21.353, 0.537109, 17.7272)
 material = ExtResource("7_vddkq")
 
-[node name="CSGBakedCollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
+[node name="CSGBakedCollisionShape3D" type="CollisionShape3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0797424, -0.231445, 0.171326)
 shape = SubResource("ConcavePolygonShape3D_vvclf")
 
-[node name="Player" parent="." instance=ExtResource("1_bvt2h")]
+[node name="Player" parent="SubViewportContainer/SubViewport" instance=ExtResource("1_bvt2h")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.62436, 0, 7.04498)
 
-[node name="TeleportRaycast" parent="." instance=ExtResource("7_qa774")]
+[node name="TeleportRaycast" parent="SubViewportContainer/SubViewport" instance=ExtResource("7_qa774")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.55535, 0, 8.64852)
 target_scene_path = "uid://bv7qdcnca1g8j"
 prompt_text = "Leave"
 
-[node name="CollisionShape3D" parent="TeleportRaycast" index="0"]
+[node name="CollisionShape3D" parent="SubViewportContainer/SubViewport/TeleportRaycast" index="0"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.568195, 1.33014, 0.212264)
 shape = SubResource("BoxShape3D_vg7rl")
 
-[node name="lights" type="Node3D" parent="."]
+[node name="lights" type="Node3D" parent="SubViewportContainer/SubViewport"]
 
-[node name="OmniLight3D" type="OmniLight3D" parent="lights"]
+[node name="OmniLight3D" type="OmniLight3D" parent="SubViewportContainer/SubViewport/lights"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.813, 4.47042, -5.49009)
 light_color = Color(1, 0.998167, 0.89, 1)
 light_energy = 5.208
 omni_range = 118.88
 
-[node name="OmniLight3D" type="OmniLight3D" parent="lights/OmniLight3D"]
+[node name="OmniLight3D" type="OmniLight3D" parent="SubViewportContainer/SubViewport/lights/OmniLight3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10.071, -0.0846462, 0.60206)
 light_color = Color(1, 0.998167, 0.89, 1)
 light_energy = 5.208
 omni_range = 118.88
 
-[node name="OmniLight3D" type="OmniLight3D" parent="lights/OmniLight3D/OmniLight3D"]
+[node name="OmniLight3D" type="OmniLight3D" parent="SubViewportContainer/SubViewport/lights/OmniLight3D/OmniLight3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.84178, -1.61233, 9.12217)
 light_color = Color(1, 0.998167, 0.89, 1)
 light_energy = 5.208
 omni_range = 118.88
 
-[node name="OmniLight3D" type="OmniLight3D" parent="lights/OmniLight3D/OmniLight3D/OmniLight3D"]
+[node name="OmniLight3D" type="OmniLight3D" parent="SubViewportContainer/SubViewport/lights/OmniLight3D/OmniLight3D/OmniLight3D"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.813, -4.81764, -9.96855)
 light_color = Color(1, 0.998167, 0.89, 1)
 light_energy = 5.208
 omni_range = 118.88
 
-[editable path="TeleportRaycast"]
+[editable path="SubViewportContainer/SubViewport/TeleportRaycast"]

@@ -6,7 +6,7 @@
 [ext_resource type="Material" uid="uid://dbu6ru1ex2ha8" path="res://assets/materials/red.tres" id="4_j1ofn"]
 [ext_resource type="Material" uid="uid://cbksuoghwroi6" path="res://assets/materials/silver.tres" id="5_0vrtw"]
 [ext_resource type="Material" uid="uid://bb5gmec537dku" path="res://assets/materials/stone.tres" id="5_68k67"]
-[ext_resource type="Material" path="res://assets/materials/black.tres" id="5_mcjcy"]
+[ext_resource type="Material" uid="uid://bw8kdj4e3eeaj" path="res://assets/materials/black.tres" id="5_mcjcy"]
 [ext_resource type="PackedScene" uid="uid://cppmnlasls1hp" path="res://entities/player/player.tscn" id="7_lvbyt"]
 [ext_resource type="PackedScene" uid="uid://de3tlpggck1ls" path="res://assets/models/buildings/store1/store1.tscn" id="8_mmnxg"]
 [ext_resource type="PackedScene" uid="uid://bsjt2fb0qyexa" path="res://assets/models/buildings/house2/house2.gltf" id="8_mpy3c"]
@@ -114,11 +114,11 @@ camera_attributes = SubResource("CameraAttributesPractical_j1ofn")
 [node name="Player" parent="SubViewportContainer/SubViewport" instance=ExtResource("7_lvbyt")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.7697, 7.57264, 23.0585)
 
-[node name="Store1" parent="SubViewportContainer/SubViewport" instance=ExtResource("8_mmnxg")]
-transform = Transform3D(2.88031, 0, 1.59619, 0, 3.29302, 0, -1.59619, 0, 2.88031, -5.09624, 3.6949, 21.6879)
-
 [node name="Lavatownbar" parent="SubViewportContainer/SubViewport" instance=ExtResource("9_sdima")]
 transform = Transform3D(1.5078, 0, 0.402321, 0, 1.56055, 0, -0.402321, 0, 1.5078, 23.4289, 3.87152, 7.59555)
+
+[node name="Store1" parent="SubViewportContainer/SubViewport" instance=ExtResource("8_mmnxg")]
+transform = Transform3D(2.88031, 0, 1.59619, 0, 3.29302, 0, -1.59619, 0, 2.88031, -5.09624, 3.6949, 21.6879)
 
 [node name="House1" parent="SubViewportContainer/SubViewport" instance=ExtResource("10_mpy3c")]
 transform = Transform3D(-0.983794, 0, 0.1793, 0, 1, 0, -0.1793, 0, -0.983794, -46.9681, 3.91774, 54.6299)
