@@ -167,7 +167,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.62436, 0, 7.04498)
 
 [node name="TeleportRaycast" parent="." instance=ExtResource("7_qa774")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.55535, 0, 8.64852)
-target_scene_path = "uid://cv2bwoenjqc7o"
+target_scene_path = "uid://bv7qdcnca1g8j"
 prompt_text = "Leave"
 
 [node name="CollisionShape3D" parent="TeleportRaycast" index="0"]

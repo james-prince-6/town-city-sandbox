@@ -1,0 +1,136 @@
+[gd_scene load_steps=19 format=3 uid="uid://bv7qdcnca1g8j"]
+
+[ext_resource type="PackedScene" uid="uid://b0c25drihcv2o" path="res://stages/overworld/town/art/town_square.blend" id="1_8vld4"]
+[ext_resource type="Material" uid="uid://hu3ougxrf61j" path="res://assets/materials/grass_material.tres" id="2_0vrtw"]
+[ext_resource type="Material" uid="uid://d3wsl3w2mr8ch" path="res://assets/materials/light_blue.tres" id="3_lvbyt"]
+[ext_resource type="Material" uid="uid://dbu6ru1ex2ha8" path="res://assets/materials/red.tres" id="4_j1ofn"]
+[ext_resource type="Material" uid="uid://cbksuoghwroi6" path="res://assets/materials/silver.tres" id="5_0vrtw"]
+[ext_resource type="Material" uid="uid://bb5gmec537dku" path="res://assets/materials/stone.tres" id="5_68k67"]
+[ext_resource type="Material" path="res://assets/materials/black.tres" id="5_mcjcy"]
+[ext_resource type="PackedScene" uid="uid://cppmnlasls1hp" path="res://entities/player/player.tscn" id="7_lvbyt"]
+[ext_resource type="PackedScene" uid="uid://de3tlpggck1ls" path="res://assets/models/buildings/store1/store1.tscn" id="8_mmnxg"]
+[ext_resource type="PackedScene" uid="uid://bsjt2fb0qyexa" path="res://assets/models/buildings/house2/house2.gltf" id="8_mpy3c"]
+[ext_resource type="PackedScene" uid="uid://caxk4h520ic4c" path="res://assets/models/environment/volcano/volcano.gltf" id="9_g2ccf"]
+[ext_resource type="PackedScene" uid="uid://ct4ux6dspw2tb" path="res://assets/models/buildings/lavatownbar/lavatownbar.tscn" id="9_sdima"]
+[ext_resource type="PackedScene" uid="uid://cp0qa6qc83cay" path="res://assets/models/buildings/house1/house1.tscn" id="10_mpy3c"]
+[ext_resource type="PackedScene" uid="uid://sbccd4at7sdl" path="res://global/teleport area/teleport_raycast.tscn" id="11_sdima"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_sdima"]
+size = Vector3(1.55286, 2.79541, 0.368164)
+
+[sub_resource type="Environment" id="Environment_lvbyt"]
+background_mode = 1
+background_color = Color(0.519345, 0.875629, 1, 1)
+
+[sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_j1ofn"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_mpy3c"]
+size = Vector3(1.61902, 2.46057, 0.342285)
+
+[node name="Town" type="Node3D"]
+
+[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+stretch = true
+stretch_shrink = 3
+
+[node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
+handle_input_locally = false
+size = Vector2i(384, 216)
+render_target_update_mode = 4
+
+[node name="town_square" parent="SubViewportContainer/SubViewport" instance=ExtResource("1_8vld4")]
+
+[node name="ground" parent="SubViewportContainer/SubViewport/town_square" index="0"]
+material_override = ExtResource("2_0vrtw")
+
+[node name="water" parent="SubViewportContainer/SubViewport/town_square" index="1"]
+material_override = ExtResource("3_lvbyt")
+
+[node name="Lava" parent="SubViewportContainer/SubViewport/town_square" index="2"]
+material_override = ExtResource("4_j1ofn")
+
+[node name="Cube" parent="SubViewportContainer/SubViewport/town_square" index="3"]
+material_override = ExtResource("5_mcjcy")
+
+[node name="Cylinder" parent="SubViewportContainer/SubViewport/town_square" index="4"]
+material_override = ExtResource("5_0vrtw")
+
+[node name="Cube_001" parent="SubViewportContainer/SubViewport/town_square" index="5"]
+material_override = ExtResource("5_68k67")
+
+[node name="Cube_002" parent="SubViewportContainer/SubViewport/town_square" index="6"]
+material_override = ExtResource("5_68k67")
+
+[node name="Cube_003" parent="SubViewportContainer/SubViewport/town_square" index="7"]
+material_override = ExtResource("5_68k67")
+
+[node name="Torus_001" parent="SubViewportContainer/SubViewport/town_square" index="8"]
+material_override = ExtResource("5_68k67")
+
+[node name="Road 1" parent="SubViewportContainer/SubViewport/town_square" index="9"]
+material_override = ExtResource("5_68k67")
+
+[node name="Road 2" parent="SubViewportContainer/SubViewport/town_square" index="10"]
+material_override = ExtResource("5_68k67")
+
+[node name="Road 3" parent="SubViewportContainer/SubViewport/town_square" index="11"]
+material_override = ExtResource("5_68k67")
+
+[node name="Road 4" parent="SubViewportContainer/SubViewport/town_square" index="12"]
+material_override = ExtResource("5_68k67")
+
+[node name="Road 5" parent="SubViewportContainer/SubViewport/town_square" index="13"]
+material_override = ExtResource("5_68k67")
+
+[node name="Road 6" parent="SubViewportContainer/SubViewport/town_square" index="14"]
+material_override = ExtResource("5_68k67")
+
+[node name="Road 7" parent="SubViewportContainer/SubViewport/town_square" index="15"]
+material_override = ExtResource("5_68k67")
+
+[node name="TeleportRaycast" parent="SubViewportContainer/SubViewport/town_square" instance=ExtResource("11_sdima")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.5449, 3.96417, 10.1084)
+target_scene_path = "uid://dds576pm6bnxr"
+
+[node name="CollisionShape3D" parent="SubViewportContainer/SubViewport/town_square/TeleportRaycast" index="0"]
+transform = Transform3D(0.957107, 0, 0.289733, 0, 1, 0, -0.289733, 0, 0.957107, -0.759804, 0.897705, -0.425778)
+shape = SubResource("BoxShape3D_sdima")
+
+[node name="blockbench_export" parent="SubViewportContainer/SubViewport/town_square" instance=ExtResource("8_mpy3c")]
+transform = Transform3D(-1.62009, 0, 0.0408105, 0, 1.6206, 0, -0.0408105, 0, -1.62009, -45.3118, 3.66986, 43.4029)
+
+[node name="blockbench_export2" parent="SubViewportContainer/SubViewport/town_square" instance=ExtResource("9_g2ccf")]
+transform = Transform3D(-5.1034, 0, 40.0602, 0, 40.3839, 0, -40.0602, 0, -5.1034, 10.3861, 13.2584, -162.073)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="SubViewportContainer/SubViewport"]
+environment = SubResource("Environment_lvbyt")
+camera_attributes = SubResource("CameraAttributesPractical_j1ofn")
+
+[node name="Player" parent="SubViewportContainer/SubViewport" instance=ExtResource("7_lvbyt")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -19.7697, 7.57264, 23.0585)
+
+[node name="Store1" parent="SubViewportContainer/SubViewport" instance=ExtResource("8_mmnxg")]
+transform = Transform3D(2.88031, 0, 1.59619, 0, 3.29302, 0, -1.59619, 0, 2.88031, -5.09624, 3.6949, 21.6879)
+
+[node name="Lavatownbar" parent="SubViewportContainer/SubViewport" instance=ExtResource("9_sdima")]
+transform = Transform3D(1.5078, 0, 0.402321, 0, 1.56055, 0, -0.402321, 0, 1.5078, 23.4289, 3.87152, 7.59555)
+
+[node name="House1" parent="SubViewportContainer/SubViewport" instance=ExtResource("10_mpy3c")]
+transform = Transform3D(-0.983794, 0, 0.1793, 0, 1, 0, -0.1793, 0, -0.983794, -46.9681, 3.91774, 54.6299)
+
+[node name="TeleportRaycast" parent="SubViewportContainer/SubViewport" instance=ExtResource("11_sdima")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.7308, 4.3385, 25.8251)
+target_scene_path = "uid://j48m2xdhvh8f"
+
+[node name="CollisionShape3D" parent="SubViewportContainer/SubViewport/TeleportRaycast" index="0"]
+transform = Transform3D(0.860066, 0, 0.510183, 0, 1, 0, -0.510183, 0, 0.860066, -0.551692, 0.715637, -1.19105)
+shape = SubResource("BoxShape3D_mpy3c")
+
+[editable path="SubViewportContainer/SubViewport/town_square"]
+[editable path="SubViewportContainer/SubViewport/town_square/TeleportRaycast"]
+[editable path="SubViewportContainer/SubViewport/TeleportRaycast"]

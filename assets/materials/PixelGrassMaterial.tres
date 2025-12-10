@@ -1,0 +1,17 @@
+[gd_resource type="ShaderMaterial" load_steps=3 format=3 uid="uid://41spvm4n5d35"]
+
+[ext_resource type="Shader" uid="uid://dlmp1nloxp4ue" path="res://assets/shaders/pixel_grass_shader.gdshader" id="1_k2jlg"]
+[ext_resource type="Texture2D" uid="uid://dyvsav7pac3se" path="res://assets/textures/grass_blade.png" id="2_k2jlg"]
+
+[resource]
+render_priority = 0
+shader = ExtResource("1_k2jlg")
+shader_parameter/albedo = Color(0.603922, 0.94902, 0.364706, 1)
+shader_parameter/texture_albedo = ExtResource("2_k2jlg")
+shader_parameter/alpha_scissor_threshold = 0.5
+shader_parameter/albedo_texture_size = Vector2i(8, 8)
+shader_parameter/point_size = 1.0
+shader_parameter/uv1_scale = Vector3(1, 1, 1)
+shader_parameter/uv1_offset = Vector3(0, 0, 0)
+shader_parameter/uv2_scale = Vector3(1, 1, 1)
+shader_parameter/uv2_offset = Vector3(0, 0, 0)
