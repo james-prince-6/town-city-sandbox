@@ -49,7 +49,9 @@ stretch = true
 stretch_shrink = 3
 
 [node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
+handle_input_locally = false
 size = Vector2i(384, 216)
+render_target_update_mode = 4
 
 [node name="StaticBody3D" type="StaticBody3D" parent="SubViewportContainer/SubViewport"]
 transform = Transform3D(0.699207, 0, 0, 0, 0.699207, 0, 0, 0, 0.699207, 0, 0, 0)
