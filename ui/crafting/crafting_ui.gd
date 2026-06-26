@@ -198,6 +198,8 @@ func _build_ui() -> void:
 	left.add_child(left_title)
 	var left_scroll := ScrollContainer.new()
 	left_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	# Recipes scroll vertically only — no stray horizontal scrollbar from row padding.
+	left_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	left.add_child(left_scroll)
 	_recipe_list = VBoxContainer.new()
 	_recipe_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -251,6 +253,7 @@ func _build_ui() -> void:
 	right.add_child(right_title)
 	var inv_scroll := ScrollContainer.new()
 	inv_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	inv_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	right.add_child(inv_scroll)
 	_inv_grid = GridContainer.new()
 	_inv_grid.columns = 1

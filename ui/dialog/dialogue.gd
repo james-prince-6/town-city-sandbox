@@ -177,7 +177,8 @@ func _kill_cam_tween() -> void:
 	_cam_tween = null
 
 
-# An over-the-shoulder framing: just beside the player's head, looking at the NPC's head.
+# An over-the-shoulder framing: beside the player's head, aimed LOW on the NPC so the NPC sits
+# in the upper part of the frame — clear of the dialogue box that fills the bottom of the screen.
 func _frame_transform(player: Node3D, speaker: Node3D) -> Transform3D:
 	var npc_head: Vector3 = speaker.global_position + Vector3.UP * 1.5
 	var player_head: Vector3 = player.global_position + Vector3.UP * 1.6
@@ -187,6 +188,9 @@ func _frame_transform(player: Node3D, speaker: Node3D) -> Transform3D:
 		to_npc = -player.global_transform.basis.z
 	to_npc = to_npc.normalized()
 	var right: Vector3 = to_npc.cross(Vector3.UP).normalized()
-	var cam_pos: Vector3 = player_head - to_npc * 0.2 + right * 0.7 + Vector3.UP * 0.05
+	# Sit a touch higher and look at the NPC's torso (not their head): the downward tilt pushes
+	# the NPC up the screen so the bottom dialogue box no longer covers their face.
+	var cam_pos: Vector3 = player_head - to_npc * 0.2 + right * 0.7 + Vector3.UP * 0.25
+	var aim: Vector3 = speaker.global_position + Vector3.UP * 0.85
 	var xform := Transform3D(Basis(), cam_pos)
-	return xform.looking_at(npc_head, Vector3.UP)
+	return xform.looking_at(aim, Vector3.UP)

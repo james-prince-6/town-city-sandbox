@@ -41,6 +41,7 @@ horizontal_alignment = 1
 
 [node name="Columns" type="HBoxContainer" parent="Panel/Margin/VBox"]
 layout_mode = 2
+size_flags_vertical = 3
 theme_override_constants/separation = 16
 
 [node name="BuyColumn" type="VBoxContainer" parent="Panel/Margin/VBox/Columns"]
@@ -53,8 +54,15 @@ layout_mode = 2
 text = "Buy"
 horizontal_alignment = 1
 
-[node name="BuyRows" type="VBoxContainer" parent="Panel/Margin/VBox/Columns/BuyColumn"]
+[node name="BuyScroll" type="ScrollContainer" parent="Panel/Margin/VBox/Columns/BuyColumn"]
+custom_minimum_size = Vector2(0, 300)
 layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="BuyRows" type="VBoxContainer" parent="Panel/Margin/VBox/Columns/BuyColumn/BuyScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 8
 
 [node name="SellColumn" type="VBoxContainer" parent="Panel/Margin/VBox/Columns"]
@@ -67,6 +75,13 @@ layout_mode = 2
 text = "Sell"
 horizontal_alignment = 1
 
-[node name="SellRows" type="VBoxContainer" parent="Panel/Margin/VBox/Columns/SellColumn"]
+[node name="SellScroll" type="ScrollContainer" parent="Panel/Margin/VBox/Columns/SellColumn"]
+custom_minimum_size = Vector2(0, 300)
 layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="SellRows" type="VBoxContainer" parent="Panel/Margin/VBox/Columns/SellColumn/SellScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 8

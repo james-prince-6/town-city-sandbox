@@ -28,8 +28,8 @@ signal closed
 
 @onready var title: Label = $Panel/Margin/VBox/Title
 @onready var money_label: Label = $Panel/Margin/VBox/Money
-@onready var buy_rows: VBoxContainer = $Panel/Margin/VBox/Columns/BuyColumn/BuyRows
-@onready var sell_rows: VBoxContainer = $Panel/Margin/VBox/Columns/SellColumn/SellRows
+@onready var buy_rows: VBoxContainer = $Panel/Margin/VBox/Columns/BuyColumn/BuyScroll/BuyRows
+@onready var sell_rows: VBoxContainer = $Panel/Margin/VBox/Columns/SellColumn/SellScroll/SellRows
 
 var is_open: bool = false
 
