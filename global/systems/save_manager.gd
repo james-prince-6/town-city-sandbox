@@ -24,6 +24,9 @@ const SAVE_DIR := "user://saves/"
 ## (e.g. an old save points at a scene that was since moved/deleted). Never leaves the
 ## player staring at a blank screen. Matches MainMenu's FIRST_SCENE.
 const FALLBACK_SCENE := "res://stages/overworld/town_template.tscn"
+## Spawn marker the player lands on when a dungeon save returns them to the overworld (mirrors
+## death-in-dungeon, which uses the same town "from_dungeon" marker).
+const DUNGEON_RETURN_SPAWN: StringName = &"from_dungeon"
 
 signal saved(slot: int)
 signal loaded(slot: int)
@@ -163,6 +166,14 @@ func _restore_location(loc: Dictionary) -> void:
 			push_warning("SaveManager: saved scene '%s' is missing; loading fallback '%s'." % [scene_path, FALLBACK_SCENE])
 		_pending_player_transform = null
 		SceneManager.change_scene(FALLBACK_SCENE)
+		return
+	# A save made INSIDE a procedural dungeon returns the player to the overworld on load,
+	# mirroring death-in-dungeon. The dungeon would regenerate a different floor 1 and the saved
+	# coords could embed the player in a freshly-built wall, so we DON'T restore the transform —
+	# the town's "from_dungeon" marker places them. (Detected by path, like death_screen.)
+	if scene_path.to_lower().contains("dungeon"):
+		_pending_player_transform = null
+		SceneManager.change_scene(FALLBACK_SCENE, DUNGEON_RETURN_SPAWN)
 		return
 	_pending_player_transform = loc.get("player_transform", null)
 	# Let SceneManager swap the scene, then drop the player back on their spot
