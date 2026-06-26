@@ -266,7 +266,7 @@ func _build_ui() -> void:
 
 	_name_label = Label.new()
 	_name_label.add_theme_font_size_override("font_size", 22)
-	_name_label.add_theme_color_override("font_color", Color(1.0, 0.86, 0.5))
+	_name_label.add_theme_color_override("font_color", Color(0.42, 0.28, 0.04))
 	vbox.add_child(_name_label)
 
 	_text_label = DialogueLabel.new()
@@ -297,7 +297,7 @@ func _build_ui() -> void:
 	_hint_label = Label.new()
 	_hint_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	_hint_label.add_theme_font_size_override("font_size", 13)
-	_hint_label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 0.45))
+	_hint_label.add_theme_color_override("font_color", Color(0.12, 0.12, 0.15, 0.7))
 	vbox.add_child(_hint_label)
 
 	_blip_player = AudioStreamPlayer.new()

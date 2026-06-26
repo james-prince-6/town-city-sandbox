@@ -181,6 +181,10 @@ func _build_ui() -> void:
 	title.text = "Town City"
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title.add_theme_font_size_override("font_size", 72)
+	# This title screen has a dark backdrop (no game behind to frost), so the title overrides the
+	# project theme's dark text back to light, with a darker outline for punch.
+	title.add_theme_color_override("font_color", Color(0.95, 0.96, 0.99))
+	title.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.5))
 	vbox.add_child(title)
 
 	# A little breathing room between the title and the buttons.

@@ -29,8 +29,10 @@ const FADE_SECONDS: float = 0.8
 ## Cap on how many toasts are shown at once; the oldest is dropped past this so a flood
 ## of pickups can't run off the screen.
 const MAX_TOASTS: int = 5
-## Gold tint used for level-up toasts, to set them apart from plain white item toasts.
-const LEVEL_UP_COLOR: Color = Color(1.0, 0.84, 0.2)
+## Dark default text for toasts so they read on the light frosted-glass backing.
+const TOAST_COLOR: Color = Color(0.09, 0.1, 0.13)
+## Deep amber for level-up toasts — sets them apart while staying legible on the glass.
+const LEVEL_UP_COLOR: Color = Color(0.5, 0.36, 0.0)
 
 # The column the toasts live in, pinned to the top-right. Built once in _ready().
 var _stack: VBoxContainer
@@ -48,7 +50,7 @@ func _ready() -> void:
 
 ## Pop a toast reading `text` in `color`. The single entry point — both the signal
 ## handlers below and any future caller go through here. Auto-fades and frees itself.
-func notify(text: String, color: Color = Color.WHITE) -> void:
+func notify(text: String, color: Color = TOAST_COLOR) -> void:
 	var toast := _make_toast(text, color)
 	# Newest on top: insert at index 0 so the freshest message sits nearest the corner.
 	_stack.add_child(toast)
