@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="RangedWeaponItem" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="RangedWeaponItem" load_steps=4 format=3]
 
 ; A heavy crossbow: slow to cycle but hits hard and its bolts punch through enemies.
 [ext_resource type="Script" path="res://entities/items/weapons/ranged_weapon_item.gd" id="1_ranged"]
 [ext_resource type="PackedScene" uid="uid://b7crossbolt0aa" path="res://entities/items/weapons/crossbow_bolt.tscn" id="2_bolt"]
+[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/kaykit_weapons/crossbow_2handed.gltf" id="3_model"]
 
 [resource]
 script = ExtResource("1_ranged")
@@ -19,3 +20,6 @@ cooldown = 1.1
 stamina_cost = 0.0
 projectile_scene = ExtResource("2_bolt")
 knockback = 4.0
+world_model = ExtResource("3_model")
+held_scale = 1.3
+held_rotation_offset = Vector3(-90, 0, 0)

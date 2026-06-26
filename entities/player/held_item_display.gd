@@ -28,6 +28,10 @@ extends Node3D
 
 var _current: Node3D
 var _swing_tween: Tween
+# The current item's resting pose (base pose + the item's per-item offsets), so the swing
+# animation returns to the right spot for each weapon.
+var _rest_position: Vector3
+var _rest_rotation: Vector3
 
 func _ready() -> void:
 	# Re-show whenever the selection, the hotbar contents, or the held stack changes.
@@ -62,8 +66,13 @@ func _refresh() -> void:
 
 	add_child(model)
 	_normalize(model)
-	model.position = held_position
-	model.rotation_degrees = held_rotation_degrees
+	# Per-item size + pose so each weapon reads differently in hand (big two-handers, small
+	# daggers, sideways bows...). _normalize sets a base size; held_scale fine-tunes from there.
+	model.scale *= item.held_scale
+	_rest_position = held_position + item.held_position_offset
+	_rest_rotation = held_rotation_degrees + item.held_rotation_offset
+	model.position = _rest_position
+	model.rotation_degrees = _rest_rotation
 	_current = model
 
 # Build a small neutral block to stand in for an item with no world_model.
@@ -90,36 +99,37 @@ func _normalize(model: Node3D) -> void:
 func _on_item_used(item) -> void:
 	if not is_instance_valid(_current):
 		return
-	var is_melee := item is MeleeWeaponItem
-	var is_ranged := item is RangedWeaponItem
+	# Melee = a MeleeWeaponItem OR a ToolItem whose job is WEAPON (swords/axes/clubs are tools).
+	var is_melee: bool = item is MeleeWeaponItem or (item is ToolItem and (item as ToolItem).tool_type == ToolItem.ToolType.WEAPON)
+	var is_ranged: bool = item is RangedWeaponItem
 	if not (is_melee or is_ranged):
 		return
 
 	if _swing_tween and _swing_tween.is_valid():
 		_swing_tween.kill()
 	# Snap back to rest first so rapid clicks each start from the same pose.
-	_current.position = held_position
-	_current.rotation_degrees = held_rotation_degrees
+	_current.position = _rest_position
+	_current.rotation_degrees = _rest_rotation
 
 	_swing_tween = create_tween()
 	if is_ranged:
 		# Short recoil toward the camera, then settle.
-		_swing_tween.tween_property(_current, "position", held_position + Vector3(0.0, 0.02, 0.12), 0.05)
-		_swing_tween.tween_property(_current, "position", held_position, 0.12)
+		_swing_tween.tween_property(_current, "position", _rest_position + Vector3(0.0, 0.02, 0.12), 0.05)
+		_swing_tween.tween_property(_current, "position", _rest_position, 0.12)
 	else:
 		# A proper slash: a quick wind-up up-and-back, then a diagonal strike down across
 		# the body, then ease back to rest. The wind-up is what makes it read as a forward
 		# swing rather than looking like it plays in reverse.
-		var windup_rot := held_rotation_degrees + Vector3(28.0, 0.0, 35.0)
-		var windup_pos := held_position + Vector3(0.07, 0.06, 0.07)
-		var strike_rot := held_rotation_degrees + Vector3(-45.0, 0.0, -55.0)
-		var strike_pos := held_position + Vector3(-0.09, -0.07, -0.2)
+		var windup_rot := _rest_rotation + Vector3(28.0, 0.0, 35.0)
+		var windup_pos := _rest_position + Vector3(0.07, 0.06, 0.07)
+		var strike_rot := _rest_rotation + Vector3(-45.0, 0.0, -55.0)
+		var strike_pos := _rest_position + Vector3(-0.09, -0.07, -0.2)
 		_swing_tween.tween_property(_current, "rotation_degrees", windup_rot, 0.06)
 		_swing_tween.parallel().tween_property(_current, "position", windup_pos, 0.06)
 		_swing_tween.tween_property(_current, "rotation_degrees", strike_rot, 0.07)
 		_swing_tween.parallel().tween_property(_current, "position", strike_pos, 0.07)
-		_swing_tween.tween_property(_current, "rotation_degrees", held_rotation_degrees, 0.16)
-		_swing_tween.parallel().tween_property(_current, "position", held_position, 0.16)
+		_swing_tween.tween_property(_current, "rotation_degrees", _rest_rotation, 0.16)
+		_swing_tween.parallel().tween_property(_current, "position", _rest_position, 0.16)
 
 # --- geometry helpers (mirror enemy_animator.gd) ---------------------------
 

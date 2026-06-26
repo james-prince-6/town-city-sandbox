@@ -1,8 +1,9 @@
-[gd_resource type="Resource" script_class="RangedWeaponItem" load_steps=3 format=3]
+[gd_resource type="Resource" script_class="RangedWeaponItem" load_steps=4 format=3]
 
 ; Flame wand: lobs slow fireballs that burst into a small FIRE AoE. Costs mana.
 [ext_resource type="Script" path="res://entities/items/weapons/ranged_weapon_item.gd" id="1_ranged"]
 [ext_resource type="PackedScene" uid="uid://b7fireball0aaa" path="res://entities/items/weapons/fireball.tscn" id="2_fireball"]
+[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/kaykit_weapons/wand.gltf" id="3_model"]
 
 [resource]
 script = ExtResource("1_ranged")
@@ -20,3 +21,6 @@ stamina_cost = 0.0
 mana_cost = 18.0
 projectile_scene = ExtResource("2_fireball")
 knockback = 2.0
+world_model = ExtResource("3_model")
+held_scale = 0.85
+held_rotation_offset = Vector3(-60, 0, 0)

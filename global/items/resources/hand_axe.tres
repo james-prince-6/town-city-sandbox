@@ -1,20 +1,20 @@
 [gd_resource type="Resource" script_class="ToolItem" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://entities/items/tool_item.gd" id="1_tool"]
-[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/kaykit_weapons/sword_1handed.gltf" id="2_model"]
+[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/kaykit_weapons/axe_1handed.gltf" id="2_model"]
 
 [resource]
 script = ExtResource("1_tool")
-id = &"iron_sword"
-display_name = "Iron Sword"
-description = "A proper blade. Far more convincing than a wooden club."
+id = &"hand_axe"
+display_name = "Hand Axe"
+description = "A light one-handed war-axe. Quicker than a battle axe and bites harder than a hatchet."
 category = 2
 max_stack = 1
-base_value = 40
+base_value = 45
 tool_type = 3
 power = 1
 stamina_cost = 12.0
-damage = 18.0
+damage = 16.0
 world_model = ExtResource("2_model")
 held_scale = 1.0
 held_rotation_offset = Vector3(-60, 0, 0)

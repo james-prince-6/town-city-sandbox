@@ -1,20 +1,20 @@
 [gd_resource type="Resource" script_class="ToolItem" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://entities/items/tool_item.gd" id="1_tool"]
-[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/kaykit_tools/saw.gltf" id="2_model"]
+[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/kaykit_tools/lantern.gltf" id="2_model"]
 
 [resource]
 script = ExtResource("1_tool")
-id = &"saw"
-display_name = "Hand Saw"
-description = "A toothed saw for cutting timber more cleanly than a hatchet."
+id = &"lantern"
+display_name = "Lantern"
+description = "A hooded oil lantern that throws a steady glow. Hold it high to light dark caverns and find your way home."
 category = 2
 max_stack = 1
 base_value = 20
-tool_type = 1
-power = 2
-stamina_cost = 9.0
-damage = 6.0
+tool_type = 4
+power = 1
+stamina_cost = 0.0
+damage = 0.0
 world_model = ExtResource("2_model")
 held_scale = 0.9
 held_rotation_offset = Vector3(0, 0, 0)

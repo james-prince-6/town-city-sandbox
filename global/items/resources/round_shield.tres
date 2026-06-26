@@ -17,3 +17,5 @@ stamina_cost = 6.0
 damage = 4.0
 block_modifier = 0.35
 world_model = ExtResource("2_model")
+held_scale = 1.2
+held_rotation_offset = Vector3(-15, 0, 0)

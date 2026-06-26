@@ -1,20 +1,20 @@
 [gd_resource type="Resource" script_class="ToolItem" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://entities/items/tool_item.gd" id="1_tool"]
-[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/kaykit_tools/torch.gltf" id="2_model"]
+[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/kaykit_tools/knife.gltf" id="2_model"]
 
 [resource]
 script = ExtResource("1_tool")
-id = &"torch"
-display_name = "Torch"
-description = "A pitch-soaked torch. Lights the way, and a burning brand still stings in a pinch."
+id = &"knife"
+display_name = "Skinning Knife"
+description = "A small, keen blade for skinning critters and slicing through cordage. Light enough to swing in a scrape."
 category = 2
 max_stack = 1
-base_value = 8
+base_value = 10
 tool_type = 3
 power = 1
 stamina_cost = 4.0
-damage = 5.0
+damage = 7.0
 world_model = ExtResource("2_model")
-held_scale = 0.9
+held_scale = 0.8
 held_rotation_offset = Vector3(0, 0, 0)

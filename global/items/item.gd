@@ -51,6 +51,16 @@ enum Category {
 ## drop into this slot. Leave empty to fall back to a small placeholder cube.
 @export var world_model: PackedScene
 
+@export_group("Held viewmodel")
+## Multiplier on the in-hand size. The viewmodel normalises every model to one base size, then
+## applies this — so a greatsword (e.g. 1.5) reads bigger than a dagger (e.g. 0.7) in hand.
+@export var held_scale: float = 1.0
+## Extra rotation (degrees) for this item's in-hand model, on top of the viewmodel's base pose.
+## Tune per weapon so blades point forward, bows sit sideways, staves stand upright, etc.
+@export var held_rotation_offset: Vector3 = Vector3.ZERO
+## Extra position offset (metres) for this item's in-hand model, on top of the base rest pose.
+@export var held_position_offset: Vector3 = Vector3.ZERO
+
 ## How well this item can BLOCK incoming melee/ranged damage while held (hold the
 ## block button). 0 = cannot block at all (most items). When > 0 it is the STAMINA
 ## cost per 1 point of damage blocked, so a hit is only fully blocked while you have
