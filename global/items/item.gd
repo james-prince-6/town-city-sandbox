@@ -55,8 +55,17 @@ enum Category {
 ## Multiplier on the in-hand size. The viewmodel normalises every model to one base size, then
 ## applies this — so a greatsword (e.g. 1.5) reads bigger than a dagger (e.g. 0.7) in hand.
 @export var held_scale: float = 1.0
-## Extra rotation (degrees) for this item's in-hand model, on top of the viewmodel's base pose.
-## Tune per weapon so blades point forward, bows sit sideways, staves stand upright, etc.
+## When true (default), the viewmodel ORIENTS this item automatically: it finds the model's
+## long axis (blade/shaft), points the business end up-and-forward, and rests the grip in the
+## hand — no per-weapon rotation tuning needed. Auto only kicks in for clearly elongated models
+## (swords/axes/daggers/staves/wands); chunky models (pickaxe, lantern) fall back to the manual
+## base pose. Set false for items whose grip is NOT at one end (bows, crossbows, shields) so they
+## keep their hand-authored held_rotation_offset instead.
+@export var auto_orient_held: bool = true
+## Extra rotation (degrees) for this item's in-hand model. With auto-orient ON this is a small
+## fine-tune NUDGE applied in the model's own local axes after auto-orientation (usually leave at
+## zero). With auto-orient OFF it is added to the viewmodel's base pose, the classic manual knob.
+## Tune so blades point forward, bows sit sideways, staves stand upright, etc.
 @export var held_rotation_offset: Vector3 = Vector3.ZERO
 ## Extra position offset (metres) for this item's in-hand model, on top of the base rest pose.
 @export var held_position_offset: Vector3 = Vector3.ZERO

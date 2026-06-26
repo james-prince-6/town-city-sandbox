@@ -23,4 +23,3 @@ projectile_scene = ExtResource("2_shard")
 knockback = 1.0
 world_model = ExtResource("3_model")
 held_scale = 0.85
-held_rotation_offset = Vector3(-60, 0, 0)

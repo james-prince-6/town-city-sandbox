@@ -23,8 +23,17 @@ extends Node3D
 @export var held_position: Vector3 = Vector3(0.32, -0.28, -0.55)
 ## The held model is scaled so its LONGEST dimension equals this (metres).
 @export var held_size: float = 0.45
-## Orientation tweak so models face the player sensibly.
+## Orientation tweak so models face the player sensibly. Used as the BASE pose for items that
+## opt out of auto-orient (auto_orient_held = false) — bows, shields, chunky tools.
 @export var held_rotation_degrees: Vector3 = Vector3(0.0, 180.0, 0.0)
+## Auto-orient aim: the direction (in this node's local frame, -Z forward / +Y up) that an
+## auto-oriented weapon's business end points toward. Up-and-forward reads as "held ready".
+## This is the SINGLE knob to retune the look of every auto-oriented weapon at once.
+const HELD_AIM: Vector3 = Vector3(0.0, 0.6, -0.8)
+## A model only auto-orients when its longest axis is at least this many times its average
+## cross-section — i.e. it's clearly a long thin blade/shaft, not a chunky block (pickaxe head,
+## lantern, shield). Below this the long axis is ambiguous, so we keep the manual base pose.
+const AUTO_MIN_ELONG: float = 2.2
 
 var _current: Node3D
 var _swing_tween: Tween
@@ -65,14 +74,7 @@ func _refresh() -> void:
 		model = _make_placeholder()
 
 	add_child(model)
-	_normalize(model)
-	# Per-item size + pose so each weapon reads differently in hand (big two-handers, small
-	# daggers, sideways bows...). _normalize sets a base size; held_scale fine-tunes from there.
-	model.scale *= item.held_scale
-	_rest_position = held_position + item.held_position_offset
-	_rest_rotation = held_rotation_degrees + item.held_rotation_offset
-	model.position = _rest_position
-	model.rotation_degrees = _rest_rotation
+	_apply_held_transform(model, item)
 	_current = model
 
 # Build a small neutral block to stand in for an item with no world_model.
@@ -86,13 +88,75 @@ func _make_placeholder() -> Node3D:
 	mi.material_override = mat
 	return mi
 
-# Scale the model so its longest dimension equals held_size, so any kit model shows at
-# a sane, consistent size in hand regardless of how it was authored/imported.
-func _normalize(model: Node3D) -> void:
+# Size, orient and place the model in the hand. Two paths:
+#   AUTO  (default, for clearly elongated weapons) — derive orientation from the geometry: point
+#         the long axis (blade/shaft) up-and-forward (HELD_AIM) with the grip resting in the hand,
+#         so a weapon looks right with NO per-item rotation tuning. held_rotation_offset is then a
+#         small local-space nudge (normally zero).
+#   MANUAL (auto_orient_held = false, or a model too chunky to have an obvious long axis) — the
+#         classic fixed base pose (held_rotation_degrees) plus the item's held_rotation_offset.
+# Both paths normalise size to held_size * held_scale and record _rest_position/_rest_rotation so
+# the swing animation returns to the right pose.
+func _apply_held_transform(model: Node3D, item: Item) -> void:
+	# Measure at unit scale first so axis sign / elongation are scale-independent.
 	var aabb := _aabb(model)
-	var longest: float = max(aabb.size.x, max(aabb.size.y, aabb.size.z))
+	var sz := aabb.size
+	var longest: float = max(sz.x, max(sz.y, sz.z))
+	var scale_factor: float = item.held_scale
 	if longest > 0.0:
-		model.scale = Vector3.ONE * (held_size / longest)
+		scale_factor = (held_size / longest) * item.held_scale
+
+	# Primary (longest) axis index and how elongated the model is along it.
+	var i := 0
+	if sz.y >= sz.x and sz.y >= sz.z:
+		i = 1
+	elif sz.z >= sz.x and sz.z >= sz.y:
+		i = 2
+	var perp: float = (sz[(i + 1) % 3] + sz[(i + 2) % 3]) * 0.5
+	var elong: float = longest / max(0.0001, perp)
+
+	var use_auto: bool = item.auto_orient_held and elong >= AUTO_MIN_ELONG and longest > 0.0
+	if use_auto:
+		var mn: float = aabb.position[i]
+		var mx: float = aabb.position[i] + sz[i]
+		# Business end = the end FARTHER from the model origin (kits author the grip at/near the
+		# origin). Aim grip->head along HELD_AIM.
+		var axis := Vector3.ZERO
+		axis[i] = 1.0
+		var grip_to_head: Vector3 = axis if absf(mx) >= absf(mn) else -axis
+		var q := _from_to_quat(grip_to_head, HELD_AIM)
+		# Optional local-space fine-tune nudge (usually zero for auto items).
+		if item.held_rotation_offset != Vector3.ZERO:
+			var o := item.held_rotation_offset
+			q = q * Quaternion.from_euler(Vector3(deg_to_rad(o.x), deg_to_rad(o.y), deg_to_rad(o.z)))
+		# Rotate about the model origin (≈ the grip), so the grip stays in the hand.
+		var basis := Basis(q).scaled(Vector3.ONE * scale_factor)
+		model.transform = Transform3D(basis, held_position + item.held_position_offset)
+		_rest_position = model.position
+		_rest_rotation = model.rotation_degrees
+	else:
+		model.scale = Vector3.ONE * scale_factor
+		_rest_position = held_position + item.held_position_offset
+		_rest_rotation = held_rotation_degrees + item.held_rotation_offset
+		model.position = _rest_position
+		model.rotation_degrees = _rest_rotation
+
+# Shortest-arc rotation that turns unit vector `from` onto unit vector `to`.
+func _from_to_quat(from: Vector3, to: Vector3) -> Quaternion:
+	var a := from.normalized()
+	var b := to.normalized()
+	var d: float = a.dot(b)
+	if d > 0.99999:
+		return Quaternion.IDENTITY
+	if d < -0.99999:
+		# Antiparallel: rotate 180° about any axis perpendicular to `a`.
+		var perp_axis := a.cross(Vector3.UP)
+		if perp_axis.length() < 0.0001:
+			perp_axis = a.cross(Vector3.RIGHT)
+		return Quaternion(perp_axis.normalized(), PI)
+	var axis := a.cross(b).normalized()
+	var angle: float = acos(clampf(d, -1.0, 1.0))
+	return Quaternion(axis, angle)
 
 # Play a quick swing (melee) or recoil (ranged) on the current model. Other item
 # kinds (consumables, tools) don't animate.

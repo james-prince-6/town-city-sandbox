@@ -19,4 +19,3 @@ cooldown = 0.5
 swing_lifetime = 0.15
 world_model = ExtResource("2_model")
 held_scale = 1.0
-held_rotation_offset = Vector3(-60, 0, 0)

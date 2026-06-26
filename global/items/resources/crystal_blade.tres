@@ -20,4 +20,3 @@ swing_lifetime = 0.15
 knockback = 7.0
 world_model = ExtResource("2_model")
 held_scale = 1.5
-held_rotation_offset = Vector3(-60, 0, 0)
