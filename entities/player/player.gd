@@ -82,6 +82,11 @@ var is_blocking: bool = false
 # Footstep bookkeeping: metres travelled on the ground since the last step sound.
 var _step_accum: float = 0.0
 const STEP_DISTANCE: float = 2.2
+# For the landing thud: track ground contact and how long we've been airborne, so a real fall
+# lands with a step but a tiny hop/step-down doesn't.
+var _was_on_floor: bool = true
+var _air_time: float = 0.0
+const LAND_AIR_TIME: float = 0.2
 
 # When a menu/dialogue closes, the same button that closed it (e.g. B = ui_cancel AND
 # dodge, A = ui_accept AND jump) is still "just pressed" this frame. Polled gameplay
@@ -420,7 +425,14 @@ func _hit_from_front(info: DamageInfo) -> bool:
 # Play a footstep every STEP_DISTANCE metres of ground travel (auto-faster when sprinting
 # since it's distance-based). Silent while airborne, dodging, or basically still.
 func _update_footsteps(delta: float) -> void:
-	if not is_on_floor() or _dodge_time_left > 0.0:
+	var on_floor: bool = is_on_floor()
+	# Landing thud: a step the instant we touch down after a real fall (not a micro-hop).
+	if on_floor and not _was_on_floor and _air_time > LAND_AIR_TIME:
+		CombatFeel.play_footstep()
+		_step_accum = 0.0
+	_was_on_floor = on_floor
+	_air_time = 0.0 if on_floor else _air_time + delta
+	if not on_floor or _dodge_time_left > 0.0:
 		_step_accum = 0.0
 		return
 	var hspeed: float = Vector2(velocity.x, velocity.z).length()

@@ -52,6 +52,7 @@ PlayerMenu="*res://ui/player_menu/player_menu.tscn"
 MainMenu="*res://ui/main_menu/main_menu.gd"
 SaveSlotMenu="*res://ui/save_menu/save_slot_menu.gd"
 NotificationFeed="*res://ui/notifications/notification_feed.gd"
+AmbientAudio="*res://global/systems/ambient_audio.gd"
 
 [dialogue_manager]
 

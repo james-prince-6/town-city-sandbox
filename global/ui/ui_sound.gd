@@ -41,6 +41,8 @@ func _play_click() -> void:
 	var p := AudioStreamPlayer.new()
 	p.stream = stream
 	p.volume_db = VOLUME_DB
+	if AudioServer.get_bus_index(&"SFX") != -1:
+		p.bus = &"SFX"
 	p.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(p)
 	p.finished.connect(p.queue_free)

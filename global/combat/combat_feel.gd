@@ -374,6 +374,8 @@ func _play_random(pool: Array[AudioStream]) -> void:
 	var p := AudioStreamPlayer.new()
 	p.stream = stream
 	p.volume_db = SFX_VOLUME_DB
+	if AudioServer.get_bus_index(&"SFX") != -1:
+		p.bus = &"SFX"
 	p.pitch_scale = randf_range(0.92, 1.08)
 	p.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(p)
