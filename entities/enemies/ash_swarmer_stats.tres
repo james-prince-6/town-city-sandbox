@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://dssu8psffht4a" path="res://entities/enemies/enemy_stats.gd" id="1_stats"]
+
+[resource]
+script = ExtResource("1_stats")
+display_name = "Ash Swarmer"
+max_health = 14.0
+damage_multipliers = {
+0: 1.25,
+1: 0.75,
+4: 2.0
+}
+move_speed = 4.5
+attack_style = 0
+damage = 3.0
+damage_type = 0
+attack_range = 1.8
+detect_range = 16.0
+attack_cooldown = 1.1
+attack_knockback = 1.0
+knockback_resistance = 0.05
+stagger_duration = 0.25
+poise_threshold = 0.0
+has_special = false
+loot_item_id = &"lava_ash"
+loot_amount = 1
+xp = 6
+strength = 1

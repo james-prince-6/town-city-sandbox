@@ -1,0 +1,31 @@
+[gd_scene load_steps=6 format=3 uid="uid://darm7td724ub5"]
+
+[ext_resource type="Script" path="res://components/interactables/breakable.gd" id="1_break"]
+[ext_resource type="PackedScene" uid="uid://3p2q8u3op7ko" path="res://assets/models/props/pirate-kit/barrel.fbx" id="2_model"]
+[ext_resource type="Script" path="res://components/health.gd" id="3_health"]
+[ext_resource type="Script" path="res://components/hurt_box.gd" id="4_hurt"]
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_barrel"]
+height = 1.0
+radius = 0.45
+
+[node name="BreakableBarrel" type="StaticBody3D"]
+script = ExtResource("1_break")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("CylinderShape3D_barrel")
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("3_health")
+max_health = 16.0
+
+[node name="HurtBox" type="Area3D" parent="."]
+script = ExtResource("4_hurt")
+team = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("CylinderShape3D_barrel")

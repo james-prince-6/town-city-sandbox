@@ -1,0 +1,39 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://entities/props/prop.gd" id="1_prop"]
+[ext_resource type="Material" path="res://assets/materials/PortalMaterial.tres" id="2_portal"]
+
+[sub_resource type="TorusMesh" id="TorusMesh_frame"]
+inner_radius = 1.05
+outer_radius = 1.25
+
+[sub_resource type="StandardMaterial3D" id="Mat_frame"]
+albedo_color = Color(0.12, 0.12, 0.16, 1)
+metallic = 0.6
+roughness = 0.4
+emission_enabled = true
+emission = Color(0.3, 0.1, 0.5, 1)
+emission_energy_multiplier = 0.6
+
+[sub_resource type="QuadMesh" id="QuadMesh_surface"]
+size = Vector2(2.2, 2.2)
+
+[node name="PortalGate" type="StaticBody3D"]
+script = ExtResource("1_prop")
+auto_collision = false
+
+[node name="Frame" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 1.25, 0)
+mesh = SubResource("TorusMesh_frame")
+surface_material_override/0 = SubResource("Mat_frame")
+
+[node name="Surface" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+mesh = SubResource("QuadMesh_surface")
+surface_material_override/0 = ExtResource("2_portal")
+
+[node name="Glow" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0.3)
+light_color = Color(0.5, 0.4, 1, 1)
+light_energy = 2.0
+omni_range = 6.0

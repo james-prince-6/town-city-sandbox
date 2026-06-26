@@ -1,0 +1,23 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bhrv0base0scn" path="res://entities/harvestables/harvestable.tscn" id="1_base"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sulfur"]
+albedo_color = Color(0.85, 0.78, 0.2, 1)
+roughness = 0.6
+emission_enabled = true
+emission = Color(0.7, 0.6, 0.1, 1)
+emission_energy_multiplier = 0.8
+
+[node name="SulfurVent" instance=ExtResource("1_base")]
+required_tool_type = 0
+required_power = 1
+durability = 3
+drop_item_id = &"sulfur_crystal"
+drop_amount = 2
+drop_as_world_item = true
+prompt_verb = "Mine"
+respawn_seconds = 12.0
+
+[node name="MeshInstance3D" parent="." index="1"]
+surface_material_override/0 = SubResource("StandardMaterial3D_sulfur")

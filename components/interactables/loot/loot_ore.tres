@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="LootTable" load_steps=5 format=3 uid="uid://dlootore00001"]
+
+[ext_resource type="Script" uid="uid://lrviisdhidpf" path="res://components/interactables/loot_table.gd" id="1_table"]
+[ext_resource type="Script" uid="uid://ciqnkacto2vi2" path="res://components/interactables/loot_entry.gd" id="2_entry"]
+
+[sub_resource type="Resource" id="entry_iron"]
+script = ExtResource("2_entry")
+item_id = &"iron_ore"
+max_count = 3
+
+[sub_resource type="Resource" id="entry_copper"]
+script = ExtResource("2_entry")
+item_id = &"copper_ore"
+max_count = 2
+
+[resource]
+script = ExtResource("1_table")
+entries = Array[ExtResource("2_entry")]([SubResource("entry_iron"), SubResource("entry_copper")])

@@ -1,0 +1,165 @@
+[gd_scene load_steps=23 format=3 uid="uid://bdevcombatarena1"]
+
+[ext_resource type="PackedScene" uid="uid://cppmnlasls1hp" path="res://entities/player/player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://stages/dev/combat_arena_loadout.gd" id="10_loadout"]
+[ext_resource type="PackedScene" uid="uid://bnemyhound0001" path="res://entities/enemies/ember_hound.tscn" id="2_hound"]
+[ext_resource type="PackedScene" uid="uid://bnemyspit00001" path="res://entities/enemies/cinder_spitter.tscn" id="3_spitter"]
+[ext_resource type="PackedScene" uid="uid://bnemybrute0001" path="res://entities/enemies/obsidian_brute.tscn" id="4_brute"]
+[ext_resource type="PackedScene" path="res://entities/enemies/ash_swarmer.tscn" id="5_swarmer"]
+[ext_resource type="PackedScene" path="res://entities/enemies/venom_spitter.tscn" id="6_venom"]
+[ext_resource type="PackedScene" path="res://entities/enemies/iron_bruiser.tscn" id="7_bruiser"]
+[ext_resource type="PackedScene" path="res://entities/enemies/magma_colossus.tscn" id="8_boss"]
+[ext_resource type="PackedScene" path="res://entities/enemies/cinder_caster.tscn" id="9_caster"]
+[ext_resource type="PackedScene" path="res://entities/enemies/frost_caster.tscn" id="10_frost"]
+[ext_resource type="PackedScene" uid="uid://bnemygnash0001" path="res://entities/enemies/gnasher.tscn" id="11_gnasher"]
+[ext_resource type="PackedScene" uid="uid://bnemystalk0001" path="res://entities/enemies/stalker.tscn" id="12_stalker"]
+[ext_resource type="PackedScene" uid="uid://bnemyravag0001" path="res://entities/enemies/ravager.tscn" id="13_ravager"]
+
+[sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
+sky_top_color = Color(0.38, 0.52, 0.78, 1)
+sky_horizon_color = Color(0.72, 0.76, 0.82, 1)
+ground_horizon_color = Color(0.58, 0.58, 0.58, 1)
+ground_bottom_color = Color(0.42, 0.42, 0.42, 1)
+
+[sub_resource type="Sky" id="Sky_1"]
+sky_material = SubResource("Sky_mat")
+
+[sub_resource type="Environment" id="Env_1"]
+background_mode = 2
+sky = SubResource("Sky_1")
+ambient_light_source = 3
+ambient_light_energy = 1.35
+tonemap_mode = 2
+
+[sub_resource type="BoxShape3D" id="Floor_shape"]
+size = Vector3(80, 1, 80)
+
+[sub_resource type="BoxMesh" id="Floor_mesh"]
+size = Vector3(80, 1, 80)
+
+[sub_resource type="StandardMaterial3D" id="Floor_mat"]
+albedo_color = Color(0.18, 0.16, 0.17, 1)
+roughness = 0.9
+
+[sub_resource type="BoxShape3D" id="Wall_shape"]
+size = Vector3(80, 4, 1)
+
+[sub_resource type="BoxMesh" id="Wall_mesh"]
+size = Vector3(80, 4, 1)
+
+[node name="CombatArena" type="Node3D"]
+script = ExtResource("10_loadout")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env_1")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.7071, 0.7071, 0, -0.7071, 0.7071, 0, 20, 0)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="Floor" type="StaticBody3D" parent="."]
+
+[node name="FloorCol" type="CollisionShape3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("Floor_shape")
+
+[node name="FloorMesh" type="MeshInstance3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("Floor_mesh")
+surface_material_override/0 = SubResource("Floor_mat")
+
+[node name="WallNorth" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -40)
+
+[node name="Col" type="CollisionShape3D" parent="WallNorth"]
+shape = SubResource("Wall_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="WallNorth"]
+mesh = SubResource("Wall_mesh")
+
+[node name="WallSouth" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 40)
+
+[node name="Col" type="CollisionShape3D" parent="WallSouth"]
+shape = SubResource("Wall_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="WallSouth"]
+mesh = SubResource("Wall_mesh")
+
+[node name="WallEast" type="StaticBody3D" parent="."]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 40, 2, 0)
+
+[node name="Col" type="CollisionShape3D" parent="WallEast"]
+shape = SubResource("Wall_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="WallEast"]
+mesh = SubResource("Wall_mesh")
+
+[node name="WallWest" type="StaticBody3D" parent="."]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -40, 2, 0)
+
+[node name="Col" type="CollisionShape3D" parent="WallWest"]
+shape = SubResource("Wall_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="WallWest"]
+mesh = SubResource("Wall_mesh")
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 14)
+
+; Enemies are staged in a line ahead of the player (who faces -Z) and spaced so they
+; engage in sequence rather than all swarming at once: only the nearest Husk is inside
+; its detect range at spawn; advancing wakes the next, then the Spitter, then the Brute.
+; All four sit within the forward view so they're visible, not lost in the distance.
+[node name="EmberHound1" parent="." instance=ExtResource("2_hound")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
+
+[node name="EmberHound2" parent="." instance=ExtResource("2_hound")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -6)
+
+[node name="CinderSpitter1" parent="." instance=ExtResource("3_spitter")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -8)
+
+[node name="ObsidianBrute1" parent="." instance=ExtResource("4_brute")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -14)
+
+; New variety: a pair of fast, fragile Ash Swarmers rush in first (test flinch +
+; knockback on light enemies); a Venom Spitter holds at range and fires its poison
+; volley special; an armored Iron Bruiser plods in with its telegraphed slam; and the
+; Magma Colossus mini-boss waits at the far end (test the wind-up tell + phase 2 at 50%).
+[node name="AshSwarmer1" parent="." instance=ExtResource("5_swarmer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 7)
+
+[node name="AshSwarmer2" parent="." instance=ExtResource("5_swarmer")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 6)
+
+[node name="VenomSpitter1" parent="." instance=ExtResource("6_venom")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, -6)
+
+[node name="IronBruiser1" parent="." instance=ExtResource("7_bruiser")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 0, -18)
+
+[node name="MagmaColossus1" parent="." instance=ExtResource("8_boss")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -28)
+
+; Bullet-hell casters: the Cinder Caster holds at range and unleashes 360-degree RING
+; barrages of slow magma orbs; the Frost Caster fires fast frost-bolt volleys plus a
+; 3-shot spread on its normal attack. Parked wide so their patterns are easy to read.
+[node name="CinderCaster1" parent="." instance=ExtResource("9_caster")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, -22)
+
+[node name="FrostCaster1" parent="." instance=ExtResource("10_frost")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, -22)
+
+; New PSX-killer melee variety, parked along the left flank away from the others: a
+; fast fragile Gnasher swarm-biter rushes first, a heavy Stalker ambusher lurks behind
+; it with its telegraphed SLAM, and the big Ravager elite bruiser anchors the far corner.
+[node name="Gnasher1" parent="." instance=ExtResource("11_gnasher")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -22, 0, 2)
+
+[node name="Stalker1" parent="." instance=ExtResource("12_stalker")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24, 0, -10)
+
+[node name="Ravager1" parent="." instance=ExtResource("13_ravager")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -26, 0, -24)

@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://6i8sonyw41e2"
+path="res://.godot/imported/marlo.dialogue-bdabe9c745d393ac0ed33c593bd75f4b.tres"
+
+[deps]
+
+source_file="res://entities/npc/dialogue/marlo.dialogue"
+dest_files=["res://.godot/imported/marlo.dialogue-bdabe9c745d393ac0ed33c593bd75f4b.tres"]
+
+[params]
+
+defaults=true

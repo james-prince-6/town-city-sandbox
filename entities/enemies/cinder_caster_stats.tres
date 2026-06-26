@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=2 format=3 uid="uid://bcindcaststat1"]
+
+[ext_resource type="Script" path="res://entities/enemies/enemy_stats.gd" id="1_stats"]
+
+[resource]
+script = ExtResource("1_stats")
+display_name = "Cinder Caster"
+max_health = 60.0
+damage_multipliers = {
+1: 0.25,
+2: 1.75
+}
+move_speed = 1.8
+attack_style = 1
+damage = 8.0
+damage_type = 4
+attack_range = 12.0
+detect_range = 22.0
+attack_cooldown = 2.2
+attack_knockback = 1.0
+knockback_resistance = 0.25
+stagger_duration = 0.22
+poise_threshold = 0.0
+has_special = true
+special_style = 2
+special_windup = 0.9
+special_cooldown = 5.0
+special_range = 16.0
+special_chance = 0.5
+special_damage = 8.0
+special_damage_type = 4
+special_knockback = 3.0
+special_ring_count = 14
+loot_item_id = &"sulfur_crystal"
+loot_amount = 1
+xp = 24
+strength = 3

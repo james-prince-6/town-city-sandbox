@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="RangedWeaponItem" load_steps=3 format=3]
+
+; Frost wand: fires fast ICE shards that pierce through a line of enemies. Cheap mana, rapid.
+[ext_resource type="Script" path="res://entities/items/weapons/ranged_weapon_item.gd" id="1_ranged"]
+[ext_resource type="PackedScene" uid="uid://b7iceshard0aaa" path="res://entities/items/weapons/ice_shard.tscn" id="2_shard"]
+
+[resource]
+script = ExtResource("1_ranged")
+id = &"frost_wand"
+display_name = "Frost Wand"
+description = "A frost-rimed wand. Looses fast ice shards that lance straight through a crowd."
+category = 6
+max_stack = 1
+base_value = 120
+damage = 14.0
+damage_type = 2
+projectile_speed = 34.0
+cooldown = 0.5
+stamina_cost = 0.0
+mana_cost = 9.0
+projectile_scene = ExtResource("2_shard")
+knockback = 1.0

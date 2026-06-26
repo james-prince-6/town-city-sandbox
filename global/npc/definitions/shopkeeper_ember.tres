@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="NPCDefinition" load_steps=5 format=3 uid="uid://boeiovh5eit8r"]
+
+; Ember — the blacksmith. Her opener (closed before 9am / grumpy by mood / usual welcome)
+; now branches inside ember.dialogue rather than via a list of ConditionalDialogues.
+[ext_resource type="Script" uid="uid://cnicpv6qs4dva" path="res://global/npc/npc_definition.gd" id="1_def"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/psx/Female/Character_Female_03.fbx" id="4_model"]
+[ext_resource type="Texture2D" path="res://assets/models/characters/psx/Textures/Character_Female_03.png" id="8_skin"]
+[ext_resource type="Resource" path="res://entities/npc/dialogue/ember.dialogue" id="5_dlg"]
+
+[resource]
+script = ExtResource("1_def")
+id = &"ember"
+display_name = "Ember"
+model_scene = ExtResource("4_model")
+skin_texture = ExtResource("8_skin")
+dialogue = ExtResource("5_dlg")

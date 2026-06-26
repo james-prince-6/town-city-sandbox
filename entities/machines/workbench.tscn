@@ -1,0 +1,28 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://entities/machines/crafting_station.gd" id="1"]
+
+[sub_resource type="BoxShape3D" id="col"]
+size = Vector3(1.2, 1.2, 1.2)
+
+[sub_resource type="BoxMesh" id="mesh"]
+size = Vector3(1.2, 1.2, 1.2)
+
+[sub_resource type="StandardMaterial3D" id="mat"]
+resource_local_to_scene = true
+albedo_color = Color(0.45, 0.32, 0.18, 1)
+
+[node name="Workbench" type="StaticBody3D"]
+script = ExtResource("1")
+machine_id = &"workbench_1"
+machine_type = 2
+display_name = "Workbench"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+shape = SubResource("col")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, 0)
+mesh = SubResource("mesh")
+surface_material_override/0 = SubResource("mat")

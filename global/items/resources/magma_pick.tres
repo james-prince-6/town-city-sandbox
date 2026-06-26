@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ToolItem" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://entities/items/tool_item.gd" id="1_tool"]
+[ext_resource type="PackedScene" uid="uid://bvjentpmorv2v" path="res://assets/models/tools_weapons/survival-kit/tool-pickaxe-upgraded.fbx" id="2_model"]
+
+[resource]
+script = ExtResource("1_tool")
+id = &"magma_pick"
+display_name = "Pickaxe"
+description = "A hardened steel-tipped pickaxe that bites through the toughest ore."
+category = 2
+max_stack = 1
+base_value = 45
+tool_type = 0
+power = 3
+stamina_cost = 12.0
+damage = 8.0
+world_model = ExtResource("2_model")

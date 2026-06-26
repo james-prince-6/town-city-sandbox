@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://entities/props/prop.gd" id="1_prop"]
+[ext_resource type="PackedScene" uid="uid://p2xqtixv87us" path="res://assets/models/buildings/city-suburban/driveway-short.fbx" id="2_model"]
+
+[node name="DrivewayShort" type="StaticBody3D"]
+script = ExtResource("1_prop")
+auto_collision = false
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

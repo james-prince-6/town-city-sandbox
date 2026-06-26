@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://dssu8psffht4a" path="res://entities/enemies/enemy_stats.gd" id="1_stats"]
+
+[resource]
+script = ExtResource("1_stats")
+display_name = "Iron Bruiser"
+max_health = 160.0
+damage_multipliers = {
+0: 0.35,
+2: 1.75,
+4: 2.0
+}
+move_speed = 1.9
+attack_style = 0
+damage = 18.0
+damage_type = 0
+attack_range = 2.8
+detect_range = 14.0
+attack_cooldown = 2.6
+attack_knockback = 5.0
+knockback_resistance = 0.92
+stagger_duration = 0.16
+poise_threshold = 24.0
+has_special = true
+special_style = 0
+special_windup = 0.85
+special_cooldown = 8.0
+special_range = 3.4
+special_chance = 0.45
+special_damage = 34.0
+special_damage_type = 0
+special_radius = 3.6
+special_knockback = 14.0
+loot_item_id = &"obsidian"
+loot_amount = 2
+xp = 50
+strength = 4

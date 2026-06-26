@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Item" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://global/items/item.gd" id="1_item"]
+[ext_resource type="PackedScene" uid="uid://spdwrnyw78jr" path="res://assets/models/food_drink/food-kit/coconut.fbx" id="2_model"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"coconut"
+display_name = "Coconut"
+description = "A hairy island staple. Crack it for milk, or husk it for crafting."
+category = 5
+max_stack = 32
+base_value = 5
+world_model = ExtResource("2_model")

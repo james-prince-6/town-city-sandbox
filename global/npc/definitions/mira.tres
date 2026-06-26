@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="NPCDefinition" load_steps=5 format=3]
+
+; Mira — a townsfolk showcase for the deeper conversation system (random greeting, branching
+; options, reputation-gated branch, per-line gesture tags, cinematic-lite framing). All of
+; that branching now lives in mira.dialogue.
+[ext_resource type="Script" path="res://global/npc/npc_definition.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/psx/Female/Character_Female_02.fbx" id="2"]
+[ext_resource type="Texture2D" path="res://assets/models/characters/psx/Textures/Character_Female_02.png" id="3"]
+[ext_resource type="Resource" path="res://entities/npc/dialogue/mira.dialogue" id="4"]
+
+[resource]
+script = ExtResource("1")
+id = &"mira"
+display_name = "Mira"
+model_scene = ExtResource("2")
+skin_texture = ExtResource("3")
+target_height = 1.7
+move_speed = 2.0
+turn_speed_degrees = 480.0
+default_behavior = 0
+default_mood = &"neutral"
+dialogue = ExtResource("4")

@@ -1,0 +1,50 @@
+[gd_scene load_steps=6 format=3 uid="uid://b7spellproj0aa"]
+
+; Base magic-projectile scene. Spell variants (fireball/ice_shard/arcane_missile) are
+; INHERITED scenes of this one that only override the spell_projectile.gd export knobs.
+[ext_resource type="Script" path="res://entities/items/weapons/spell_projectile.gd" id="1_spell"]
+[ext_resource type="Script" path="res://components/hit_box.gd" id="2_hit"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_orb"]
+radius = 0.12
+height = 0.24
+radial_segments = 12
+rings = 6
+
+; Default glow (recoloured per element at runtime by spell_projectile.setup()).
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_orb"]
+shading_mode = 0
+albedo_color = Color(0.65, 0.35, 1, 1)
+emission_enabled = true
+emission = Color(0.65, 0.35, 1, 1)
+emission_energy_multiplier = 3.0
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_hit"]
+radius = 0.18
+
+[node name="SpellProjectile" type="Area3D"]
+script = ExtResource("1_spell")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_orb")
+surface_material_override/0 = SubResource("StandardMaterial3D_orb")
+
+[node name="Trail" type="CPUParticles3D" parent="."]
+amount = 16
+lifetime = 0.4
+local_coords = false
+direction = Vector3(0, 0, 1)
+spread = 8.0
+initial_velocity_min = 0.5
+initial_velocity_max = 1.0
+scale_amount_min = 0.04
+scale_amount_max = 0.09
+color = Color(0.65, 0.35, 1, 1)
+
+[node name="HitBox" type="Area3D" parent="."]
+script = ExtResource("2_hit")
+one_shot = true
+target_team = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HitBox"]
+shape = SubResource("SphereShape3D_hit")

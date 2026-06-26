@@ -1,0 +1,88 @@
+# Marlo — the brewer next door and a steady quest-giver. First meeting plays the inherited-
+# brewery greeting, then everything funnels through ~ hub: his iron-ore pitch (the
+# marlo_first_delivery quest), brewer's gossip, and a warmer chat once he's friendly (rep >= 15).
+# Quest options gate on quest state; the one-time rebuff is flag-guarded so the loop can't farm
+# the rep loss. Branches loop back to ~ hub; ~ bye ends with a random sign-off. Gestures: wave
+# on hello/bye, talk for chatter, look while pondering, cheer when pleased, angry when rebuffed.
+
+~ start
+if not GameState.get_flag("met_marlo")
+	do GameState.set_flag("met_marlo")
+	=> greeting
+else
+	=> hub
+
+~ greeting
+Marlo: [#gesture=wave] Well, look who finally inherited the old brewery!
+Marlo: [#gesture=talk] Your uncle made the best Mocha on the island. Big shoes to fill.
+Marlo: [#gesture=talk] Stop by once you've got something brewing. I'm always thirsty.
+=> hub
+
+~ hub
+% Marlo: [#gesture=talk] What'll it be?
+% Marlo: [#gesture=idle] Pull up a stool. What do you need?
+- So what's this about the brewery? [if not QuestSystem.is_active("marlo_first_delivery") and not QuestSystem.is_completed("marlo_first_delivery") /]
+	=> quest_intro
+- Still after that iron ore? [if QuestSystem.is_active("marlo_first_delivery") /]
+	=> quest_nag
+- Glad we got those fittings sorted. [if QuestSystem.is_completed("marlo_first_delivery") /]
+	=> quest_done
+- Heard anything worth hearing?
+	=> rumor
+- Got a minute, friend? [if Reputation.get_reputation("marlo") >= 15 /]
+	=> friendly
+- I'll leave you to it.
+	=> bye
+
+~ quest_intro
+Marlo: [#gesture=talk] The brewery's falling apart faster than I can patch it.
+Marlo: [#gesture=talk] I need iron ore for the new fittings, and my knees aren't what they were.
+Marlo: [#gesture=look] What do you say?
+- I'll get your ore.
+	do QuestSystem.start_quest("marlo_first_delivery")
+	do Reputation.add_reputation("marlo", 5)
+	=> accepted
+- Do it yourself. [if not GameState.get_flag("marlo_rebuffed") /]
+	do GameState.set_flag("marlo_rebuffed")
+	do Reputation.add_reputation("marlo", -10)
+	=> rebuffed
+- Maybe later.
+	=> hub
+
+~ accepted
+Marlo: [#gesture=cheer] Knew I could count on you. Two iron ore, that's all I need.
+Marlo: [#gesture=talk] Bring 'em back and there's coin in it for you.
+=> hub
+
+~ rebuffed
+Marlo: [#gesture=angry] Fine. Forget I asked.
+Marlo: [#gesture=angry] Don't come crying when you want a favor later.
+=> hub
+
+~ quest_nag
+% Marlo: [#gesture=talk] Two iron ore — the old mine east of the square's your best bet.
+% Marlo: [#gesture=look] No rush. Well. Some rush. The fittings won't fix themselves.
+=> hub
+
+~ quest_done
+Marlo: [#gesture=cheer] That ore you brought? Fittings are tight as a drum now. Brew's never been better.
+Marlo: [#gesture=talk] You ever need a favor, you've got one waiting right here.
+=> hub
+
+~ rumor
+% Marlo: [#gesture=look] Adventurers come in shaking — say the dungeon floors move when you're not looking.
+% Marlo: [#gesture=look] One lad swore a frost caster froze his ale solid. Mid-sip.
+% Marlo: [#gesture=look] They say there's a vault down there packed with treasure. Locked tight, mind — no key, no coin.
+% Marlo: [#gesture=talk] Bring me sulfur crystal sometime — does wonders for a spiced batch.
+=> hub
+
+~ friendly
+Marlo: [#gesture=cheer] Ha! Always got a minute for a friend.
+Marlo: [#gesture=talk] Pull up a stool, the mocha's on me today.
+=> hub
+
+~ bye
+% Marlo: [#gesture=wave] Mind how you go.
+% Marlo: [#gesture=wave] Don't be a stranger now.
+% Marlo: [#gesture=wave] Back to the brew with me.
+=> END

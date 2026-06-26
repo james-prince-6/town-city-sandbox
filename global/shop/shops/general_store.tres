@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ShopInventory" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://global/shop/shop_inventory.gd" id="1_shop"]
+
+[resource]
+script = ExtResource("1_shop")
+shop_id = &"general_store"
+display_name = "General Store"
+stock = Array[StringName]([&"lava_ash", &"lava_vial", &"sulfur_crystal", &"throwing_knife", &"flame_wand", &"frost_wand", &"arcane_wand", &"crossbow"])
+buy_markup = 1.25
+sell_markup = 0.4
+buys_all = false
+buy_categories = Array[int]([0, 3])
+reputation_npc = &""

@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://bhrv0lava0scn"]
+
+[ext_resource type="PackedScene" uid="uid://bhrv0base0scn" path="res://entities/harvestables/harvestable.tscn" id="1_base"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_lava"]
+albedo_color = Color(0.9, 0.35, 0.1, 1)
+emission_enabled = true
+emission = Color(0.9, 0.3, 0.05, 1)
+emission_energy_multiplier = 1.5
+
+[node name="Lava Pool" instance=ExtResource("1_base")]
+required_tool_type = 2
+required_power = 1
+durability = 1
+drop_item_id = &"lava_vial"
+drop_amount = 1
+drop_as_world_item = true
+prompt_verb = "Collect"
+respawn_seconds = 8.0
+
+[node name="MeshInstance3D" parent="." index="1"]
+surface_material_override/0 = SubResource("StandardMaterial3D_lava")

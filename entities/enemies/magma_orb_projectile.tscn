@@ -1,0 +1,23 @@
+[gd_scene load_steps=4 format=3 uid="uid://bnemyproj00003"]
+
+[ext_resource type="Script" path="res://entities/enemies/magma_orb_projectile.gd" id="1_proj"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_magma"]
+radius = 0.5
+height = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Mat_magma"]
+albedo_color = Color(1, 0.32, 0.06, 1)
+emission_enabled = true
+emission = Color(1, 0.45, 0.1, 1)
+emission_energy_multiplier = 3.2
+
+[node name="MagmaOrb" type="Area3D"]
+script = ExtResource("1_proj")
+speed = 8.0
+max_lifetime = 5.0
+hit_radius = 0.55
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_magma")
+surface_material_override/0 = SubResource("Mat_magma")

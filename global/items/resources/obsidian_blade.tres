@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="MeleeWeaponItem" load_steps=3 format=3]
+
+[ext_resource type="Script" uid="uid://fs1ofjantoqnr" path="res://entities/items/weapons/melee_weapon_item.gd" id="1_melee"]
+[ext_resource type="PackedScene" uid="uid://bojaychvvyeml" path="res://assets/models/tools_weapons/weapon-pack/knifeRound_sharp.fbx" id="2_model"]
+
+[resource]
+script = ExtResource("1_melee")
+id = &"obsidian_blade"
+display_name = "Dark Blade"
+description = "A keen-edged blade of darkened steel. Cuts deep against weakened foes."
+category = 6
+max_stack = 1
+base_value = 95
+damage = 18.0
+damage_type = 1
+range = 2.0
+stamina_cost = 14.0
+cooldown = 0.55
+swing_lifetime = 0.15
+world_model = ExtResource("2_model")

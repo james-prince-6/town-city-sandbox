@@ -1,0 +1,44 @@
+; npc_authoring_demo.tscn — a tiny self-contained scene that shows off data-driven
+; NPC authoring. Two plain npc.tscn instances are each handed an NPCDefinition .tres
+; (Ember the shopkeeper, Pip the wanderer); everything else — look, speed, behaviour,
+; mood, and branching opener — comes from those resources, no per-NPC scripting.
+; Load this headlessly to verify the NPCDefinition / ConditionalDialogue pipeline.
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="PackedScene" path="res://entities/npc/npc.tscn" id="1_npc"]
+[ext_resource type="Script" path="res://entities/npc/world_location.gd" id="2_loc"]
+[ext_resource type="Resource" path="res://global/npc/definitions/shopkeeper_ember.tres" id="3_ember"]
+[ext_resource type="Resource" path="res://global/npc/definitions/wanderer_pip.tres" id="4_pip"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_floor"]
+size = Vector3(20, 1, 20)
+
+[sub_resource type="BoxMesh" id="BoxMesh_floor"]
+size = Vector3(20, 1, 20)
+
+[node name="NPCAuthoringDemo" type="Node3D"]
+
+[node name="Floor" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Floor"]
+shape = SubResource("BoxShape3D_floor")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Floor"]
+mesh = SubResource("BoxMesh_floor")
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.866025, 0.5, 0, -0.5, 0.866025, 0, 5, 0)
+
+[node name="Ember" parent="." instance=ExtResource("1_npc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, 0)
+definition = ExtResource("3_ember")
+
+[node name="Pip" parent="." instance=ExtResource("1_npc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 0)
+definition = ExtResource("4_pip")
+
+[node name="PipHome" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -2)
+script = ExtResource("2_loc")
+location_id = &"pip_home"

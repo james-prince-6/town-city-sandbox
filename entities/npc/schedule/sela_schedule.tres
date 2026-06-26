@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="NPCSchedule" load_steps=8 format=3 uid="uid://cy5orbyni54e6"]
+
+[ext_resource type="Script" uid="uid://bcy0fp10mdhsa" path="res://global/npc/npc_schedule.gd" id="1_sched"]
+[ext_resource type="Script" uid="uid://boygc7yeo5nh5" path="res://global/npc/schedule_entry.gd" id="2_entry"]
+
+[sub_resource type="Resource" id="E_morning_home"]
+script = ExtResource("2_entry")
+hour = 7
+location_id = &"home"
+
+[sub_resource type="Resource" id="E_open_market"]
+script = ExtResource("2_entry")
+hour = 9
+location_id = &"market"
+activity = &"Work"
+
+[sub_resource type="Resource" id="E_forage"]
+script = ExtResource("2_entry")
+hour = 13
+location_id = &"grove"
+activity = &"Work"
+
+[sub_resource type="Resource" id="E_evening_market"]
+script = ExtResource("2_entry")
+hour = 18
+location_id = &"market"
+activity = &"Work"
+
+[sub_resource type="Resource" id="E_sleep"]
+script = ExtResource("2_entry")
+hour = 21
+location_id = &"home"
+activity = &"Sleep"
+
+[resource]
+script = ExtResource("1_sched")
+entries = Array[ExtResource("2_entry")]([SubResource("E_morning_home"), SubResource("E_open_market"), SubResource("E_forage"), SubResource("E_evening_market"), SubResource("E_sleep")])

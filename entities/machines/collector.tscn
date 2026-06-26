@@ -1,0 +1,27 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://entities/machines/collector.gd" id="1"]
+
+[sub_resource type="BoxShape3D" id="col"]
+size = Vector3(1.0, 1.4, 1.0)
+
+[sub_resource type="BoxMesh" id="mesh"]
+size = Vector3(1.0, 1.4, 1.0)
+
+[sub_resource type="StandardMaterial3D" id="mat"]
+albedo_color = Color(0.25, 0.5, 0.3, 1)
+
+[node name="Collector" type="StaticBody3D"]
+script = ExtResource("1")
+display_name = "Collector"
+minutes_per_unit = 30
+capacity = 10
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
+shape = SubResource("col")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
+mesh = SubResource("mesh")
+surface_material_override/0 = SubResource("mat")

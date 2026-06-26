@@ -1,0 +1,23 @@
+[gd_scene load_steps=5 format=3 uid="uid://bmach0brewer0scn"]
+
+[ext_resource type="Script" path="res://entities/machines/brewing_machine.gd" id="1_brew"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_brew"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_brew"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_brew"]
+albedo_color = Color(0.55, 0.25, 0.15, 1)
+
+[node name="BrewingMachine" type="StaticBody3D" groups=["machine"]]
+script = ExtResource("1_brew")
+display_name = "Brew Kettle"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_brew")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_brew")
+surface_material_override/0 = SubResource("StandardMaterial3D_brew")

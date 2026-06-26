@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://entities/props/prop.gd" id="1_prop"]
+[ext_resource type="PackedScene" uid="uid://neum56jwij7d" path="res://assets/models/furniture/furniture-kit/table.fbx" id="2_model"]
+
+[node name="Table" type="StaticBody3D"]
+script = ExtResource("1_prop")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

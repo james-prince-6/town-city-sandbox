@@ -1,0 +1,137 @@
+[gd_scene load_steps=4 format=3 uid="uid://crepc2svamqom"]
+
+[ext_resource type="Script" uid="uid://3y2h481n1aue" path="res://ui/hud/hud.gd" id="1_hud"]
+
+[sub_resource type="Shader" id="Shader_vignette"]
+code = "// Cheap radial vignette: tints only the screen EDGES red, leaving the centre
+// clear. `intensity` (0..1) is driven from hud.gd as health drops below 25%.
+shader_type canvas_item;
+
+uniform float intensity : hint_range(0.0, 1.0) = 0.0;
+uniform vec4 tint : source_color = vec4(0.7, 0.0, 0.0, 1.0);
+
+void fragment() {
+	// Distance from screen centre, 0 at middle -> ~0.7 at the corners.
+	float d = distance(UV, vec2(0.5));
+	// Ramp that stays clear in the middle and rises toward the edges.
+	float edge = smoothstep(0.25, 0.75, d);
+	COLOR = vec4(tint.rgb, edge * intensity);
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vignette"]
+shader = SubResource("Shader_vignette")
+shader_parameter/intensity = 0.0
+shader_parameter/tint = Color(0.7, 0, 0, 1)
+
+[node name="HUD" type="CanvasLayer"]
+layer = 5
+script = ExtResource("1_hud")
+
+[node name="TopLeft" type="VBoxContainer" parent="."]
+offset_left = 16.0
+offset_top = 16.0
+offset_right = 216.0
+offset_bottom = 96.0
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="HealthBar" type="ProgressBar" parent="TopLeft"]
+custom_minimum_size = Vector2(200, 18)
+layout_mode = 2
+value = 100.0
+show_percentage = false
+
+[node name="StaminaBar" type="ProgressBar" parent="TopLeft"]
+custom_minimum_size = Vector2(200, 18)
+layout_mode = 2
+value = 100.0
+show_percentage = false
+
+[node name="ManaBar" type="ProgressBar" parent="TopLeft"]
+custom_minimum_size = Vector2(200, 18)
+layout_mode = 2
+self_modulate = Color(0.5, 0.7, 1, 1)
+value = 100.0
+show_percentage = false
+
+[node name="MoneyLabel" type="Label" parent="TopLeft"]
+layout_mode = 2
+text = "$0"
+
+[node name="TopRight" type="VBoxContainer" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -216.0
+offset_top = 16.0
+offset_right = -16.0
+offset_bottom = 48.0
+grow_horizontal = 0
+mouse_filter = 2
+alignment = 1
+
+[node name="ClockLabel" type="Label" parent="TopRight"]
+layout_mode = 2
+text = "Day 1  7:00 AM"
+horizontal_alignment = 2
+
+[node name="LowHealthVignette" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_vignette")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 1)
+
+[node name="DamageFlash" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.8, 0, 0, 0)
+
+[node name="Crosshair" type="Control" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Dot" type="ColorRect" parent="Crosshair"]
+custom_minimum_size = Vector2(4, 4)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -2.0
+offset_top = -2.0
+offset_right = 2.0
+offset_bottom = 2.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 0.85)
+
+[node name="BottomCenter" type="CenterContainer" parent="."]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -178.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="HotbarStrip" type="HBoxContainer" parent="BottomCenter"]
+layout_mode = 2
+theme_override_constants/separation = 8

@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="RangedWeaponItem" load_steps=3 format=3]
+
+; Arcane wand: fires purple missiles that gently home toward the nearest enemy. PHYSICAL
+; (arcane) element so the missile reads purple; no AoE, but it rarely misses.
+[ext_resource type="Script" path="res://entities/items/weapons/ranged_weapon_item.gd" id="1_ranged"]
+[ext_resource type="PackedScene" uid="uid://b7arcanem0aaaa" path="res://entities/items/weapons/arcane_missile.tscn" id="2_missile"]
+
+[resource]
+script = ExtResource("1_ranged")
+id = &"arcane_wand"
+display_name = "Arcane Wand"
+description = "A wand humming with raw arcane force. Its missiles curve to seek out your mark."
+category = 6
+max_stack = 1
+base_value = 150
+damage = 16.0
+damage_type = 0
+projectile_speed = 20.0
+cooldown = 0.9
+stamina_cost = 0.0
+mana_cost = 16.0
+projectile_scene = ExtResource("2_missile")
+knockback = 2.0

@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3 uid="uid://bgrnd0thrwn0001"]
+
+[ext_resource type="Script" path="res://entities/items/consumables/thrown_grenade.gd" id="1_grenade"]
+[ext_resource type="PackedScene" uid="uid://kbewng3qv631" path="res://assets/models/props/pirate-kit/bottle.fbx" id="2_model"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_grenade"]
+radius = 0.14
+
+[node name="ThrownGrenade" type="RigidBody3D"]
+script = ExtResource("1_grenade")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_grenade")
+
+[node name="Model" type="Node3D" parent="."]
+
+[node name="Bottle" parent="Model" instance=ExtResource("2_model")]
+transform = Transform3D(0.5, 0, 0, 0, 0.5, 0, 0, 0, 0.5, 0, -0.12, 0)

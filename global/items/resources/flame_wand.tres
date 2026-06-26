@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="RangedWeaponItem" load_steps=3 format=3]
+
+; Flame wand: lobs slow fireballs that burst into a small FIRE AoE. Costs mana.
+[ext_resource type="Script" path="res://entities/items/weapons/ranged_weapon_item.gd" id="1_ranged"]
+[ext_resource type="PackedScene" uid="uid://b7fireball0aaa" path="res://entities/items/weapons/fireball.tscn" id="2_fireball"]
+
+[resource]
+script = ExtResource("1_ranged")
+id = &"flame_wand"
+display_name = "Flame Wand"
+description = "A wand tipped with smouldering ember-crystal. Hurls fireballs that burst on impact."
+category = 6
+max_stack = 1
+base_value = 120
+damage = 18.0
+damage_type = 1
+projectile_speed = 22.0
+cooldown = 0.75
+stamina_cost = 0.0
+mana_cost = 18.0
+projectile_scene = ExtResource("2_fireball")
+knockback = 2.0

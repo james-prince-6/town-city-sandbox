@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ShopInventory" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://global/shop/shop_inventory.gd" id="1_shop"]
+
+[resource]
+script = ExtResource("1_shop")
+shop_id = &"lava_tap"
+display_name = "The Tavern"
+stock = Array[StringName]([])
+buy_markup = 1.0
+sell_markup = 0.85
+buys_all = false
+buy_categories = Array[int]([1])
+reputation_npc = &"marlo"

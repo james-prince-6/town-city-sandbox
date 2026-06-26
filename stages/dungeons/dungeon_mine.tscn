@@ -1,0 +1,399 @@
+[gd_scene load_steps=36 format=3 uid="uid://ddungmine00001"]
+
+[ext_resource type="PackedScene" uid="uid://cppmnlasls1hp" path="res://entities/player/player.tscn" id="1_player"]
+[ext_resource type="PackedScene" uid="uid://bnemyhound0001" path="res://entities/enemies/ember_hound.tscn" id="2_hound"]
+[ext_resource type="PackedScene" uid="uid://bnemyspit00001" path="res://entities/enemies/cinder_spitter.tscn" id="3_spitter"]
+[ext_resource type="PackedScene" uid="uid://bnemybrute0001" path="res://entities/enemies/obsidian_brute.tscn" id="4_brute"]
+[ext_resource type="PackedScene" uid="uid://dyr6h8u41rab5" path="res://entities/props/chest.tscn" id="5_chest"]
+[ext_resource type="PackedScene" uid="uid://darm7uup45ab5" path="res://entities/props/breakable_crate.tscn" id="6_crate"]
+[ext_resource type="PackedScene" uid="uid://darm7td724ub5" path="res://entities/props/breakable_barrel.tscn" id="7_barrel"]
+[ext_resource type="PackedScene" uid="uid://bcoar8uwrkeke" path="res://entities/props/door.tscn" id="8_door"]
+[ext_resource type="PackedScene" uid="uid://bb15n24ec5m1u" path="res://entities/props/lever.tscn" id="9_lever"]
+[ext_resource type="PackedScene" uid="uid://sbccd4at7sdl" path="res://global/teleport area/teleport_raycast.tscn" id="10_exit"]
+[ext_resource type="Resource" uid="uid://dlootkeycopper1" path="res://components/interactables/loot/loot_key_copper.tres" id="11_lootkey"]
+[ext_resource type="Resource" uid="uid://dlootcommon001" path="res://components/interactables/loot/loot_common.tres" id="12_lootcommon"]
+[ext_resource type="Resource" uid="uid://dlootore00001" path="res://components/interactables/loot/loot_ore.tres" id="13_lootore"]
+[ext_resource type="Resource" uid="uid://dloottreasure01" path="res://components/interactables/loot/loot_treasure.tres" id="14_loottreasure"]
+[ext_resource type="Resource" uid="uid://dlootsupply001" path="res://components/interactables/loot/loot_supplies.tres" id="15_lootsupply"]
+
+[sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
+sky_horizon_color = Color(0.1, 0.09, 0.12, 1)
+ground_horizon_color = Color(0.03, 0.03, 0.05, 1)
+
+[sub_resource type="Sky" id="Sky_1"]
+sky_material = SubResource("Sky_mat")
+
+[sub_resource type="Environment" id="Env_1"]
+background_mode = 2
+sky = SubResource("Sky_1")
+ambient_light_source = 3
+ambient_light_color = Color(0.22, 0.22, 0.3, 1)
+ambient_light_energy = 0.5
+tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.05, 0.05, 0.08, 1)
+fog_density = 0.025
+
+[sub_resource type="StandardMaterial3D" id="Floor_mat"]
+albedo_color = Color(0.13, 0.12, 0.14, 1)
+roughness = 1.0
+
+[sub_resource type="StandardMaterial3D" id="Wall_mat"]
+albedo_color = Color(0.17, 0.16, 0.19, 1)
+roughness = 0.95
+
+[sub_resource type="BoxShape3D" id="FloorBig_shape"]
+size = Vector3(36, 1, 24)
+
+[sub_resource type="BoxMesh" id="FloorBig_mesh"]
+size = Vector3(36, 1, 24)
+
+[sub_resource type="BoxShape3D" id="FloorCorr_shape"]
+size = Vector3(8, 1, 26)
+
+[sub_resource type="BoxMesh" id="FloorCorr_mesh"]
+size = Vector3(8, 1, 26)
+
+[sub_resource type="BoxShape3D" id="WallSide_shape"]
+size = Vector3(1, 4, 24)
+
+[sub_resource type="BoxMesh" id="WallSide_mesh"]
+size = Vector3(1, 4, 24)
+
+[sub_resource type="BoxShape3D" id="WallSeg_shape"]
+size = Vector3(14, 4, 1)
+
+[sub_resource type="BoxMesh" id="WallSeg_mesh"]
+size = Vector3(14, 4, 1)
+
+[sub_resource type="BoxShape3D" id="WallCorr_shape"]
+size = Vector3(1, 4, 26)
+
+[sub_resource type="BoxMesh" id="WallCorr_mesh"]
+size = Vector3(1, 4, 26)
+
+[sub_resource type="BoxShape3D" id="WallCorrCap_shape"]
+size = Vector3(8, 4, 1)
+
+[sub_resource type="BoxMesh" id="WallCorrCap_mesh"]
+size = Vector3(8, 4, 1)
+
+[sub_resource type="BoxShape3D" id="DoorStub_shape"]
+size = Vector3(3, 4, 1)
+
+[sub_resource type="BoxMesh" id="DoorStub_mesh"]
+size = Vector3(3, 4, 1)
+
+[sub_resource type="BoxShape3D" id="Exit_shape"]
+size = Vector3(2, 2.5, 0.5)
+
+[node name="DungeonMine" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env_1")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.7071, 0.7071, 0, -0.7071, 0.7071, 0, 20, 0)
+light_energy = 0.35
+shadow_enabled = true
+
+[node name="Floors" type="Node3D" parent="."]
+
+[node name="EntranceCorridorFloor" type="StaticBody3D" parent="Floors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 25)
+
+[node name="Col" type="CollisionShape3D" parent="Floors/EntranceCorridorFloor"]
+shape = SubResource("FloorCorr_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Floors/EntranceCorridorFloor"]
+mesh = SubResource("FloorCorr_mesh")
+surface_material_override/0 = SubResource("Floor_mat")
+
+[node name="MainHallFloor" type="StaticBody3D" parent="Floors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+
+[node name="Col" type="CollisionShape3D" parent="Floors/MainHallFloor"]
+shape = SubResource("FloorBig_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Floors/MainHallFloor"]
+mesh = SubResource("FloorBig_mesh")
+surface_material_override/0 = SubResource("Floor_mat")
+
+[node name="VaultFloor" type="StaticBody3D" parent="Floors"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, -25)
+
+[node name="Col" type="CollisionShape3D" parent="Floors/VaultFloor"]
+shape = SubResource("FloorCorr_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Floors/VaultFloor"]
+mesh = SubResource("FloorCorr_mesh")
+surface_material_override/0 = SubResource("Floor_mat")
+
+[node name="Walls" type="Node3D" parent="."]
+
+[node name="MainEast" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 2, 0)
+
+[node name="Col" type="CollisionShape3D" parent="Walls/MainEast"]
+shape = SubResource("WallSide_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/MainEast"]
+mesh = SubResource("WallSide_mesh")
+surface_material_override/0 = SubResource("Wall_mat")
+
+[node name="MainWest" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 2, 0)
+
+[node name="Col" type="CollisionShape3D" parent="Walls/MainWest"]
+shape = SubResource("WallSide_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/MainWest"]
+mesh = SubResource("WallSide_mesh")
+surface_material_override/0 = SubResource("Wall_mat")
+
+[node name="SouthLeft" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 2, 12)
+
+[node name="Col" type="CollisionShape3D" parent="Walls/SouthLeft"]
+shape = SubResource("WallSeg_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/SouthLeft"]
+mesh = SubResource("WallSeg_mesh")
+surface_material_override/0 = SubResource("Wall_mat")
+
+[node name="SouthRight" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 2, 12)
+
+[node name="Col" type="CollisionShape3D" parent="Walls/SouthRight"]
+shape = SubResource("WallSeg_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/SouthRight"]
+mesh = SubResource("WallSeg_mesh")
+surface_material_override/0 = SubResource("Wall_mat")
+
+[node name="NorthLeft" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11, 2, -12)
+
+[node name="Col" type="CollisionShape3D" parent="Walls/NorthLeft"]
+shape = SubResource("WallSeg_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/NorthLeft"]
+mesh = SubResource("WallSeg_mesh")
+surface_material_override/0 = SubResource("Wall_mat")
+
+[node name="NorthRight" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 2, -12)
+
+[node name="Col" type="CollisionShape3D" parent="Walls/NorthRight"]
+shape = SubResource("WallSeg_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/NorthRight"]
+mesh = SubResource("WallSeg_mesh")
+surface_material_override/0 = SubResource("Wall_mat")
+
+[node name="DoorStubLeft" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 2, -12)
+
+[node name="Col" type="CollisionShape3D" parent="Walls/DoorStubLeft"]
+shape = SubResource("DoorStub_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/DoorStubLeft"]
+mesh = SubResource("DoorStub_mesh")
+surface_material_override/0 = SubResource("Wall_mat")
+
+[node name="DoorStubRight" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 2, -12)
+
+[node name="Col" type="CollisionShape3D" parent="Walls/DoorStubRight"]
+shape = SubResource("DoorStub_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/DoorStubRight"]
+mesh = SubResource("DoorStub_mesh")
+surface_material_override/0 = SubResource("Wall_mat")
+
+[node name="EntranceCorrEast" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2, 25)
+
+[node name="Col" type="CollisionShape3D" parent="Walls/EntranceCorrEast"]
+shape = SubResource("WallCorr_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/EntranceCorrEast"]
+mesh = SubResource("WallCorr_mesh")
+surface_material_override/0 = SubResource("Wall_mat")
+
+[node name="EntranceCorrWest" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2, 25)
+
+[node name="Col" type="CollisionShape3D" parent="Walls/EntranceCorrWest"]
+shape = SubResource("WallCorr_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/EntranceCorrWest"]
+mesh = SubResource("WallCorr_mesh")
+surface_material_override/0 = SubResource("Wall_mat")
+
+[node name="EntranceCorrCap" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 38)
+
+[node name="Col" type="CollisionShape3D" parent="Walls/EntranceCorrCap"]
+shape = SubResource("WallCorrCap_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/EntranceCorrCap"]
+mesh = SubResource("WallCorrCap_mesh")
+surface_material_override/0 = SubResource("Wall_mat")
+
+[node name="VaultCorrEast" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2, -25)
+
+[node name="Col" type="CollisionShape3D" parent="Walls/VaultCorrEast"]
+shape = SubResource("WallCorr_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/VaultCorrEast"]
+mesh = SubResource("WallCorr_mesh")
+surface_material_override/0 = SubResource("Wall_mat")
+
+[node name="VaultCorrWest" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2, -25)
+
+[node name="Col" type="CollisionShape3D" parent="Walls/VaultCorrWest"]
+shape = SubResource("WallCorr_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/VaultCorrWest"]
+mesh = SubResource("WallCorr_mesh")
+surface_material_override/0 = SubResource("Wall_mat")
+
+[node name="VaultCorrCap" type="StaticBody3D" parent="Walls"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -38)
+
+[node name="Col" type="CollisionShape3D" parent="Walls/VaultCorrCap"]
+shape = SubResource("WallCorrCap_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Walls/VaultCorrCap"]
+mesh = SubResource("WallCorrCap_mesh")
+surface_material_override/0 = SubResource("Wall_mat")
+
+[node name="CeilingLight1" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 22)
+light_color = Color(0.7, 0.8, 1, 1)
+light_energy = 2.0
+omni_range = 16.0
+
+[node name="CeilingLight2" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 5, 0)
+light_color = Color(0.8, 0.85, 1, 1)
+light_energy = 2.2
+omni_range = 18.0
+
+[node name="CeilingLight3" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 5, 0)
+light_color = Color(1, 0.6, 0.4, 1)
+light_energy = 2.2
+omni_range = 18.0
+
+[node name="CeilingLight4" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, -22)
+light_color = Color(1, 0.75, 0.3, 1)
+light_energy = 2.5
+omni_range = 16.0
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 35)
+
+[node name="RespawnPoints" type="Node3D" parent="."]
+
+[node name="Respawn_Entrance" type="Marker3D" parent="RespawnPoints" groups=["respawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 35)
+
+[node name="Respawn_Hall" type="Marker3D" parent="RespawnPoints" groups=["respawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 6)
+
+[node name="Respawn_Vault" type="Marker3D" parent="RespawnPoints" groups=["respawn_point"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, -22)
+
+[node name="EntranceCorridor" type="Node3D" parent="."]
+
+[node name="Crate1" parent="EntranceCorridor" instance=ExtResource("6_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.5, 0, 30)
+loot = ExtResource("12_lootcommon")
+break_id = &"mine_crate_entrance_1"
+
+[node name="Barrel1" parent="EntranceCorridor" instance=ExtResource("7_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, 32)
+loot = ExtResource("12_lootcommon")
+break_id = &"mine_barrel_entrance_1"
+
+[node name="KeyBarrel" parent="EntranceCorridor" instance=ExtResource("7_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 20)
+loot = ExtResource("11_lootkey")
+break_id = &"mine_key_barrel"
+
+[node name="MainHall" type="Node3D" parent="."]
+
+[node name="EmberHound1" parent="MainHall" instance=ExtResource("2_hound")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 4)
+
+[node name="EmberHound2" parent="MainHall" instance=ExtResource("2_hound")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 4)
+
+[node name="EmberHound3" parent="MainHall" instance=ExtResource("2_hound")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -2)
+
+[node name="CinderSpitter1" parent="MainHall" instance=ExtResource("3_spitter")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 0, -6)
+
+[node name="CinderSpitter2" parent="MainHall" instance=ExtResource("3_spitter")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 0, -6)
+
+[node name="ObsidianBrute1" parent="MainHall" instance=ExtResource("4_brute")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8)
+
+[node name="Crate2" parent="MainHall" instance=ExtResource("6_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, 9)
+loot = ExtResource("13_lootore")
+break_id = &"mine_crate_hall_1"
+
+[node name="Crate3" parent="MainHall" instance=ExtResource("6_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, 9)
+loot = ExtResource("15_lootsupply")
+break_id = &"mine_crate_hall_2"
+
+[node name="SupplyChest" parent="MainHall" instance=ExtResource("5_chest")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 0, -9)
+chest_id = &"mine_supply_chest"
+loot = ExtResource("15_lootsupply")
+
+[node name="OreChest" parent="MainHall" instance=ExtResource("5_chest")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0, -9)
+chest_id = &"mine_ore_chest"
+loot = ExtResource("13_lootore")
+
+[node name="LockedDoorArea" type="Node3D" parent="."]
+
+[node name="VaultDoor" parent="LockedDoorArea" instance=ExtResource("8_door")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12)
+required_key = &"copper_ore"
+open_prompt = "Open vault door"
+
+[node name="Lever" parent="LockedDoorArea" instance=ExtResource("9_lever")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.5, 0, -10)
+target_path = NodePath("../VaultDoor")
+target_method = &"toggle"
+
+[node name="VaultRoom" type="Node3D" parent="."]
+
+[node name="TreasureChest" parent="VaultRoom" instance=ExtResource("5_chest")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -32)
+chest_id = &"mine_treasure_chest"
+loot = ExtResource("14_loottreasure")
+
+[node name="TreasureBarrel" parent="VaultRoom" instance=ExtResource("7_barrel")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.5, 0, -30)
+loot = ExtResource("14_loottreasure")
+break_id = &"mine_treasure_barrel"
+
+[node name="ExitTeleport" parent="." instance=ExtResource("10_exit")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 37.4)
+target_scene_path = "res://stages/overworld/town_template.tscn"
+prompt_text = "Exit to Town"
+
+[node name="CollisionShape3D" parent="ExitTeleport" index="0"]
+shape = SubResource("Exit_shape")

@@ -1,0 +1,25 @@
+[gd_scene load_steps=5 format=3 uid="uid://bcr1tt3rsc0n"]
+
+[ext_resource type="Script" path="res://entities/critters/critter.gd" id="1_critter"]
+[ext_resource type="Script" path="res://components/health.gd" id="2_health"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_critter"]
+radius = 0.4
+height = 1.2
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_critter"]
+radius = 0.4
+height = 1.2
+
+[node name="Critter" type="CharacterBody3D" groups=["critter"]]
+script = ExtResource("1_critter")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_critter")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("CapsuleMesh_critter")
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("2_health")
+max_health = 30.0

@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="BombItem" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://entities/items/consumables/bomb_item.gd" id="1_bomb"]
+[ext_resource type="PackedScene" uid="uid://bcmb0thrwnbmb1" path="res://entities/items/consumables/thrown_bomb.tscn" id="2_thrown"]
+[ext_resource type="PackedScene" uid="uid://d1lpqm728gm8h" path="res://assets/models/props/pirate-kit/cannon-ball.fbx" id="3_model"]
+
+[resource]
+script = ExtResource("1_bomb")
+id = &"fire_bomb"
+display_name = "Fire Bomb"
+description = "A heavy iron sphere packed with volatile powder. Lob it at a crowd and take cover."
+category = 7
+max_stack = 16
+base_value = 45
+world_model = ExtResource("3_model")
+thrown_scene = ExtResource("2_thrown")
+damage = 50.0
+fuse_time = 1.5
+radius = 3.5
+throw_speed = 14.0
+throw_arc = 4.0

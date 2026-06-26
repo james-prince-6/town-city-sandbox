@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://global/crafting/recipe.gd" id="1_recipe"]
+[ext_resource type="Script" path="res://global/crafting/recipe_ingredient.gd" id="2_ingredient"]
+
+[sub_resource type="Resource" id="ing_lava_ash"]
+script = ExtResource("2_ingredient")
+item_id = &"lava_ash"
+count = 2
+
+[sub_resource type="Resource" id="ing_lava_vial"]
+script = ExtResource("2_ingredient")
+item_id = &"lava_vial"
+count = 1
+
+[resource]
+script = ExtResource("1_recipe")
+id = &"molten_mocha_recipe"
+display_name = "Mocha"
+inputs = [SubResource("ing_lava_ash"), SubResource("ing_lava_vial")]
+output_id = &"molten_mocha"
+output_count = 1
+brew_minutes = 30
+machine_type = 0

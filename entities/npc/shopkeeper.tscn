@@ -1,0 +1,38 @@
+[gd_scene load_steps=8 format=3 uid="uid://c6tvji1qpj8y3"]
+
+[ext_resource type="Script" uid="uid://ctpllt736en70" path="res://entities/npc/shopkeeper.gd" id="1_shopkeeper"]
+[ext_resource type="Resource" path="res://global/shop/shops/general_store.tres" id="2_shop"]
+[ext_resource type="Script" uid="uid://c26bx57jrr0yd" path="res://entities/npc/npc_animator.gd" id="3_anim"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/psx/Male/Character_02.fbx" id="4_model"]
+[ext_resource type="Texture2D" path="res://assets/models/characters/psx/Textures/Character_02.png" id="5_21mdb"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_keeper"]
+radius = 0.4
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_keeper"]
+radius = 0.4
+
+[node name="Shopkeeper" type="CharacterBody3D"]
+script = ExtResource("1_shopkeeper")
+shop = ExtResource("2_shop")
+npc_name = "Gus"
+npc_id = &"gus"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_keeper")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("CapsuleMesh_keeper")
+
+[node name="NavAgent" type="NavigationAgent3D" parent="."]
+path_desired_distance = 0.5
+target_desired_distance = 0.5
+
+[node name="Animator" type="Node3D" parent="."]
+script = ExtResource("3_anim")
+model_scene = ExtResource("4_model")
+skin_texture = ExtResource("5_21mdb")
+use_kit_animations = false
+use_mixamo = true

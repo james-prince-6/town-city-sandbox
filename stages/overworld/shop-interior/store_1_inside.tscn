@@ -39,102 +39,89 @@ data = PackedVector3Array(0.5, 1.4375, 0.5625, 0.5, 0, 0.625, 0.5, 1.4375, 0.625
 
 [node name="Store_1" type="Node3D"]
 
-[node name="SubViewportContainer" type="SubViewportContainer" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-stretch = true
-stretch_shrink = 3
 
-[node name="SubViewport" type="SubViewport" parent="SubViewportContainer"]
-handle_input_locally = false
-size = Vector2i(384, 216)
-render_target_update_mode = 4
-
-[node name="StaticBody3D" type="StaticBody3D" parent="SubViewportContainer/SubViewport"]
+[node name="StaticBody3D" type="StaticBody3D" parent="."]
 transform = Transform3D(0.699207, 0, 0, 0, 0.699207, 0, 0, 0, 0.699207, 0, 0, 0)
 
-[node name="blockbench_export" parent="SubViewportContainer/SubViewport/StaticBody3D" instance=ExtResource("1_nqhg3")]
+[node name="blockbench_export" parent="StaticBody3D" instance=ExtResource("1_nqhg3")]
 transform = Transform3D(2.56, 0, 0, 0, 2.56, 0, 0, 0, 2.56, 0.402307, 0, 1.0564)
 
-[node name="cuboid" parent="SubViewportContainer/SubViewport/StaticBody3D/blockbench_export/Node" index="4"]
+[node name="cuboid" parent="StaticBody3D/blockbench_export/Node" index="4"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.759037, 0, -3.1875)
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
+[node name="CollisionShape3D" type="CollisionShape3D" parent="StaticBody3D"]
 transform = Transform3D(2.56, 0, 0, 0, 2.56, 0, 0, 0, 2.56, 0.402307, 0, 1.0564)
 shape = SubResource("ConcavePolygonShape3D_nqhg3")
 
-[node name="CollisionShape3D4" type="CollisionShape3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
+[node name="CollisionShape3D4" type="CollisionShape3D" parent="StaticBody3D"]
 transform = Transform3D(2.56, 0, 0, 0, 0, 2.56, 0, -2.56, 0, 0.402307, 3.04, 6.49641)
 shape = SubResource("ConcavePolygonShape3D_bco5e")
 
-[node name="CollisionShape3D2" type="CollisionShape3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
+[node name="CollisionShape3D2" type="CollisionShape3D" parent="StaticBody3D"]
 transform = Transform3D(2.56, 0, 0, 0, 0, 2.56, 0, -2.56, 0, 0.402307, 3.04, -5.6636)
 shape = SubResource("ConcavePolygonShape3D_jaaaa")
 
-[node name="CollisionShape3D3" type="CollisionShape3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
+[node name="CollisionShape3D3" type="CollisionShape3D" parent="StaticBody3D"]
 transform = Transform3D(0, 2.56, 0, 0, 0, 2.56, 2.56, 0, 0, 6.48231, 3.04, 0.416401)
 shape = SubResource("ConcavePolygonShape3D_y7q1p")
 
-[node name="CollisionShape3D5" type="CollisionShape3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
+[node name="CollisionShape3D5" type="CollisionShape3D" parent="StaticBody3D"]
 transform = Transform3D(0, -2.56, 0, 0, 0, 2.56, -2.56, 0, 0, -5.6777, 3.04, 0.416401)
 shape = SubResource("ConcavePolygonShape3D_0xy4x")
 
-[node name="CollisionShape3D6" type="CollisionShape3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
+[node name="CollisionShape3D6" type="CollisionShape3D" parent="StaticBody3D"]
 transform = Transform3D(3.30681, 0, -1.01621e-14, 0, 3.30681, 0, 1.01621e-14, 0, 3.30681, 4.44951, 0.0792816, 5.77739)
 shape = SubResource("ConcavePolygonShape3D_g5826")
 
-[node name="CollisionShape3D7" type="CollisionShape3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
+[node name="CollisionShape3D7" type="CollisionShape3D" parent="StaticBody3D"]
 transform = Transform3D(-1.69975e-07, 0, -3.88857, 0, 3.88857, 0, 3.88857, 0, -1.69975e-07, -4.89719, -0.00115253, 4.24399)
 shape = SubResource("ConcavePolygonShape3D_633cd")
 
-[node name="CollisionShape3D8" type="CollisionShape3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
+[node name="CollisionShape3D8" type="CollisionShape3D" parent="StaticBody3D"]
 transform = Transform3D(-1.01633e-07, 0, 2.3251, 0, 2.3251, 0, -2.3251, 0, -1.01633e-07, 3.52692, 1.87982, -4.28321)
 shape = SubResource("ConcavePolygonShape3D_c11jt")
 
-[node name="CollisionShape3D9" type="CollisionShape3D" parent="SubViewportContainer/SubViewport/StaticBody3D"]
+[node name="CollisionShape3D9" type="CollisionShape3D" parent="StaticBody3D"]
 transform = Transform3D(-1.01633e-07, 0, 2.3251, 0, 2.3251, 0, -2.3251, 0, -1.01633e-07, 3.52692, 0.135994, -3.4113)
 shape = SubResource("ConcavePolygonShape3D_vhg3c")
 
-[node name="blockbench_export2" parent="SubViewportContainer/SubViewport/StaticBody3D" instance=ExtResource("3_bco5e")]
+[node name="blockbench_export2" parent="StaticBody3D" instance=ExtResource("3_bco5e")]
 transform = Transform3D(-1.01633e-07, 0, 2.3251, 0, 2.3251, 0, -2.3251, 0, -1.01633e-07, 3.52692, 0.135994, -3.4113)
 
-[node name="blockbench_export3" parent="SubViewportContainer/SubViewport/StaticBody3D" instance=ExtResource("4_y7q1p")]
+[node name="blockbench_export3" parent="StaticBody3D" instance=ExtResource("4_y7q1p")]
 transform = Transform3D(-1.69975e-07, 0, -3.88857, 0, 3.88857, 0, 3.88857, 0, -1.69975e-07, -4.89719, -0.00115253, 4.24399)
 
-[node name="blockbench_export4" parent="SubViewportContainer/SubViewport/StaticBody3D" instance=ExtResource("5_0xy4x")]
+[node name="blockbench_export4" parent="StaticBody3D" instance=ExtResource("5_0xy4x")]
 transform = Transform3D(3.30681, 0, -1.01621e-14, 0, 3.30681, 0, 1.01621e-14, 0, 3.30681, 4.44951, 0.0792816, 5.77739)
 
-[node name="FPPlayer" parent="SubViewportContainer/SubViewport" instance=ExtResource("2_bco5e")]
+[node name="FPPlayer" parent="." instance=ExtResource("2_bco5e")]
 transform = Transform3D(-0.999976, 0, -0.00698123, 0, 1, 0, 0.00698123, 0, -0.999976, 0.105756, 0.387604, -0.408651)
 
-[node name="Lights" type="Node3D" parent="SubViewportContainer/SubViewport"]
+[node name="Lights" type="Node3D" parent="."]
 transform = Transform3D(1, -0.000462245, -2.70638e-05, 2.60306e-05, -0.00223503, 0.999998, -0.000462304, -0.999997, -0.00223502, 0, 3.02267, 0)
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="SubViewportContainer/SubViewport/Lights"]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="Lights"]
 transform = Transform3D(1, -2.91038e-11, -1.25056e-11, 0, 1, -2.32831e-10, 1.46656e-11, 0, 1, -1.68501, 2.2986, 1.07403)
 light_color = Color(0.974756, 0.976792, 0.976288, 1)
 sky_mode = 1
 
-[node name="DirectionalLight3D3" type="DirectionalLight3D" parent="SubViewportContainer/SubViewport/Lights"]
+[node name="DirectionalLight3D3" type="DirectionalLight3D" parent="Lights"]
 transform = Transform3D(1, -1.99992e-05, 0.000511386, 1.995e-05, 1, 0.000110639, -0.000511388, -0.00011063, 1, 2.70414, -2.44098, 1.191)
 light_color = Color(0.974756, 0.976792, 0.976288, 1)
 shadow_enabled = true
 directional_shadow_mode = 1
 sky_mode = 1
 
-[node name="TeleportRaycast" parent="SubViewportContainer/SubViewport" instance=ExtResource("6_0xy4x")]
-target_scene_path = "uid://bv7qdcnca1g8j"
+[node name="TeleportRaycast" parent="." instance=ExtResource("6_0xy4x")]
+target_scene_path = "res://stages/overworld/town_template.tscn"
 prompt_text = "Leave Store [E]"
 
-[node name="CollisionShape3D" parent="SubViewportContainer/SubViewport/TeleportRaycast" index="0"]
+[node name="CollisionShape3D" parent="TeleportRaycast" index="0"]
 transform = Transform3D(1.82673, 0, 0, 0, 1.7881, 0, 0, 0, 1, -1.11575, 0, -4.41733)
 shape = SubResource("ConcavePolygonShape3D_5jbgj")
 
-[editable path="SubViewportContainer/SubViewport/StaticBody3D/blockbench_export"]
-[editable path="SubViewportContainer/SubViewport/StaticBody3D/blockbench_export2"]
-[editable path="SubViewportContainer/SubViewport/StaticBody3D/blockbench_export3"]
-[editable path="SubViewportContainer/SubViewport/StaticBody3D/blockbench_export4"]
-[editable path="SubViewportContainer/SubViewport/TeleportRaycast"]
+[editable path="StaticBody3D/blockbench_export"]
+[editable path="StaticBody3D/blockbench_export2"]
+[editable path="StaticBody3D/blockbench_export3"]
+[editable path="StaticBody3D/blockbench_export4"]
+[editable path="TeleportRaycast"]

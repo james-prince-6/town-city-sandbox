@@ -1,11 +1,15 @@
-[gd_scene load_steps=5 format=3 uid="uid://cppmnlasls1hp"]
+[gd_scene load_steps=6 format=3 uid="uid://cppmnlasls1hp"]
 
 [ext_resource type="Script" uid="uid://boq4ilcpva3qr" path="res://entities/player/player.gd" id="1_w7xyi"]
-[ext_resource type="PackedScene" uid="uid://bknv61y26kc3e" path="res://ui/dialog/dialogue_ui.tscn" id="2_1ic1w"]
 [ext_resource type="PackedScene" uid="uid://df40x646kfehy" path="res://ui/interactions/interaction_ui.tscn" id="3_ygwbr"]
+[ext_resource type="Script" path="res://components/hurt_box.gd" id="4_hurt"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_wccpv"]
 height = 2.538
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hurt"]
+radius = 0.45
+height = 1.9
 
 [node name="Player" type="CharacterBody3D"]
 script = ExtResource("1_w7xyi")
@@ -25,7 +29,12 @@ fov = 64.4169
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.00738168, 4.76837e-07, -0.0153739)
 target_position = Vector3(0, 0, -4)
 
-[node name="InteractionUI" parent="." instance=ExtResource("3_ygwbr")]
+[node name="HurtBox" type="Area3D" parent="."]
+script = ExtResource("4_hurt")
+team = 0
 
-[node name="DialogueUI" parent="." instance=ExtResource("2_1ic1w")]
-script = null
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_hurt")
+
+[node name="InteractionUI" parent="." instance=ExtResource("3_ygwbr")]

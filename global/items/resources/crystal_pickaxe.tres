@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ToolItem" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://entities/items/tool_item.gd" id="1_tool"]
+
+[resource]
+script = ExtResource("1_tool")
+id = &"crystal_pickaxe"
+display_name = "Crystal Pickaxe"
+description = "A pickaxe tipped with polished crystal. Light, tireless, and strong enough to break the hardest ore."
+category = 2
+max_stack = 1
+base_value = 140
+tool_type = 0
+power = 3
+stamina_cost = 8.0
+damage = 9.0

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ToolItem" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://entities/items/tool_item.gd" id="1_tool"]
+[ext_resource type="PackedScene" uid="uid://d2cluup7ubfd8" path="res://assets/models/tools_weapons/survival-kit/tool-axe.fbx" id="2_model"]
+
+[resource]
+script = ExtResource("1_tool")
+id = &"hatchet"
+display_name = "Hatchet"
+description = "A hand axe for chopping wood and clearing brush."
+category = 2
+max_stack = 1
+base_value = 22
+tool_type = 1
+power = 2
+stamina_cost = 12.0
+damage = 8.0
+world_model = ExtResource("2_model")

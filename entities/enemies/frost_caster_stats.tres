@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=2 format=3 uid="uid://bfrostcaststat"]
+
+[ext_resource type="Script" path="res://entities/enemies/enemy_stats.gd" id="1_stats"]
+
+[resource]
+script = ExtResource("1_stats")
+display_name = "Frost Caster"
+max_health = 46.0
+damage_multipliers = {
+1: 1.75,
+2: 0.25
+}
+move_speed = 2.4
+attack_style = 1
+damage = 7.0
+damage_type = 2
+attack_range = 12.0
+detect_range = 20.0
+attack_cooldown = 1.8
+attack_knockback = 1.0
+projectiles_per_shot = 3
+shot_spread_degrees = 18.0
+knockback_resistance = 0.2
+stagger_duration = 0.22
+poise_threshold = 0.0
+has_special = true
+special_style = 1
+special_windup = 0.6
+special_cooldown = 5.5
+special_range = 15.0
+special_chance = 0.45
+special_damage = 7.0
+special_damage_type = 2
+special_projectile_count = 5
+special_spread_degrees = 40.0
+special_knockback = 1.5
+loot_item_id = &"sulfur_crystal"
+loot_amount = 1
+xp = 20
+strength = 2

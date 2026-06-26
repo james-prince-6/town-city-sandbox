@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://global/crafting/recipe.gd" id="1_recipe"]
+[ext_resource type="Script" path="res://global/crafting/recipe_ingredient.gd" id="2_ingredient"]
+
+[sub_resource type="Resource" id="ing_lava_ash"]
+script = ExtResource("2_ingredient")
+item_id = &"lava_ash"
+count = 3
+
+[resource]
+script = ExtResource("1_recipe")
+id = &"ember_ale_recipe"
+display_name = "Amber Ale"
+inputs = [SubResource("ing_lava_ash")]
+output_id = &"ember_ale"
+output_count = 1
+brew_minutes = 45
+machine_type = 0

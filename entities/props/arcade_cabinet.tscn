@@ -1,0 +1,12 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://entities/props/arcade_cabinet.gd" id="1_cabinet"]
+[ext_resource type="PackedScene" uid="uid://dh0roax671ud5" path="res://assets/models/arcade/mini-arcade/arcade-machine.fbx" id="2_model"]
+[ext_resource type="PackedScene" path="res://ui/minigames/whack_minigame.tscn" id="3_game"]
+
+[node name="ArcadeCabinet" type="StaticBody3D"]
+script = ExtResource("1_cabinet")
+interaction_prompt = "Play Whack-a-Light"
+minigame_scene = ExtResource("3_game")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

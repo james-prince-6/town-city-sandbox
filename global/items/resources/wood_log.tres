@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Item" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://global/items/item.gd" id="1_item"]
+[ext_resource type="PackedScene" uid="uid://bogkj2smmt3s5" path="res://assets/models/tools_weapons/survival-kit/resource-wood.fbx" id="2_model"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"wood_log"
+display_name = "Wood Log"
+description = "A rough length of island timber. Saw it into planks."
+category = 3
+max_stack = 99
+base_value = 4
+world_model = ExtResource("2_model")

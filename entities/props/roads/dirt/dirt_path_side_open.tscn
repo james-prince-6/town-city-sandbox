@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/models/nature/nature-kit/ground_pathSideOpen.fbx" id="1_m"]
+
+[sub_resource type="BoxShape3D" id="col"]
+size = Vector3(4, 0.2, 4)
+
+[node name="DirtPathSideOpen" type="StaticBody3D"]
+
+[node name="Model" parent="." instance=ExtResource("1_m")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
+shape = SubResource("col")

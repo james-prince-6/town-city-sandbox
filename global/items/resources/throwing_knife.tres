@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ThrowingKnifeItem" load_steps=3 format=3]
+
+; Throwing knife: a cheap, stackable thrown weapon. Flies fast and straight, one per throw.
+[ext_resource type="Script" path="res://entities/items/weapons/throwing_knife_item.gd" id="1_knife"]
+[ext_resource type="PackedScene" uid="uid://b7thrownkn0aaa" path="res://entities/items/weapons/thrown_knife.tscn" id="2_thrown"]
+
+[resource]
+script = ExtResource("1_knife")
+id = &"throwing_knife"
+display_name = "Throwing Knife"
+description = "A balanced steel throwing knife. Flick it at a target; flies fast and straight."
+category = 7
+max_stack = 32
+base_value = 6
+thrown_scene = ExtResource("2_thrown")
+damage = 10.0
+throw_speed = 26.0
+throw_arc = 1.0

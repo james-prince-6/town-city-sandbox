@@ -1,0 +1,54 @@
+[gd_scene load_steps=8 format=3 uid="uid://bb15n24ec5m1u"]
+
+[ext_resource type="Script" path="res://components/interactables/lever.gd" id="1_lever"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_base"]
+size = Vector3(0.5, 0.4, 0.3)
+
+[sub_resource type="StandardMaterial3D" id="Mat_base"]
+albedo_color = Color(0.2, 0.2, 0.22, 1)
+metallic = 0.4
+roughness = 0.6
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_handle"]
+top_radius = 0.04
+bottom_radius = 0.05
+height = 0.7
+
+[sub_resource type="StandardMaterial3D" id="Mat_handle"]
+albedo_color = Color(0.7, 0.15, 0.1, 1)
+metallic = 0.5
+roughness = 0.4
+
+[sub_resource type="SphereMesh" id="SphereMesh_knob"]
+radius = 0.09
+height = 0.18
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_lever"]
+size = Vector3(0.6, 1.1, 0.5)
+
+[node name="Lever" type="StaticBody3D"]
+script = ExtResource("1_lever")
+target_method = &"toggle"
+
+[node name="Base" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.2, 0)
+mesh = SubResource("BoxMesh_base")
+surface_material_override/0 = SubResource("Mat_base")
+
+[node name="Handle" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+
+[node name="Stick" type="MeshInstance3D" parent="Handle"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.35, 0)
+mesh = SubResource("CylinderMesh_handle")
+surface_material_override/0 = SubResource("Mat_handle")
+
+[node name="Knob" type="MeshInstance3D" parent="Handle"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.72, 0)
+mesh = SubResource("SphereMesh_knob")
+surface_material_override/0 = SubResource("Mat_handle")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.55, 0)
+shape = SubResource("BoxShape3D_lever")

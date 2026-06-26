@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3]
+
+; RANGED perk: unlockable ability gated behind Marksman rank 3. Combat checks
+; Progression.has_perk(&"piercing_shot").
+
+[ext_resource type="Script" path="res://global/progression/skill.gd" id="1_skill"]
+
+[resource]
+script = ExtResource("1_skill")
+id = &"piercing_shot"
+display_name = "Piercing Shot"
+description = "Your arrows punch clean through their target and keep flying."
+branch = 1
+max_rank = 1
+cost = 2
+required_level = 4
+prerequisite = &"marksman"
+prerequisite_rank = 3
+is_perk = true
+stat_per_rank = {}

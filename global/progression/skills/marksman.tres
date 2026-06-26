@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3]
+
+; RANGED passive: scales ranged weapon damage. Foundation of the ranged branch and the
+; prerequisite for the Piercing Shot perk.
+
+[ext_resource type="Script" path="res://global/progression/skill.gd" id="1_skill"]
+
+[resource]
+script = ExtResource("1_skill")
+id = &"marksman"
+display_name = "Marksman"
+description = "Steady aim turns every arrow deadlier. +12% ranged damage per rank."
+branch = 1
+max_rank = 5
+cost = 1
+required_level = 1
+prerequisite = &""
+prerequisite_rank = 1
+is_perk = false
+stat_per_rank = {
+&"ranged_damage_mult": 0.12
+}

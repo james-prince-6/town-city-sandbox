@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://b7iceshard0aaa"]
+
+; Inherited variant of spell_projectile.tscn: a fast ICE shard that PIERCES through the
+; line of enemies (no AoE, no homing). The ICE colour is applied at runtime by setup().
+[ext_resource type="PackedScene" uid="uid://b7spellproj0aa" path="res://entities/items/weapons/spell_projectile.tscn" id="1_base"]
+
+[node name="IceShard" instance=ExtResource("1_base")]
+explode_radius = 0.0
+homing_strength = 0.0
+pierce_by_default = true

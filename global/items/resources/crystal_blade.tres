@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="MeleeWeaponItem" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://entities/items/weapons/melee_weapon_item.gd" id="1_melee"]
+
+[resource]
+script = ExtResource("1_melee")
+id = &"crystal_blade"
+display_name = "Crystal Blade"
+description = "A sword forged around a crystal core. Its edge crackles with arcane energy and never seems to dull."
+category = 6
+max_stack = 1
+base_value = 220
+damage = 28.0
+damage_type = 3
+range = 2.2
+stamina_cost = 11.0
+cooldown = 0.45
+swing_lifetime = 0.15
+knockback = 7.0

@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ToolItem" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://entities/items/tool_item.gd" id="1_tool"]
+[ext_resource type="PackedScene" uid="uid://rn743ceo22pd" path="res://assets/models/tools_weapons/survival-kit/tool-pickaxe.fbx" id="2_model"]
+
+[resource]
+script = ExtResource("1_tool")
+id = &"pickaxe"
+display_name = "Pickaxe"
+description = "A sturdy iron pickaxe. Swing it at rocks and ore veins to break them apart."
+category = 2
+max_stack = 1
+base_value = 25
+tool_type = 0
+power = 2
+stamina_cost = 10.0
+damage = 6.0
+world_model = ExtResource("2_model")

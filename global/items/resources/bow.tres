@@ -1,0 +1,19 @@
+[gd_resource type="Resource" script_class="RangedWeaponItem" load_steps=3 format=3]
+
+[ext_resource type="Script" uid="uid://js502lnz9hikg" path="res://entities/items/weapons/ranged_weapon_item.gd" id="1_ranged"]
+[ext_resource type="PackedScene" uid="uid://rs5esn7sfapbc" path="res://entities/items/weapons/arrow.tscn" id="2_arrow"]
+
+[resource]
+script = ExtResource("1_ranged")
+id = &"bow"
+display_name = "Bow"
+description = "A simple hunting bow. Looses arrows at whatever you aim at."
+category = 6
+max_stack = 1
+base_value = 50
+damage = 14.0
+damage_type = 0
+projectile_speed = 30.0
+cooldown = 0.6
+stamina_cost = 0.0
+projectile_scene = ExtResource("2_arrow")

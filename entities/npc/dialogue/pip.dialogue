@@ -1,0 +1,72 @@
+# Pip — the cheerful wanderer of the square. A time-aware greeting rolls into ~ hub: pass a
+# few hours together, get tips on Marlo's delivery or Sela's grove (quest-gated), swap dungeon
+# rumors, or hear an evening sign-off after 18:00. Branches loop back to ~ hub; ~ bye ends.
+# Gestures: wave on hello/bye, cheer when delighted, talk for chatter, look while recalling a
+# rumor, idle for a lazy beat.
+
+~ start
+if Clock.hour >= 18
+	=> evening
+else
+	=> greeting
+
+~ greeting
+% Pip: [#gesture=wave] Hullo there! Just stretching my legs round the square.
+% Pip: [#gesture=cheer] Oh, a friendly face! Wandering's better with company.
+Pip: [#gesture=talk] Lovely day for a wander, wouldn't you say?
+=> hub
+
+~ evening
+Pip: [#gesture=wave] Evening! The lava glow's something else at this hour, isn't it?
+Pip: [#gesture=talk] I'll be heading home soon, before the night critters come out.
+=> hub
+
+~ hub
+% Pip: [#gesture=talk] So, what shall we natter about?
+% Pip: [#gesture=idle] Plenty of day left. Or night. What's it to be?
+- Let's watch the day go by. (skip 3 hours)
+	do Clock.advance_minutes(180)
+	=> idled
+- Off to find Marlo's iron ore? [if QuestSystem.is_active("marlo_first_delivery") /]
+	=> quest_tip
+- Sela's grove — know it? [if QuestSystem.is_active("sela_coconut_run") /]
+	=> grove_tip
+- Heard anything on your travels?
+	=> rumor
+- Shouldn't you be heading home? [if Clock.hour >= 18 /]
+	=> night
+- See you around, Pip.
+	=> bye
+
+~ idled
+% Pip: [#gesture=idle] Ahh. Nothing like letting the hours drift, eh?
+% Pip: [#gesture=talk] Look at that — half the day gone and not a care between us.
+=> hub
+
+~ quest_tip
+Pip: [#gesture=talk] Marlo's iron ore? Try the old mine east of the square — the good stuff's deep in.
+Pip: [#gesture=look] Mind the dark corners. Something's been skittering down there. A stalker, folk say.
+=> hub
+
+~ grove_tip
+Pip: [#gesture=talk] Sela's grove is just past the old caves. Coconuts hang high — give the trunk a good shake!
+Pip: [#gesture=look] Don't dawdle in the caves, mind. A gnasher took up residence, all teeth and temper.
+=> hub
+
+~ rumor
+% Pip: [#gesture=look] They say the dungeon's bottom floor rearranges itself nightly. Spooky!
+% Pip: [#gesture=look] I heard the gold-glowing brutes down there drop the finest loot. If they don't squash you first.
+% Pip: [#gesture=look] A stalker chased a fellow clean up two floors, he swears. Quiet as a shadow till it pounced.
+% Pip: [#gesture=look] There's a locked vault below, they say. Need a special key — hidden a floor up from it.
+=> hub
+
+~ night
+Pip: [#gesture=talk] Aye, soon. The ravager only prowls after dark, and I'd rather not meet it.
+Pip: [#gesture=wave] You should get in too. Walls are friendlier than the dark out here.
+=> hub
+
+~ bye
+% Pip: [#gesture=wave] Toodle-oo!
+% Pip: [#gesture=wave] See you around, friend!
+% Pip: [#gesture=wave] Happy wandering!
+=> END

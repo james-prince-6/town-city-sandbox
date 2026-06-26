@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3 uid="uid://csmk0cloud0001"]
+
+[ext_resource type="Script" path="res://entities/items/consumables/smoke_cloud.gd" id="1_cloud"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_smoke"]
+radius = 3.0
+height = 6.0
+radial_segments = 16
+rings = 10
+
+[node name="SmokeCloud" type="Node3D"]
+script = ExtResource("1_cloud")
+
+[node name="Smoke" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_smoke")

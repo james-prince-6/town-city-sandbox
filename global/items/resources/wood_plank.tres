@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Item" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://global/items/item.gd" id="1_item"]
+[ext_resource type="PackedScene" uid="uid://bnb0brngl832" path="res://assets/models/tools_weapons/survival-kit/resource-planks.fbx" id="2_model"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"wood_plank"
+display_name = "Wood Plank"
+description = "Cut and dried board. The backbone of any building project."
+category = 3
+max_stack = 99
+base_value = 6
+world_model = ExtResource("2_model")

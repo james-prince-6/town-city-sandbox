@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://b7fireball0aaa"]
+
+; Inherited variant of spell_projectile.tscn: a slow, heavy FIRE orb that bursts into a
+; small AoE on impact. Only the spell_projectile.gd export knobs are overridden here; the
+; FIRE colour is applied at runtime by setup() from the flame_wand's damage_type.
+[ext_resource type="PackedScene" uid="uid://b7spellproj0aa" path="res://entities/items/weapons/spell_projectile.tscn" id="1_base"]
+
+[node name="Fireball" instance=ExtResource("1_base")]
+explode_radius = 3.0
+homing_strength = 0.0

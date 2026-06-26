@@ -1,0 +1,16 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bnemyba5e0001" path="res://entities/enemies/enemy.tscn" id="1_base"]
+[ext_resource type="Resource" path="res://entities/enemies/iron_bruiser_stats.tres" id="2_stats"]
+[ext_resource type="Texture2D" path="res://assets/models/characters/psx/Textures/Character_Killer_01.png" id="4_skin"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/psx/Killers/Character_Killer_01.fbx" id="5_model"]
+
+[node name="IronBruiser" instance=ExtResource("1_base")]
+stats = ExtResource("2_stats")
+melee_reach = 1.7
+
+[node name="Animator" parent="." index="4"]
+model_scene = ExtResource("5_model")
+skin_texture = ExtResource("4_skin")
+use_kit_animations = false
+target_height = 2.4

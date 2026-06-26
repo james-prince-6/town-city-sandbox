@@ -1,0 +1,18 @@
+[gd_scene load_steps=4 format=3 uid="uid://bcmb0thrwnbmb1"]
+
+[ext_resource type="Script" path="res://entities/items/consumables/thrown_bomb.gd" id="1_bomb"]
+[ext_resource type="PackedScene" uid="uid://d1lpqm728gm8h" path="res://assets/models/props/pirate-kit/cannon-ball.fbx" id="2_model"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_bomb"]
+radius = 0.18
+
+[node name="ThrownBomb" type="RigidBody3D"]
+script = ExtResource("1_bomb")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("SphereShape3D_bomb")
+
+[node name="Model" type="Node3D" parent="."]
+
+[node name="CannonBall" parent="Model" instance=ExtResource("2_model")]
+transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, 0, -0.18, 0)

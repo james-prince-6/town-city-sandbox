@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3]
+
+; RANGED perk: a big extra chunk of bow cooldown reduction on top of Quick Draw. Flows
+; through the existing &"ranged_cooldown_reduction" stat key, so Progression.ranged_cooldown_mult()
+; clamps the combined total to the 30%-of-base floor. Gated behind maxed Quick Draw.
+
+[ext_resource type="Script" path="res://global/progression/skill.gd" id="1_skill"]
+
+[resource]
+script = ExtResource("1_skill")
+id = &"rapid_fire"
+display_name = "Rapid Fire"
+description = "Loose arrows in a blur. An extra -15% bow cooldown."
+branch = 1
+max_rank = 1
+cost = 2
+required_level = 5
+prerequisite = &"quick_draw"
+prerequisite_rank = 4
+is_perk = true
+stat_per_rank = {
+&"ranged_cooldown_reduction": 0.15
+}

@@ -1,0 +1,47 @@
+[gd_scene load_steps=9 format=3 uid="uid://bnemyba5e0001"]
+
+[ext_resource type="Script" path="res://entities/enemies/enemy.gd" id="1_enemy"]
+[ext_resource type="Script" path="res://components/health.gd" id="2_health"]
+[ext_resource type="Script" path="res://components/hurt_box.gd" id="3_hurt"]
+[ext_resource type="Script" path="res://entities/enemies/enemy_animator.gd" id="4_anim"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/psx/Killers/Character_Monster.fbx" id="5_model"]
+[ext_resource type="Texture2D" path="res://assets/models/characters/psx/Textures/Character_Monster.png" id="6_skin"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
+radius = 0.45
+height = 1.6
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
+radius = 0.45
+height = 1.6
+
+[node name="Enemy" type="CharacterBody3D" groups=["enemy"]]
+script = ExtResource("1_enemy")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("CapsuleShape3D_body")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+mesh = SubResource("CapsuleMesh_body")
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("2_health")
+max_health = 40.0
+
+[node name="HurtBox" type="Area3D" parent="." groups=["enemy"]]
+script = ExtResource("3_hurt")
+team = 1
+
+[node name="HurtCollision" type="CollisionShape3D" parent="HurtBox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
+shape = SubResource("CapsuleShape3D_body")
+
+[node name="Animator" type="Node3D" parent="."]
+script = ExtResource("4_anim")
+model_scene = ExtResource("5_model")
+skin_texture = ExtResource("6_skin")
+use_kit_animations = false
+use_mixamo = true
+use_toon = true

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://global/crafting/recipe.gd" id="1_recipe"]
+[ext_resource type="Script" path="res://global/crafting/recipe_ingredient.gd" id="2_ingredient"]
+
+[sub_resource type="Resource" id="ing_ore"]
+script = ExtResource("2_ingredient")
+item_id = &"copper_ore"
+count = 2
+
+[resource]
+script = ExtResource("1_recipe")
+id = &"copper_smelt"
+display_name = "Copper Ingot"
+inputs = [SubResource("ing_ore")]
+output_id = &"copper_ingot"
+output_count = 1
+brew_minutes = 30
+instant = false
+machine_type = 1

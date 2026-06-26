@@ -1,0 +1,41 @@
+3D ASSET ATTRIBUTION
+====================
+
+The 3D models in this directory (assets/models/) are from Kenney.
+Website: https://kenney.nl
+
+License: CC0 1.0 Universal (Public Domain Dedication)
+https://creativecommons.org/publicdomain/zero/1.0/
+
+You are free to use these assets for any purpose, commercial or
+non-commercial, without asking permission. Attribution is appreciated
+but NOT required.
+
+Kenney asset kits included in this project:
+
+  - Food Kit
+  - Furniture Kit
+  - Nature Kit
+  - Fantasy Town Kit
+  - Survival Kit
+  - Mini Market
+  - Cube Pets
+  - Weapon Pack (knives only)
+  - Pirate Kit
+  - Watercraft Pack
+  - Factory Kit
+  - Mini Arcade
+  - City Kit - Suburban
+  - City Kit - Commercial
+  - Modular Buildings
+  - Prototype Kit
+  - Mini Characters
+  - Blocky Characters
+  - Animated Characters Bundle
+
+Thanks to Kenney (https://kenney.nl) for releasing these assets to the
+public domain.
+
+Note: Some assets under assets/models/ (custom .gltf scenes such as the
+lava town bar, storefront, houses, bar furniture, volcano, and roads) are
+project-original content, not part of the Kenney kits above.

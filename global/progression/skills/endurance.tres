@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3]
+
+; SURVIVAL passive: flat max stamina. Progression.bonus_max_stamina() sums these onto
+; PlayerStats.max_stamina, letting you sprint and swing for longer.
+
+[ext_resource type="Script" path="res://global/progression/skill.gd" id="1_skill"]
+
+[resource]
+script = ExtResource("1_skill")
+id = &"endurance"
+display_name = "Endurance"
+description = "Deeper reserves keep you moving and swinging. +15 max stamina per rank."
+branch = 2
+max_rank = 5
+cost = 1
+required_level = 2
+prerequisite = &""
+prerequisite_rank = 1
+is_perk = false
+stat_per_rank = {
+&"max_stamina": 15.0
+}

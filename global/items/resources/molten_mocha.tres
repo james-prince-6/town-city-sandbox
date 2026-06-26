@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Item" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://global/items/item.gd" id="1_item"]
+[ext_resource type="PackedScene" uid="uid://dw4b46qbeghk5" path="res://assets/models/food_drink/food-kit/cup-coffee.fbx" id="2_model"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"molten_mocha"
+display_name = "Mocha"
+description = "A warm house special. Surprisingly smooth and rich."
+category = 1
+max_stack = 16
+base_value = 25
+world_model = ExtResource("2_model")

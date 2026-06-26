@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3]
+
+; SURVIVAL passive: flat max health. Progression.bonus_max_health() sums these and pushes
+; the total onto PlayerStats.max_health. Prerequisite for the Second Wind perk.
+
+[ext_resource type="Script" path="res://global/progression/skill.gd" id="1_skill"]
+
+[resource]
+script = ExtResource("1_skill")
+id = &"toughness"
+display_name = "Toughness"
+description = "A hardier frame soaks more punishment. +20 max health per rank."
+branch = 2
+max_rank = 5
+cost = 1
+required_level = 1
+prerequisite = &""
+prerequisite_rank = 1
+is_perk = false
+stat_per_rank = {
+&"max_health": 20.0
+}

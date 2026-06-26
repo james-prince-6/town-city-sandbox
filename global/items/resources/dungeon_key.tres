@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Item" load_steps=2 format=3]
+
+; Dungeon Key: found on a dungeon floor, opens that floor's locked vault door. A plain Item
+; (no use() behaviour) — the Door interactable checks/consumes it by id.
+[ext_resource type="Script" path="res://global/items/item.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"dungeon_key"
+display_name = "Dungeon Key"
+description = "A heavy iron key. Opens a locked vault somewhere on this floor."
+category = 3
+max_stack = 16
+base_value = 0

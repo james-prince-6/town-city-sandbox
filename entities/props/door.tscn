@@ -1,0 +1,29 @@
+[gd_scene load_steps=5 format=3 uid="uid://bcoar8uwrkeke"]
+
+[ext_resource type="Script" path="res://components/interactables/door.gd" id="1_door"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_leaf"]
+size = Vector3(1.8, 2.6, 0.18)
+
+[sub_resource type="StandardMaterial3D" id="Mat_door"]
+albedo_color = Color(0.35, 0.22, 0.12, 1)
+roughness = 0.85
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_door"]
+size = Vector3(1.8, 2.6, 0.18)
+
+[node name="Door" type="StaticBody3D"]
+script = ExtResource("1_door")
+required_key = &""
+
+[node name="Pivot" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 0, 0)
+
+[node name="Leaf" type="MeshInstance3D" parent="Pivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.9, 1.3, 0)
+mesh = SubResource("BoxMesh_leaf")
+surface_material_override/0 = SubResource("Mat_door")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.3, 0)
+shape = SubResource("BoxShape3D_door")

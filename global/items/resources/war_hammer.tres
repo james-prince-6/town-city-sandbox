@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ToolItem" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://entities/items/tool_item.gd" id="1_tool"]
+[ext_resource type="PackedScene" uid="uid://b6c3422hhewt5" path="res://assets/models/tools_weapons/survival-kit/tool-hammer.fbx" id="2_model"]
+
+[resource]
+script = ExtResource("1_tool")
+id = &"war_hammer"
+display_name = "War Hammer"
+description = "Heavy and slow, but it ends a scuffle in one swing."
+category = 2
+max_stack = 1
+base_value = 55
+tool_type = 3
+power = 1
+stamina_cost = 18.0
+damage = 24.0
+world_model = ExtResource("2_model")

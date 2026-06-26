@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="RangedWeaponItem" load_steps=3 format=3]
+
+; A heavy crossbow: slow to cycle but hits hard and its bolts punch through enemies.
+[ext_resource type="Script" path="res://entities/items/weapons/ranged_weapon_item.gd" id="1_ranged"]
+[ext_resource type="PackedScene" uid="uid://b7crossbolt0aa" path="res://entities/items/weapons/crossbow_bolt.tscn" id="2_bolt"]
+
+[resource]
+script = ExtResource("1_ranged")
+id = &"crossbow"
+display_name = "Crossbow"
+description = "A heavy crossbow. Slow to crank, but its bolts fly fast and punch clean through."
+category = 6
+max_stack = 1
+base_value = 90
+damage = 26.0
+damage_type = 0
+projectile_speed = 48.0
+cooldown = 1.1
+stamina_cost = 0.0
+projectile_scene = ExtResource("2_bolt")
+knockback = 4.0

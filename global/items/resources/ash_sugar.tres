@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Item" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://global/items/item.gd" id="1_item"]
+[ext_resource type="PackedScene" uid="uid://bhk6tbv8pv3y5" path="res://assets/models/food_drink/food-kit/bag.fbx" id="2_model"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"ash_sugar"
+display_name = "Sugar"
+description = "Sweet refined crystals. Adds body and a smooth finish."
+category = 0
+max_stack = 99
+base_value = 4
+world_model = ExtResource("2_model")

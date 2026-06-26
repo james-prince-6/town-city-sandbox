@@ -1,0 +1,22 @@
+[gd_scene load_steps=5 format=3 uid="uid://bhrv0base0scn"]
+
+[ext_resource type="Script" path="res://entities/harvestables/harvestable.gd" id="1_harvest"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hv"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hv"]
+size = Vector3(1, 1, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_hv"]
+albedo_color = Color(0.6, 0.6, 0.6, 1)
+
+[node name="Harvestable" type="StaticBody3D"]
+script = ExtResource("1_harvest")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("BoxShape3D_hv")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_hv")
+surface_material_override/0 = SubResource("StandardMaterial3D_hv")

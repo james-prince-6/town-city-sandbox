@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://entities/props/prop.gd" id="1_prop"]
+[ext_resource type="PackedScene" uid="uid://bxkdqxho3og3w" path="res://assets/models/furniture/furniture-kit/rugRound.fbx" id="2_model"]
+
+[node name="Rug" type="StaticBody3D"]
+script = ExtResource("1_prop")
+auto_collision = false
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

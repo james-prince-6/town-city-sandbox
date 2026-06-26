@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://c4k4bm0ytd26"
+path="res://.godot/imported/pip.dialogue-4c7fbcafade082aec9e66c9db198fc5e.tres"
+
+[deps]
+
+source_file="res://entities/npc/dialogue/pip.dialogue"
+dest_files=["res://.godot/imported/pip.dialogue-4c7fbcafade082aec9e66c9db198fc5e.tres"]
+
+[params]
+
+defaults=true

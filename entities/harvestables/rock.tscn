@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3 uid="uid://bhrv0rock0scn"]
+
+[ext_resource type="PackedScene" uid="uid://bhrv0base0scn" path="res://entities/harvestables/harvestable.tscn" id="1_base"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rock"]
+albedo_color = Color(0.45, 0.42, 0.4, 1)
+
+[node name="Rock" instance=ExtResource("1_base")]
+required_tool_type = 0
+required_power = 1
+durability = 3
+drop_item_id = &"iron_ore"
+drop_amount = 2
+drop_as_world_item = true
+prompt_verb = "Mine"
+
+[node name="MeshInstance3D" parent="." index="1"]
+surface_material_override/0 = SubResource("StandardMaterial3D_rock")

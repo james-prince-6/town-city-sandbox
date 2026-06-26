@@ -1,0 +1,28 @@
+[gd_scene load_steps=6 format=3 uid="uid://rs5esn7sfapbc"]
+
+[ext_resource type="Script" uid="uid://qhpyd0jwbo49j" path="res://entities/items/weapons/arrow.gd" id="1_arrow"]
+[ext_resource type="Script" path="res://components/hit_box.gd" id="2_hit"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_shaft"]
+size = Vector3(0.04, 0.04, 0.6)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_shaft"]
+albedo_color = Color(0.35, 0.22, 0.1, 1)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hit"]
+size = Vector3(0.12, 0.12, 0.6)
+
+[node name="Arrow" type="Area3D"]
+script = ExtResource("1_arrow")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_shaft")
+surface_material_override/0 = SubResource("StandardMaterial3D_shaft")
+
+[node name="HitBox" type="Area3D" parent="."]
+script = ExtResource("2_hit")
+one_shot = true
+target_team = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HitBox"]
+shape = SubResource("BoxShape3D_hit")

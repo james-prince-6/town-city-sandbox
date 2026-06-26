@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3 uid="uid://blavatownkeg001"]
+
+[ext_resource type="Script" path="res://entities/props/prop.gd" id="1_prop"]
+[ext_resource type="PackedScene" uid="uid://cmb2q8dav6iny" path="res://assets/models/food_drink/food-kit/barrel.fbx" id="2_model"]
+
+[node name="LavaKeg" type="StaticBody3D"]
+script = ExtResource("1_prop")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

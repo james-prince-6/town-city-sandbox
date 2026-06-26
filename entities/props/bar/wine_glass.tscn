@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://entities/props/prop.gd" id="1_prop"]
+[ext_resource type="PackedScene" uid="uid://h7ikh65prgtu" path="res://assets/models/food_drink/food-kit/glass-wine.fbx" id="2_model"]
+
+[node name="WineGlass" type="StaticBody3D"]
+script = ExtResource("1_prop")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]

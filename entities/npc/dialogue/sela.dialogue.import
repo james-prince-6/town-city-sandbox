@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://cb5hjvq1hxuw5"
+path="res://.godot/imported/sela.dialogue-137fd258bc61d7aa4ff78c078d0f7c4f.tres"
+
+[deps]
+
+source_file="res://entities/npc/dialogue/sela.dialogue"
+dest_files=["res://.godot/imported/sela.dialogue-137fd258bc61d7aa4ff78c078d0f7c4f.tres"]
+
+[params]
+
+defaults=true

@@ -1,0 +1,91 @@
+# Mira — townsfolk in the square, and the town's warm conversation hub. A random greeting
+# rolls into ~ hub, where every branch loops back so you can ask several things in one talk.
+# Reputation gates a "friends" branch (>= 20) and a "confidante" branch (>= 50). Compliments
+# brighten her mood and bump reputation ONCE (flag-guarded so the loop can't farm it); the
+# friends branch gifts a single potion. ~ bye re-rolls a farewell and ends, so re-talking
+# re-rolls the greeting. Gestures: wave on hello/bye, talk for chatter, look while recalling
+# rumors, cheer/salute for warm beats, idle for calm.
+
+~ start
+% Mira: [#gesture=wave] Oh! A new face. Welcome to the square.
+% Mira: [#gesture=wave] Back again? Good to see you.
+% Mira: [#gesture=talk] Mm? Need something, traveller?
+=> hub
+
+~ hub
+% Mira: [#gesture=talk] So — what's on your mind?
+% Mira: [#gesture=idle] Ask away, I've nowhere to be.
+- Tell me about this town.
+	=> about
+- Heard any rumors?
+	=> rumor
+- Any word on the dungeon?
+	=> dungeon
+- You look well today.
+	=> compliment
+- We're friends, right? Spare anything for the road? [if Reputation.get_reputation("mira") >= 20 /]
+	=> friend
+- Between us — what do you really make of this place? [if Reputation.get_reputation("mira") >= 50 /]
+	=> confidante
+- Just passing through.
+	=> bye
+
+~ about
+Mira: [#gesture=talk] This is a quiet town... mostly. The dungeon out east is where the adventurers test their luck.
+Mira: [#gesture=idle] Gus runs the store by the square, and there's a workbench there too if you're the crafting sort.
+Mira: [#gesture=talk] Marlo brews next door, Ember keeps the forge, and Sela forages the groves. Good folk, all.
+- And the cracks in the ground?
+	=> about_cracks
+- That's all I needed.
+	=> hub
+
+~ about_cracks
+Mira: [#gesture=look] The ground's been restless of late. The lava runs closer than it used to.
+Mira: [#gesture=talk] Old folk say the dungeon stirs it up. Me, I just mind my step.
+=> hub
+
+~ rumor
+% Mira: [#gesture=look] They say the deeper floors of the dungeon shift around — no two trips the same.
+% Mira: [#gesture=look] Word is a frost caster moved into the ruins. Bundle up.
+% Mira: [#gesture=look] Someone found a locked vault down there. No one's got the key... yet.
+% Mira: [#gesture=look] Careful of the elites — bigger, meaner, and they glow gold.
+% Mira: [#gesture=look] Folk whisper of new beasts below — gnashers, stalkers, a ravager. Awful names for awful things.
+=> hub
+
+~ dungeon
+Mira: [#gesture=talk] You're really going down there? Brave. Or daft. Hard to tell some days.
+Mira: [#gesture=look] If you hit a vault you can't open, it's a key you're missing — they're hidden a floor or two above it.
+Mira: [#gesture=idle] And don't let a frost caster pin you. Keep moving and you'll be alright.
+=> hub
+
+~ compliment
+if not GameState.get_flag("mira_complimented")
+	do GameState.set_flag("mira_complimented")
+	do Reputation.add_reputation("mira", 5)
+	do NPCMoods.set_mood("mira", "happy")
+	Mira: [#gesture=cheer] Oh! Well aren't you a charmer. You've made my afternoon.
+else
+	do NPCMoods.set_mood("mira", "happy")
+	Mira: [#gesture=cheer] You flatterer. Careful — I'll start expecting it.
+=> hub
+
+~ friend
+if not GameState.get_flag("mira_gave_potion")
+	do GameState.set_flag("mira_gave_potion")
+	do Inventory.add("health_potion", 1)
+	Mira: [#gesture=salute] For a friend? Here — a potion for the road. Don't go dying on me down there.
+else
+	Mira: [#gesture=talk] I'd hand you another potion, but that was my last to spare. Stay sharp down there.
+=> hub
+
+~ confidante
+Mira: [#gesture=talk] Truthfully? I love this town, cracks and all. But I worry.
+Mira: [#gesture=look] The dungeon's getting bolder. One day what's down there won't stay down there.
+Mira: [#gesture=cheer] Still — with folk like you around, I sleep easier. Thank you.
+=> hub
+
+~ bye
+% Mira: [#gesture=wave] See you around.
+% Mira: [#gesture=wave] Don't be a stranger.
+% Mira: [#gesture=wave] Mind how you go.
+=> END

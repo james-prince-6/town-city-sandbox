@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://po1o3mkqo3o"
+path="res://.godot/imported/ember.dialogue-6bf2d2255d6742d315461675fc0a192f.tres"
+
+[deps]
+
+source_file="res://entities/npc/dialogue/ember.dialogue"
+dest_files=["res://.godot/imported/ember.dialogue-6bf2d2255d6742d315461675fc0a192f.tres"]
+
+[params]
+
+defaults=true

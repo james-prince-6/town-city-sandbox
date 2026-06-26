@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="Quest" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://global/quests/quest.gd" id="1_quest"]
+[ext_resource type="Script" path="res://global/quests/quest_objective.gd" id="2_objective"]
+[ext_resource type="Script" path="res://global/quests/game_effect.gd" id="3_effect"]
+
+[sub_resource type="Resource" id="Objective_deliver"]
+script = ExtResource("2_objective")
+description = "Bring Sela 3 coconuts"
+kind = 1
+target = &"sela_coconuts_delivered"
+required_count = 1
+
+[sub_resource type="Resource" id="Reward_money"]
+script = ExtResource("3_effect")
+type = 5
+target = &""
+amount = 40
+
+[sub_resource type="Resource" id="Reward_rep"]
+script = ExtResource("3_effect")
+type = 4
+target = &"sela"
+amount = 15
+
+[resource]
+script = ExtResource("1_quest")
+id = &"sela_coconut_run"
+title = "Coconuts for Sela"
+description = "Sela the forager twisted her ankle. Gather 3 coconuts from the grove and bring them to her at Ember Market."
+objectives = Array[ExtResource("2_objective")]([SubResource("Objective_deliver")])
+rewards = Array[ExtResource("3_effect")]([SubResource("Reward_money"), SubResource("Reward_rep")])

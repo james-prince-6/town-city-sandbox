@@ -1,0 +1,74 @@
+# Ember — the blacksmith. Closed before 9am (the forge is cold); otherwise her greeting depends
+# on her mood. From ~ hub you can praise her wares (mood -> happy), insult them ONCE (mood ->
+# grumpy, rep -5, flag-guarded so the loop can't farm it), ask about the dungeon's metals, or
+# commission a blade once she rates you (rep >= 20). Branches loop back to ~ hub; ~ bye ends.
+# Gestures: wave on hello/bye, talk for chatter, angry when grumpy/insulted, cheer when pleased,
+# salute for a commission, look while recalling, idle for a flat beat.
+
+~ start
+if Clock.hour < 9
+	=> closed
+elif NPCMoods.get_mood("ember") == "grumpy"
+	=> grumpy
+else
+	=> greeting
+
+~ closed
+Ember: [#gesture=angry] We're not open yet — the forge is still cold.
+Ember: [#gesture=talk] Come back after nine and I'll have something for you.
+=> END
+
+~ greeting
+% Ember: [#gesture=wave] Welcome to the forge! Tools, trinkets, the lot.
+% Ember: [#gesture=talk] Back for more steel? Good. Idle hammers rust.
+Ember: [#gesture=talk] See anything you fancy?
+=> hub
+
+~ grumpy
+Ember: [#gesture=angry] Hmph. You again.
+Ember: [#gesture=angry] Buy something or move along — I haven't got all day.
+=> hub
+
+~ hub
+% Ember: [#gesture=talk] Well? Speak up, the iron's hot.
+% Ember: [#gesture=idle] What do you want, then?
+- Your wares are the finest in town.
+	do NPCMoods.set_mood("ember", "happy")
+	=> happy
+- Your prices are daylight robbery. [if not GameState.get_flag("ember_insulted") /]
+	do GameState.set_flag("ember_insulted")
+	do NPCMoods.set_mood("ember", "grumpy")
+	do Reputation.add_reputation("ember", -5)
+	=> insulted
+- What metals come out of the dungeon?
+	=> metals
+- Can you forge me something special? [if Reputation.get_reputation("ember") >= 20 /]
+	=> commission
+- Just browsing, thanks.
+	=> bye
+
+~ happy
+Ember: [#gesture=cheer] Oh, you really think so? You've made my whole morning.
+Ember: [#gesture=talk] Take a look around — for you, I'll knock a little off.
+=> hub
+
+~ insulted
+Ember: [#gesture=angry] Robbery?! Every blade's worth twice what I charge for it!
+Ember: [#gesture=angry] Out of my sight before I change my mind about serving you at all.
+=> hub
+
+~ metals
+Ember: [#gesture=talk] Obsidian and sulfur crystal, mostly — the dungeon coughs them up if you dig deep.
+Ember: [#gesture=look] The gold-glowing elites down there carry rarer stuff. Bring me some and I'll see what it wants to be.
+=> hub
+
+~ commission
+Ember: [#gesture=salute] For a steady customer? Aye. Bring me obsidian and I'll fold you a blade that outlasts you.
+Ember: [#gesture=talk] None of that dungeon-junk steel, mind. Real metal, real work.
+=> hub
+
+~ bye
+% Ember: [#gesture=wave] Mind the sparks on your way out.
+% Ember: [#gesture=talk] Hmph. Come back with coin.
+% Ember: [#gesture=wave] Off with you, then.
+=> END

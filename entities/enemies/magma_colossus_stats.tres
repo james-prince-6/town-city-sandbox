@@ -1,0 +1,40 @@
+[gd_resource type="Resource" script_class="EnemyStats" load_steps=2 format=3]
+
+[ext_resource type="Script" uid="uid://dssu8psffht4a" path="res://entities/enemies/enemy_stats.gd" id="1_stats"]
+
+[resource]
+script = ExtResource("1_stats")
+display_name = "Magma Colossus"
+max_health = 600.0
+damage_multipliers = {
+0: 0.5,
+1: 0.25,
+2: 1.6
+}
+move_speed = 2.3
+attack_style = 0
+damage = 26.0
+damage_type = 1
+attack_range = 3.2
+detect_range = 26.0
+attack_cooldown = 2.2
+attack_knockback = 6.0
+knockback_resistance = 0.95
+stagger_duration = 0.15
+poise_threshold = 40.0
+has_special = true
+special_style = 0
+special_windup = 0.8
+special_cooldown = 6.0
+special_range = 3.6
+special_chance = 0.5
+special_damage = 40.0
+special_damage_type = 1
+special_radius = 4.0
+special_knockback = 16.0
+special_projectile_count = 5
+special_spread_degrees = 40.0
+loot_item_id = &"obsidian"
+loot_amount = 6
+xp = 200
+strength = 8

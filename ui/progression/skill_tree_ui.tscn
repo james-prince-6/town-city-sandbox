@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3]
+
+; Minimal root for the SkillTreeUI autoload. The entire panel is built in code in
+; skill_tree_ui.gd (_build_ui), so this scene is just a CanvasLayer carrying the script.
+
+[ext_resource type="Script" path="res://ui/progression/skill_tree_ui.gd" id="1_skilltree"]
+
+[node name="SkillTreeUI" type="CanvasLayer"]
+script = ExtResource("1_skilltree")

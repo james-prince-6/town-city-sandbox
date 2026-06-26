@@ -1,0 +1,118 @@
+[gd_scene load_steps=11 format=3 uid="uid://bjmuqdp2lfayg"]
+
+; BREWERY INTERIOR TEMPLATE — a blank room to build the brewery in. Floor + 4 walls + a
+; light, a player, a PlayerSpawn marker, and a "Leave" door back to town. Drop brew
+; kettles / barrels / counters under the root. Point a town-side teleport's Target
+; Scene Path here to make it reachable.
+
+[ext_resource type="PackedScene" uid="uid://cppmnlasls1hp" path="res://entities/player/player.tscn" id="1_player"]
+[ext_resource type="PackedScene" uid="uid://sbccd4at7sdl" path="res://global/teleport area/teleport_raycast.tscn" id="2_leave"]
+
+[sub_resource type="Environment" id="Env_1"]
+background_mode = 1
+background_color = Color(0.06, 0.07, 0.07, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.45, 0.5, 0.5, 1)
+ambient_light_energy = 1.0
+tonemap_mode = 2
+
+[sub_resource type="BoxShape3D" id="Floor_shape"]
+size = Vector3(16, 1, 16)
+
+[sub_resource type="BoxMesh" id="Floor_mesh"]
+size = Vector3(16, 1, 16)
+
+[sub_resource type="StandardMaterial3D" id="Floor_mat"]
+albedo_color = Color(0.2, 0.21, 0.2, 1)
+roughness = 0.85
+
+[sub_resource type="BoxShape3D" id="Wall_shape"]
+size = Vector3(16, 4, 0.5)
+
+[sub_resource type="BoxMesh" id="Wall_mesh"]
+size = Vector3(16, 4, 0.5)
+
+[sub_resource type="StandardMaterial3D" id="Wall_mat"]
+albedo_color = Color(0.3, 0.32, 0.3, 1)
+roughness = 1.0
+
+[sub_resource type="BoxShape3D" id="Leave_shape"]
+size = Vector3(1.5, 2.5, 0.6)
+
+[node name="BreweryInside" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env_1")
+
+[node name="Light" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+light_energy = 2.5
+omni_range = 30.0
+shadow_enabled = true
+
+[node name="Floor" type="StaticBody3D" parent="."]
+
+[node name="Col" type="CollisionShape3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("Floor_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("Floor_mesh")
+material_override = SubResource("Floor_mat")
+
+[node name="WallNorth" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, -8)
+
+[node name="Col" type="CollisionShape3D" parent="WallNorth"]
+shape = SubResource("Wall_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="WallNorth"]
+mesh = SubResource("Wall_mesh")
+material_override = SubResource("Wall_mat")
+
+[node name="WallSouth" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 8)
+
+[node name="Col" type="CollisionShape3D" parent="WallSouth"]
+shape = SubResource("Wall_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="WallSouth"]
+mesh = SubResource("Wall_mesh")
+material_override = SubResource("Wall_mat")
+
+[node name="WallEast" type="StaticBody3D" parent="."]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 8, 2, 0)
+
+[node name="Col" type="CollisionShape3D" parent="WallEast"]
+shape = SubResource("Wall_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="WallEast"]
+mesh = SubResource("Wall_mesh")
+material_override = SubResource("Wall_mat")
+
+[node name="WallWest" type="StaticBody3D" parent="."]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -8, 2, 0)
+
+[node name="Col" type="CollisionShape3D" parent="WallWest"]
+shape = SubResource("Wall_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="WallWest"]
+mesh = SubResource("Wall_mesh")
+material_override = SubResource("Wall_mat")
+
+[node name="PlayerSpawn" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 5)
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 5)
+
+[node name="Leave" parent="." instance=ExtResource("2_leave")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, -7.2)
+target_scene_path = "res://stages/overworld/town_template.tscn"
+prompt_text = "Leave"
+
+[node name="CollisionShape3D" parent="Leave" index="0"]
+shape = SubResource("Leave_shape")
+
+[editable path="Leave"]

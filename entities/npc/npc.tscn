@@ -1,0 +1,41 @@
+[gd_scene load_steps=8 format=3 uid="uid://bn7clava0npc01"]
+
+[ext_resource type="Script" path="res://entities/npc/npc.gd" id="1_npc"]
+[ext_resource type="Resource" path="res://entities/npc/dialogue/marlo.dialogue" id="2_dlg"]
+[ext_resource type="Script" path="res://entities/npc/npc_animator.gd" id="3_anim"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/psx/Male/Character_01.fbx" id="4_model"]
+[ext_resource type="Texture2D" path="res://assets/models/characters/psx/Textures/Character_01.png" id="5_skin"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_npc"]
+height = 2.0
+radius = 0.4
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_npc"]
+height = 2.0
+radius = 0.4
+
+[node name="NPC" type="CharacterBody3D"]
+script = ExtResource("1_npc")
+npc_name = "Marlo"
+npc_id = &"marlo"
+dialogue = ExtResource("2_dlg")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_npc")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("CapsuleMesh_npc")
+
+[node name="NavAgent" type="NavigationAgent3D" parent="."]
+path_desired_distance = 0.5
+target_desired_distance = 0.5
+avoidance_enabled = false
+
+[node name="Animator" type="Node3D" parent="."]
+script = ExtResource("3_anim")
+model_scene = ExtResource("4_model")
+skin_texture = ExtResource("5_skin")
+use_kit_animations = false
+use_mixamo = true

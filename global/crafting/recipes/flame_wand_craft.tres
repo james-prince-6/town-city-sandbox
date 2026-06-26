@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=5 format=3]
+
+; Flame Wand — crafted at a Workbench from shop-buyable materials.
+[ext_resource type="Script" path="res://global/crafting/recipe.gd" id="1_recipe"]
+[ext_resource type="Script" path="res://global/crafting/recipe_ingredient.gd" id="2_ingredient"]
+
+[sub_resource type="Resource" id="ing_ash"]
+script = ExtResource("2_ingredient")
+item_id = &"lava_ash"
+count = 3
+
+[sub_resource type="Resource" id="ing_vial"]
+script = ExtResource("2_ingredient")
+item_id = &"lava_vial"
+count = 2
+
+[resource]
+script = ExtResource("1_recipe")
+id = &"flame_wand_craft"
+display_name = "Flame Wand"
+inputs = [SubResource("ing_ash"), SubResource("ing_vial")]
+output_id = &"flame_wand"
+output_count = 1
+brew_minutes = 0
+instant = true
+machine_type = 2

@@ -1,0 +1,18 @@
+; generated_dungeon.tscn
+; A trivially-authored procedural dungeon: the root Node3D runs dungeon_generator.gd, which
+; builds ALL geometry / lights / markers / enemies in code on _ready() using start_seed. A
+; Player instance is included so the scene is directly playable (F6) — the generator places
+; it on the entry marker after the geometry is built. Everything else is generated, so this
+; .tscn stays minimal on purpose.
+[gd_scene load_steps=3 format=3 uid="uid://cgendungproc01"]
+
+[ext_resource type="Script" path="res://stages/dungeons/procedural/dungeon_generator.gd" id="1_gen"]
+[ext_resource type="PackedScene" uid="uid://cppmnlasls1hp" path="res://entities/player/player.tscn" id="2_player"]
+
+[node name="GeneratedDungeon" type="Node3D"]
+script = ExtResource("1_gen")
+start_seed = 12345
+difficulty = 1
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

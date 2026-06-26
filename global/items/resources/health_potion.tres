@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="HealthPotionItem" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://entities/items/consumables/health_potion_item.gd" id="1_potion"]
+[ext_resource type="PackedScene" uid="uid://c8kecxtxptkwg" path="res://assets/models/food_drink/food-kit/cocktail.fbx" id="2_model"]
+
+[resource]
+script = ExtResource("1_potion")
+id = &"health_potion"
+display_name = "Health Potion"
+description = "A bubbling restorative brew. Drink it to mend your wounds in a hurry."
+category = 7
+max_stack = 10
+base_value = 30
+world_model = ExtResource("2_model")
+heal_amount = 40.0

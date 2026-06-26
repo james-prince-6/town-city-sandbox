@@ -1,0 +1,16 @@
+[gd_scene load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://entities/props/prop.gd" id="1_prop"]
+[ext_resource type="Material" path="res://assets/materials/ForceFieldMaterial.tres" id="2_field"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_field"]
+size = Vector3(2.4, 2.8, 0.08)
+
+[node name="ForceFieldWall" type="StaticBody3D"]
+script = ExtResource("1_prop")
+auto_collision = true
+
+[node name="Field" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0)
+mesh = SubResource("BoxMesh_field")
+surface_material_override/0 = ExtResource("2_field")

@@ -1,0 +1,17 @@
+[gd_scene load_steps=4 format=3 uid="uid://dyr6h8u41rab5"]
+
+[ext_resource type="Script" path="res://components/interactables/chest.gd" id="1_chest"]
+[ext_resource type="PackedScene" uid="uid://cr0nvn4kmbgt6" path="res://assets/models/props/pirate-kit/chest.fbx" id="2_model"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_chest"]
+size = Vector3(0.8, 0.6, 0.6)
+
+[node name="Chest" type="StaticBody3D"]
+script = ExtResource("1_chest")
+chest_id = &"chest_unset"
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3, 0)
+shape = SubResource("BoxShape3D_chest")

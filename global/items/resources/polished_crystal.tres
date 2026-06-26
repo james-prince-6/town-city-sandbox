@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="Item" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://global/items/item.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"polished_crystal"
+display_name = "Polished Crystal"
+description = "A flawless, faceted gem that hums with faint energy. The heart of the finest tools and blades."
+category = 3
+max_stack = 99
+base_value = 45

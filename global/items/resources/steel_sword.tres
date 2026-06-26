@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="MeleeWeaponItem" load_steps=3 format=3]
+
+[ext_resource type="Script" uid="uid://fs1ofjantoqnr" path="res://entities/items/weapons/melee_weapon_item.gd" id="1_melee"]
+[ext_resource type="PackedScene" uid="uid://bk12yu8ndgvcw" path="res://assets/models/tools_weapons/weapon-pack/knife_smooth.fbx" id="2_model"]
+
+[resource]
+script = ExtResource("1_melee")
+id = &"steel_sword"
+display_name = "Steel Sword"
+description = "A balanced blade for cutting down whatever crawls out of the wild."
+category = 6
+max_stack = 1
+base_value = 60
+damage = 22.0
+damage_type = 0
+range = 2.0
+stamina_cost = 12.0
+cooldown = 0.5
+swing_lifetime = 0.15
+world_model = ExtResource("2_model")

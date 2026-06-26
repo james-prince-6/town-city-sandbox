@@ -1,0 +1,59 @@
+[gd_scene load_steps=8 format=3 uid="uid://c46rwtgkb5bsj"]
+
+; GENERIC BLANK SCENE TEMPLATE — duplicate this (right-click > Duplicate, or "Save As")
+; to start ANY new scene. It has the bare minimum to run and walk around: a sky + sun,
+; a flat ground, a player, and a PlayerSpawn marker. Delete the Player if the scene is
+; one the player teleports INTO (the destination places the player), and swap the ground
+; for your own geometry.
+
+[ext_resource type="PackedScene" uid="uid://cppmnlasls1hp" path="res://entities/player/player.tscn" id="1_player"]
+
+[sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
+sky_horizon_color = Color(0.7, 0.75, 0.82, 1)
+ground_horizon_color = Color(0.55, 0.55, 0.55, 1)
+
+[sub_resource type="Sky" id="Sky_1"]
+sky_material = SubResource("Sky_mat")
+
+[sub_resource type="Environment" id="Env_1"]
+background_mode = 2
+sky = SubResource("Sky_1")
+ambient_light_source = 3
+ambient_light_energy = 1.1
+tonemap_mode = 2
+
+[sub_resource type="BoxShape3D" id="Ground_shape"]
+size = Vector3(40, 1, 40)
+
+[sub_resource type="BoxMesh" id="Ground_mesh"]
+size = Vector3(40, 1, 40)
+
+[sub_resource type="StandardMaterial3D" id="Ground_mat"]
+albedo_color = Color(0.4, 0.42, 0.38, 1)
+roughness = 1.0
+
+[node name="NewScene" type="Node3D"]
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env_1")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.7071, 0.7071, 0, -0.7071, 0.7071, 0, 30, 0)
+shadow_enabled = true
+
+[node name="Ground" type="StaticBody3D" parent="."]
+
+[node name="Col" type="CollisionShape3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("Ground_shape")
+
+[node name="Mesh" type="MeshInstance3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("Ground_mesh")
+material_override = SubResource("Ground_mat")
+
+[node name="PlayerSpawn" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)

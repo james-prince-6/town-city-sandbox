@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://b7arcanem0aaaa"]
+
+; Inherited variant of spell_projectile.tscn: a purple arcane missile that gently HOMES
+; toward the nearest enemy (no AoE, no piercing). Purple comes from the arcane_wand's
+; PHYSICAL damage_type, applied at runtime by setup().
+[ext_resource type="PackedScene" uid="uid://b7spellproj0aa" path="res://entities/items/weapons/spell_projectile.tscn" id="1_base"]
+
+[node name="ArcaneMissile" instance=ExtResource("1_base")]
+explode_radius = 0.0
+homing_strength = 3.0
+homing_range = 18.0

@@ -1,0 +1,22 @@
+[gd_scene load_steps=4 format=3 uid="uid://bnemyproj00002"]
+
+[ext_resource type="Script" path="res://entities/enemies/frost_bolt_projectile.gd" id="1_proj"]
+
+[sub_resource type="SphereMesh" id="SphereMesh_frost"]
+radius = 0.22
+height = 0.44
+
+[sub_resource type="StandardMaterial3D" id="Mat_frost"]
+albedo_color = Color(0.55, 0.85, 1, 1)
+emission_enabled = true
+emission = Color(0.35, 0.8, 1, 1)
+emission_energy_multiplier = 2.8
+
+[node name="FrostBolt" type="Area3D"]
+script = ExtResource("1_proj")
+speed = 14.0
+max_lifetime = 4.0
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+mesh = SubResource("SphereMesh_frost")
+surface_material_override/0 = SubResource("Mat_frost")

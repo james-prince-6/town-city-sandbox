@@ -1,0 +1,116 @@
+[gd_scene load_steps=16 format=3 uid="uid://cnpcplay00001"]
+
+; NPC Playground — a self-contained dev scene for exercising NPC dialogue and
+; behaviours. Open with F6 and walk around: talk to the idle/shop talkers, watch the
+; wanderers roam, compare behaviours side by side. A flat 40x40 lit floor with a baked
+; navmesh (see npc_playground.gd) so the wandering NPCs path properly.
+
+[ext_resource type="PackedScene" uid="uid://cppmnlasls1hp" path="res://entities/player/player.tscn" id="1_player"]
+[ext_resource type="PackedScene" uid="uid://btf4668yvatwu" path="res://entities/npc/npc.tscn" id="2_npc"]
+[ext_resource type="PackedScene" uid="uid://c6tvji1qpj8y3" path="res://entities/npc/shopkeeper.tscn" id="3_shop"]
+[ext_resource type="Resource" path="res://global/npc/definitions/mira.tres" id="4_mira"]
+[ext_resource type="Resource" uid="uid://bvqta1skc7aqh" path="res://global/npc/definitions/wanderer_pip.tres" id="5_pip"]
+[ext_resource type="Resource" uid="uid://boeiovh5eit8r" path="res://global/npc/definitions/shopkeeper_ember.tres" id="6_ember"]
+[ext_resource type="Script" uid="uid://bwosg7m4c140k" path="res://entities/npc/world_location.gd" id="7_loc"]
+[ext_resource type="Script" path="res://stages/dev/npc_playground.gd" id="8_play"]
+
+[sub_resource type="ProceduralSkyMaterial" id="Sky_mat"]
+sky_top_color = Color(0.38, 0.52, 0.78, 1)
+sky_horizon_color = Color(0.72, 0.76, 0.82, 1)
+ground_horizon_color = Color(0.58, 0.58, 0.58, 1)
+ground_bottom_color = Color(0.42, 0.42, 0.42, 1)
+
+[sub_resource type="Sky" id="Sky_1"]
+sky_material = SubResource("Sky_mat")
+
+[sub_resource type="Environment" id="Env_1"]
+background_mode = 2
+sky = SubResource("Sky_1")
+ambient_light_source = 3
+ambient_light_energy = 1.35
+tonemap_mode = 2
+
+[sub_resource type="BoxShape3D" id="Floor_shape"]
+size = Vector3(40, 1, 40)
+
+[sub_resource type="BoxMesh" id="Floor_mesh"]
+size = Vector3(40, 1, 40)
+
+[sub_resource type="StandardMaterial3D" id="Floor_mat"]
+albedo_color = Color(0.28, 0.32, 0.3, 1)
+roughness = 0.9
+
+[sub_resource type="NavigationMesh" id="NavMesh_1"]
+geometry_parsed_geometry_type = 1
+agent_radius = 0.5
+agent_height = 1.8
+
+[node name="NpcPlayground" type="Node3D"]
+script = ExtResource("8_play")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Env_1")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.7071, 0.7071, 0, -0.7071, 0.7071, 0, 20, 0)
+light_energy = 1.2
+shadow_enabled = true
+
+[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
+navigation_mesh = SubResource("NavMesh_1")
+
+[node name="Floor" type="StaticBody3D" parent="NavigationRegion3D"]
+
+[node name="FloorCol" type="CollisionShape3D" parent="NavigationRegion3D/Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("Floor_shape")
+
+[node name="FloorMesh" type="MeshInstance3D" parent="NavigationRegion3D/Floor"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("Floor_mesh")
+surface_material_override/0 = SubResource("Floor_mat")
+
+; A home anchor for Pip's WANDER behaviour (matches wanderer_pip.tres's
+; home_location_id = &"pip_home"). Without it Pip simply wanders around its spawn.
+[node name="PipHome" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -8)
+script = ExtResource("7_loc")
+location_id = &"pip_home"
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
+
+; --- Talkers ---------------------------------------------------------------
+; Mira: IDLE behaviour — stands at her spawn, waves on approach, plays idle emotes,
+; and opens a branching conversation. Placed ahead of the player (who faces -Z).
+[node name="Mira" parent="." instance=ExtResource("2_npc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -6)
+definition = ExtResource("4_mira")
+
+; Gus the shopkeeper (self-contained shopkeeper.tscn) — a second talker that also
+; opens a shop. Tests conversation + the shop flow.
+[node name="Shopkeeper" parent="." instance=ExtResource("3_shop")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -6)
+
+; Ember (npc.tscn + shopkeeper_ember.tres) — a third IDLE talker with her own
+; mood/time-branching dialogue, parked off to the side for comparison.
+[node name="Ember" parent="." instance=ExtResource("2_npc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0, 2)
+definition = ExtResource("6_ember")
+
+; --- Wanderers -------------------------------------------------------------
+; Pip: WANDER behaviour — roams near its home anchor, playing the walk animation
+; between idle pauses. Good for watching pathing/turning over the open floor.
+[node name="Pip" parent="." instance=ExtResource("2_npc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -8)
+definition = ExtResource("5_pip")
+
+; A couple more reusing the same definitions at different spots so the space feels
+; populated and behaviours can be compared side by side.
+[node name="Pip2" parent="." instance=ExtResource("2_npc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 10)
+definition = ExtResource("5_pip")
+
+[node name="Mira2" parent="." instance=ExtResource("2_npc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9, 0, 9)
+definition = ExtResource("4_mira")

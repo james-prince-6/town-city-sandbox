@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="NPCDefinition" load_steps=5 format=3 uid="uid://bvqta1skc7aqh"]
+
+; Pip — the cheerful wanderer. Evening / active-quest / usual openers now branch inside
+; pip.dialogue rather than via a list of ConditionalDialogues.
+[ext_resource type="Script" uid="uid://cnicpv6qs4dva" path="res://global/npc/npc_definition.gd" id="1_def"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/psx/Male/Character_03.fbx" id="4_model"]
+[ext_resource type="Texture2D" path="res://assets/models/characters/psx/Textures/Character_03.png" id="8_skin"]
+[ext_resource type="Resource" path="res://entities/npc/dialogue/pip.dialogue" id="5_dlg"]
+
+[resource]
+script = ExtResource("1_def")
+id = &"pip"
+display_name = "Pip"
+model_scene = ExtResource("4_model")
+skin_texture = ExtResource("8_skin")
+target_height = 1.75
+move_speed = 1.6
+turn_speed_degrees = 420.0
+default_behavior = 1
+home_location_id = &"pip_home"
+default_mood = &"cheerful"
+dialogue = ExtResource("5_dlg")

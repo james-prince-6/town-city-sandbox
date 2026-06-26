@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ToolItem" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://entities/items/tool_item.gd" id="1_tool"]
+
+[resource]
+script = ExtResource("1_tool")
+id = &"lava_ladle"
+display_name = "Brewing Ladle"
+description = "A long-handled stone ladle for stirring and scooping brews."
+category = 2
+max_stack = 1
+base_value = 30
+tool_type = 2
+power = 1
+stamina_cost = 8.0
+damage = 2.0

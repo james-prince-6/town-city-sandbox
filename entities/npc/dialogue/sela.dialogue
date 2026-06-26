@@ -1,0 +1,77 @@
+# Sela — the market forager. A conversation hub with the sela_coconut_run quest woven in:
+# accept it, hand in 3 coconuts (objective 0), nag for a status tip, learn what grows in the
+# groves, or chat once she trusts you (rep >= 25). Quest options gate on quest state and the
+# turn-in needs 3 coconuts in hand, so nothing here can be farmed. Branches loop back to ~ hub;
+# ~ bye ends. Gestures: wave on hello/bye, talk for chatter, look while warning, cheer when
+# delighted, salute for a friend, idle for a calm beat.
+
+~ start
+if not GameState.get_flag("met_sela")
+	do GameState.set_flag("met_sela")
+	=> greeting
+else
+	=> hub
+
+~ greeting
+Sela: [#gesture=wave] Oh! A new face on the island. Welcome to the market.
+Sela: [#gesture=talk] Mind the cracks in the ground - it's a bit unstable here.
+=> hub
+
+~ hub
+% Sela: [#gesture=talk] What can I do for you?
+% Sela: [#gesture=idle] Back again? The groves can wait. What's up?
+- What is this place?
+	=> about
+- Need a hand with anything? [if not QuestSystem.is_active("sela_coconut_run") and not QuestSystem.is_completed("sela_coconut_run") /]
+	do QuestSystem.start_quest("sela_coconut_run")
+	do Reputation.add_reputation("sela", 5)
+	=> accept
+- I've got your coconuts. [if QuestSystem.is_active("sela_coconut_run") and Inventory.has("coconut", 3) /]
+	do Inventory.remove("coconut", 3)
+	do QuestSystem.complete_objective("sela_coconut_run", 0)
+	=> thanks
+- Still after those coconuts? [if QuestSystem.is_active("sela_coconut_run") and not Inventory.has("coconut", 3) /]
+	=> nag
+- What grows up in those groves?
+	=> forage
+- Anything for a trusted friend? [if Reputation.get_reputation("sela") >= 25 /]
+	=> friendly
+- I'll let you work.
+	=> bye
+
+~ about
+Sela: [#gesture=talk] The market's the beating heart of town - everyone passes through.
+Sela: [#gesture=talk] I forage the groves up the slope: coconuts, mango, the odd cave mushroom.
+Sela: [#gesture=look] Your family's brewery? Half the island drinks there. Big shoes to fill.
+=> hub
+
+~ accept
+Sela: [#gesture=cheer] Bless you. Three coconuts ought to do it.
+Sela: [#gesture=talk] The grove's just past the old caves - watch your footing.
+=> hub
+
+~ nag
+% Sela: [#gesture=talk] Three coconuts, remember - the grove past the old caves.
+% Sela: [#gesture=look] Give the tall trunks a shake. And mind the critters skulking in the caves.
+=> hub
+
+~ thanks
+Sela: [#gesture=cheer] Perfect, just what I needed. Here's a little something for your trouble.
+Sela: [#gesture=talk] Come back any time - I always need a good forager.
+=> hub
+
+~ forage
+Sela: [#gesture=talk] Mango when it's in season, cave mushrooms when it's not. Careful which mushrooms, mind.
+Sela: [#gesture=look] I don't go past the cave mouth anymore. Something new took up below - a stalker, they call it.
+=> hub
+
+~ friendly
+Sela: [#gesture=salute] For you? Always. Stop by whenever the brewery gets too busy.
+Sela: [#gesture=talk] I'll keep the good mangoes set aside.
+=> hub
+
+~ bye
+% Sela: [#gesture=wave] Safe travels!
+% Sela: [#gesture=wave] Mind those cracks!
+% Sela: [#gesture=wave] Off you go, then.
+=> END

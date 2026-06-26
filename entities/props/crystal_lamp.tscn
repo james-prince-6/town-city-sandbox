@@ -1,0 +1,35 @@
+[gd_scene load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://entities/props/prop.gd" id="1_prop"]
+[ext_resource type="Material" path="res://assets/materials/EnergyCrystalMaterial.tres" id="2_crystal"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_base"]
+size = Vector3(0.4, 0.18, 0.4)
+
+[sub_resource type="StandardMaterial3D" id="Mat_base"]
+albedo_color = Color(0.14, 0.14, 0.17, 1)
+roughness = 0.7
+metallic = 0.3
+
+[sub_resource type="PrismMesh" id="PrismMesh_crystal"]
+size = Vector3(0.32, 0.75, 0.32)
+
+[node name="CrystalLamp" type="StaticBody3D"]
+script = ExtResource("1_prop")
+interaction_prompt = ""
+
+[node name="Base" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.09, 0)
+mesh = SubResource("BoxMesh_base")
+surface_material_override/0 = SubResource("Mat_base")
+
+[node name="Crystal" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.56, 0)
+mesh = SubResource("PrismMesh_crystal")
+surface_material_override/0 = ExtResource("2_crystal")
+
+[node name="Glow" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
+light_color = Color(0.5, 0.9, 1, 1)
+light_energy = 1.6
+omni_range = 4.0

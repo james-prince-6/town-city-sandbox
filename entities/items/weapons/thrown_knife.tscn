@@ -1,0 +1,31 @@
+[gd_scene load_steps=6 format=3 uid="uid://b7thrownkn0aaa"]
+
+[ext_resource type="Script" path="res://entities/items/weapons/thrown_knife.gd" id="1_knife"]
+[ext_resource type="Script" path="res://components/hit_box.gd" id="2_hit"]
+
+; A short, flat steel blade.
+[sub_resource type="BoxMesh" id="BoxMesh_blade"]
+size = Vector3(0.04, 0.12, 0.45)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_blade"]
+albedo_color = Color(0.75, 0.78, 0.82, 1)
+metallic = 0.8
+roughness = 0.25
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hit"]
+size = Vector3(0.1, 0.16, 0.45)
+
+[node name="ThrownKnife" type="Area3D"]
+script = ExtResource("1_knife")
+
+[node name="Mesh" type="MeshInstance3D" parent="."]
+mesh = SubResource("BoxMesh_blade")
+surface_material_override/0 = SubResource("StandardMaterial3D_blade")
+
+[node name="HitBox" type="Area3D" parent="."]
+script = ExtResource("2_hit")
+one_shot = true
+target_team = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HitBox"]
+shape = SubResource("BoxShape3D_hit")

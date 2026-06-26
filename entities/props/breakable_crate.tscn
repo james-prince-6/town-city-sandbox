@@ -1,0 +1,30 @@
+[gd_scene load_steps=6 format=3 uid="uid://darm7uup45ab5"]
+
+[ext_resource type="Script" path="res://components/interactables/breakable.gd" id="1_break"]
+[ext_resource type="PackedScene" uid="uid://cfamiv6tyvvrn" path="res://assets/models/props/pirate-kit/crate.fbx" id="2_model"]
+[ext_resource type="Script" path="res://components/health.gd" id="3_health"]
+[ext_resource type="Script" path="res://components/hurt_box.gd" id="4_hurt"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_crate"]
+size = Vector3(0.9, 0.9, 0.9)
+
+[node name="BreakableCrate" type="StaticBody3D"]
+script = ExtResource("1_break")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("BoxShape3D_crate")
+
+[node name="Health" type="Node" parent="."]
+script = ExtResource("3_health")
+max_health = 20.0
+
+[node name="HurtBox" type="Area3D" parent="."]
+script = ExtResource("4_hurt")
+team = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBox"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+shape = SubResource("BoxShape3D_crate")
