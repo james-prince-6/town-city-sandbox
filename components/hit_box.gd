@@ -70,7 +70,7 @@ func _on_area_entered(area: Area3D) -> void:
 	_already_hit[hurt] = true
 	# Build the hit and stamp it with game-feel metadata (crit, where it landed, which
 	# way to shove the target). Game-feel systems read these off the DamageInfo.
-	var info := DamageInfo.create(amount, damage_type, source if source != null else self)
+	var info := DamageInfo.create(amount, damage_type, source if is_instance_valid(source) else self)
 	info.is_crit = is_crit
 	info.knockback = knockback
 	info.hit_position = hurt.global_position
@@ -85,7 +85,7 @@ func _on_area_entered(area: Area3D) -> void:
 		if host != null:
 			var receiver := host.get_node_or_null("StatusReceiver")
 			if receiver != null and receiver.has_method("apply_from_damage"):
-				receiver.apply_from_damage(damage_type, amount, source)
+				receiver.apply_from_damage(damage_type, amount, source if is_instance_valid(source) else null)
 	if one_shot:
 		active = false
 		queue_free()

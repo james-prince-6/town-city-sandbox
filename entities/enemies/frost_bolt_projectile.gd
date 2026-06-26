@@ -70,9 +70,11 @@ func launch(direction: Vector3, amount: float, damage_type: DamageInfo.DamageTyp
 	# whole projectile so the visual shard vanishes with the impact.
 	_hit_box.tree_exited.connect(_on_hitbox_gone)
 
-	# Point our visual along the direction of travel (forward is -Z).
+	# Point our visual along the direction of travel (forward is -Z). Use a side up-vector for a
+	# near-vertical shot so look_at doesn't error on a parallel up/direction.
 	if _direction.length() > 0.05:
-		look_at(global_position + _direction, Vector3.UP)
+		var up: Vector3 = Vector3.UP if absf(_direction.dot(Vector3.UP)) < 0.999 else Vector3.FORWARD
+		look_at(global_position + _direction, up)
 
 
 func _physics_process(delta: float) -> void:
@@ -105,7 +107,7 @@ func _check_world_hit(from: Vector3, to: Vector3) -> bool:
 	query.collide_with_bodies = true
 	query.collide_with_areas = false
 	var excludes: Array[RID] = [get_rid()]
-	if _source is CollisionObject3D:
+	if is_instance_valid(_source) and _source is CollisionObject3D:
 		excludes.append((_source as CollisionObject3D).get_rid())
 	query.exclude = excludes
 	var hit: Dictionary = space.intersect_ray(query)

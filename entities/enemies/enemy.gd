@@ -215,7 +215,13 @@ func _physics_process(delta: float) -> void:
 	if stats != null and _player != null:
 		_run_brain(delta)
 	else:
-		# No stats or no player yet: stand still (gravity still applies above).
+		# No live player: stand still — but keep advancing a wind-up/stagger so the enemy doesn't
+		# freeze mid-tell (warning glow stuck on) if the player vanishes (death/respawn gap).
+		# These handlers are null-safe and bail to CHASE, clearing the tell.
+		if stats != null and _state == State.WINDUP:
+			_update_windup()
+		elif stats != null and _state == State.STAGGER:
+			_update_stagger()
 		_stop_horizontal()
 
 	_apply_turn(delta)
@@ -644,7 +650,10 @@ func _spawn_projectile() -> void:
 	# don't sail over their head.
 	var spawn_pos: Vector3 = global_position + Vector3.UP * 1.0
 	var target: Vector3 = _player.global_position + Vector3.UP * 1.0
-	var base_dir: Vector3 = (target - spawn_pos).normalized()
+	var base_dir: Vector3 = target - spawn_pos
+	if base_dir.length() < 0.05:
+		base_dir = -global_transform.basis.z  # player on the muzzle — fire straight ahead
+	base_dir = base_dir.normalized()
 	var n: int = maxi(stats.projectiles_per_shot, 1)
 	# Fast path / unchanged behavior: a single shot just flies straight at the player.
 	if n <= 1:
