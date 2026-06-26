@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ToolItem" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://entities/items/tool_item.gd" id="1_tool"]
+[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/kaykit_weapons/sword_2handed.gltf" id="2_model"]
+
+[resource]
+script = ExtResource("1_tool")
+id = &"greatsword"
+display_name = "Greatsword"
+description = "A massive two-handed blade. Slow to swing, but it cleaves clean through."
+category = 2
+max_stack = 1
+base_value = 85
+tool_type = 3
+power = 1
+stamina_cost = 20.0
+damage = 28.0
+world_model = ExtResource("2_model")

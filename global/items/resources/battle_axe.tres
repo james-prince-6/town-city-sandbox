@@ -1,18 +1,18 @@
 [gd_resource type="Resource" script_class="ToolItem" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://entities/items/tool_item.gd" id="1_tool"]
-[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/kaykit_tools/hammer.gltf" id="2_model"]
+[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/kaykit_weapons/axe_2handed.gltf" id="2_model"]
 
 [resource]
 script = ExtResource("1_tool")
-id = &"war_hammer"
-display_name = "War Hammer"
-description = "Heavy and slow, but it ends a scuffle in one swing."
+id = &"battle_axe"
+display_name = "Battle Axe"
+description = "A brutal two-handed axe. Heavy swings that bite deep."
 category = 2
 max_stack = 1
-base_value = 55
+base_value = 72
 tool_type = 3
 power = 1
 stamina_cost = 18.0
-damage = 24.0
+damage = 25.0
 world_model = ExtResource("2_model")

@@ -1,7 +1,7 @@
 [gd_resource type="Resource" script_class="ToolItem" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://entities/items/tool_item.gd" id="1_tool"]
-[ext_resource type="PackedScene" uid="uid://rn743ceo22pd" path="res://assets/models/tools_weapons/survival-kit/tool-pickaxe.fbx" id="2_model"]
+[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/kaykit_tools/pickaxe.gltf" id="2_model"]
 
 [resource]
 script = ExtResource("1_tool")

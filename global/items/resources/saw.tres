@@ -1,18 +1,18 @@
 [gd_resource type="Resource" script_class="ToolItem" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://entities/items/tool_item.gd" id="1_tool"]
-[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/kaykit_tools/axe.gltf" id="2_model"]
+[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/kaykit_tools/saw.gltf" id="2_model"]
 
 [resource]
 script = ExtResource("1_tool")
-id = &"hatchet"
-display_name = "Hatchet"
-description = "A hand axe for chopping wood and clearing brush."
+id = &"saw"
+display_name = "Hand Saw"
+description = "A toothed saw for cutting timber more cleanly than a hatchet."
 category = 2
 max_stack = 1
-base_value = 22
+base_value = 20
 tool_type = 1
 power = 2
-stamina_cost = 12.0
-damage = 8.0
+stamina_cost = 9.0
+damage = 6.0
 world_model = ExtResource("2_model")

@@ -6,7 +6,7 @@
 script = ExtResource("1_shop")
 shop_id = &"general_store"
 display_name = "General Store"
-stock = Array[StringName]([&"lava_ash", &"lava_vial", &"sulfur_crystal", &"throwing_knife", &"flame_wand", &"frost_wand", &"arcane_wand", &"crossbow"])
+stock = Array[StringName]([&"lava_ash", &"lava_vial", &"sulfur_crystal", &"throwing_knife", &"flame_wand", &"frost_wand", &"arcane_wand", &"crossbow", &"dagger", &"greatsword", &"battle_axe", &"quarterstaff", &"round_shield", &"shovel", &"saw", &"torch"])
 buy_markup = 1.25
 sell_markup = 0.4
 buys_all = false

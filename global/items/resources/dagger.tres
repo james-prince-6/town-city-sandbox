@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ToolItem" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://entities/items/tool_item.gd" id="1_tool"]
+[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/kaykit_weapons/dagger.gltf" id="2_model"]
+
+[resource]
+script = ExtResource("1_tool")
+id = &"dagger"
+display_name = "Dagger"
+description = "A light, quick blade. Cheap stamina, modest damage — good for fast jabs."
+category = 2
+max_stack = 1
+base_value = 18
+tool_type = 3
+power = 1
+stamina_cost = 5.0
+damage = 9.0
+world_model = ExtResource("2_model")
