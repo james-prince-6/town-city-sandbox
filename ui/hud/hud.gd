@@ -35,6 +35,10 @@ extends CanvasLayer
 # Hotbar.slots, so _refresh_slot(i) knows exactly which widget to redraw.
 var _slot_widgets: Array[PanelContainer] = []
 
+# A frosted-glass panel drawn BEHIND the hotbar strip (the glass UI shader refracts/blurs the
+# game view behind it). Sized to wrap the strip once the layout settles.
+var _hotbar_glass: Panel = null
+
 # --- Combat-feedback tuning ------------------------------------------------
 
 ## Below this fraction of max health the low-health vignette starts to show; it
@@ -68,6 +72,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 	_build_hotbar_slots()
+	_build_hotbar_glass()
 	_connect_signals()
 	_pull_initial_values()
 
@@ -80,6 +85,48 @@ func _build_hotbar_slots() -> void:
 		var slot := _make_empty_slot(i)
 		hotbar_strip.add_child(slot)
 		_slot_widgets.append(slot)
+
+# Builds the frosted-glass backing for the hotbar: a Panel using the glass UI shader
+# (assets/shaders/ui/glass_panel.gdshader) over a border-blend stylebox whose alpha gradient
+# the shader reads as the glass edge. Drawn behind the slots and sized to wrap the strip once
+# the layout has a frame to settle. Degrades gracefully (no glass) if the shader is missing.
+func _build_hotbar_glass() -> void:
+	var shader := load("res://assets/shaders/ui/glass_panel.gdshader") as Shader
+	if shader == null:
+		return
+	var glass := Panel.new()
+	glass.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	# A rounded border-blend stylebox sized for a slim bar: the white blended border gives the
+	# alpha falloff the glass shader uses for its rim/refraction; the centre stays clear.
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color(1, 1, 1, 0)
+	sb.set_border_width_all(22)
+	sb.border_color = Color(1, 1, 1, 1)
+	sb.border_blend = true
+	sb.set_corner_radius_all(16)
+	sb.anti_aliasing_size = 0.01
+	glass.add_theme_stylebox_override("panel", sb)
+	var mat := ShaderMaterial.new()
+	mat.shader = shader
+	glass.material = mat
+	add_child(glass)
+	move_child(glass, 0)  # behind BottomCenter / the slots
+	_hotbar_glass = glass
+	_fit_hotbar_glass()
+
+# Size + position the glass to wrap the hotbar strip (with a little padding), after the strip
+# has been laid out. Re-run if the strip's rect changes.
+func _fit_hotbar_glass() -> void:
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if not is_instance_valid(_hotbar_glass):
+		return
+	var r: Rect2 = hotbar_strip.get_global_rect()
+	if r.size == Vector2.ZERO:
+		return
+	var pad := Vector2(26.0, 18.0)
+	_hotbar_glass.global_position = r.position - pad
+	_hotbar_glass.size = r.size + pad * 2.0
 
 # Subscribe to every system the HUD mirrors. We never poll in _process; each
 # system pushes us a signal when its value changes.
