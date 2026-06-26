@@ -129,6 +129,7 @@ var _ground_tries: int = 0
 
 func _ready() -> void:
 	if model_scene == null:
+		set_process(false)  # no model -> nothing to ground or blend; don't run every frame
 		return
 	_build_model()
 
@@ -138,9 +139,16 @@ func _process(delta: float) -> void:
 	if _pending_ground:
 		_ground_tries += 1
 		# Let the idle animation settle first (ground to the shown pose, not the bare rest pose).
-		if _ground_tries >= 8 and (_model_root == null or not is_instance_valid(_model_root) \
-				or _ground_to_skeleton(_model_root) or _ground_tries > 40):
-			_pending_ground = false
+		if _ground_tries >= 8:
+			if _model_root == null or not is_instance_valid(_model_root):
+				_pending_ground = false
+			elif _ground_to_skeleton(_model_root):
+				_pending_ground = false
+			elif _ground_tries > 40:
+				# Skeleton never posed enough to ground from (e.g. a very flat rig). Fall back to
+				# mesh-AABB grounding so the body rests on the floor instead of floating forever.
+				_ground_to_aabb(_model_root)
+				_pending_ground = false
 	# Smoothly follow the requested locomotion blend so walk<->idle eases in/out.
 	if _anim_tree == null or _dead:
 		return
@@ -665,6 +673,23 @@ func _ground_to_skeleton(model: Node3D) -> bool:
 	# Lift so the lowest bone sits foot_clearance above the floor (the sole mesh hangs below it).
 	model.position.y -= lowest - foot_clearance
 	return true
+
+# Fallback grounding from the model's MESH bounds (not the skeleton), used when the skeleton
+# never poses enough to ground from. Lowers the model so its lowest mesh point rests
+# foot_clearance above the animator's origin (the feet). Measured in animator-local space.
+func _ground_to_aabb(model: Node3D) -> void:
+	var inv := global_transform.affine_inverse()
+	var lowest := INF
+	for vi in _find_meshes(model):
+		var box: AABB = vi.get_aabb()
+		var to_local: Transform3D = inv * vi.global_transform
+		for ci in range(8):
+			var corner_y: float = (to_local * box.get_endpoint(ci)).y
+			if corner_y < lowest:
+				lowest = corner_y
+	if lowest == INF:
+		return
+	model.position.y -= lowest - foot_clearance
 
 func _apply_skin(model: Node3D) -> void:
 	# Nothing to do if neither a recolor skin, a glow, nor toon shading was requested.

@@ -870,6 +870,6 @@ func current_state() -> StringName:
 		return &"Stagger"
 	if _state == State.IDLE:
 		return &"Idle"
-	if _player != null and is_instance_valid(_player) and _flat_distance_to_player() <= stats.attack_range * 1.2:
+	if _player != null and is_instance_valid(_player) and stats != null and _flat_distance_to_player() <= stats.attack_range * 1.2:
 		return &"Attack"
 	return &"Chase"

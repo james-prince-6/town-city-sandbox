@@ -34,13 +34,14 @@ const CHILL_DURATION: float = 3.0
 const CHILL_SLOW: float = 0.5          # move at 50% speed while chilled
 const DOT_TICK_SECONDS: float = 1.0    # apply DoT once per this many seconds
 
-# Active effects: kind(int) -> { "expires": float(sec), "dps": float, "element": int, "slow": float }.
+# Active effects: kind(int) -> { "remaining": float(sec left), "dps": float, "element": int, "slow": float, "attacker": Node }.
 var _effects: Dictionary = {}
 
 # Resolved once: the sibling Health (enemies) we damage, or null for the player (PlayerStats).
 var _health: Node = null
 var _is_player_host: bool = false
-# Real-time accumulator so DoT ticks at a steady cadence regardless of frame rate / time-scale.
+# Accumulator (process time) so DoT ticks once per DOT_TICK_SECONDS. Frame-time, not wall-clock,
+# so DoT pauses with the game and scales with Engine.time_scale — consistent with the countdown.
 var _since_tick: float = 0.0
 
 
@@ -54,17 +55,20 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	if _effects.is_empty():
 		return
-	var now: float = float(Time.get_ticks_msec()) / 1000.0
 
-	# Expire finished effects.
+	# Count effects down and expire them. Frame-delta (not wall-clock) so DoT pauses with the game
+	# and respects time-scale, consistent with the tick cadence below.
 	var changed: bool = false
 	for kind in _effects.keys():
 		var e: Dictionary = _effects[kind]
-		if now >= float(e["expires"]):
+		e["remaining"] = float(e["remaining"]) - delta
+		if float(e["remaining"]) <= 0.0:
 			_effects.erase(kind)
 			changed = true
 	if changed:
 		effects_changed.emit(_effects.size())
+	if _effects.is_empty():
+		return
 
 	# Tick DoT on a fixed cadence.
 	_since_tick += delta
@@ -91,14 +95,18 @@ func apply_from_damage(element: int, base_amount: float, attacker: Node = null) 
 
 ## Add or refresh an effect. Refresh keeps the LATER expiry and the STRONGER dps/slow.
 func apply(kind: int, duration: float, dps: float, element: int, slow: float, attacker: Node = null) -> void:
-	var now: float = float(Time.get_ticks_msec()) / 1000.0
-	var new_expires: float = now + duration
+	var was_empty: bool = _effects.is_empty()
+	var remaining: float = duration
 	if _effects.has(kind):
 		var cur: Dictionary = _effects[kind]
-		new_expires = maxf(new_expires, float(cur["expires"]))
+		remaining = maxf(remaining, float(cur["remaining"]))
 		dps = maxf(dps, float(cur["dps"]))
 		slow = maxf(slow, float(cur["slow"]))
-	_effects[kind] = {"expires": new_expires, "dps": dps, "element": element, "slow": slow, "attacker": attacker}
+	_effects[kind] = {"remaining": remaining, "dps": dps, "element": element, "slow": slow, "attacker": attacker}
+	# Reset the tick cadence when the FIRST effect lands so DoT ticks after a full second, not
+	# immediately on the next frame.
+	if was_empty:
+		_since_tick = 0.0
 	effects_changed.emit(_effects.size())
 
 

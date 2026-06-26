@@ -121,8 +121,16 @@ func _process(_delta: float) -> void:
 	# frames in), so the planted feet match the displayed stance rather than the bare rest pose.
 	if _ground_tries < 8:
 		return
-	if _model_root == null or not is_instance_valid(_model_root) \
-			or _ground_to_skeleton(_model_root) or _ground_tries > 40:
+	if _model_root == null or not is_instance_valid(_model_root):
+		_pending_ground = false
+		set_process(false)
+	elif _ground_to_skeleton(_model_root):
+		_pending_ground = false
+		set_process(false)
+	elif _ground_tries > 40:
+		# Skeleton never posed enough to ground from (e.g. a very flat rig). Fall back to mesh-AABB
+		# grounding so the body rests on the floor instead of being left floating.
+		_ground_to_aabb(_model_root)
 		_pending_ground = false
 		set_process(false)
 
@@ -578,6 +586,23 @@ func _ground_to_skeleton(model: Node3D) -> bool:
 	# Lift so the lowest bone sits foot_clearance above the floor (the sole mesh hangs below it).
 	model.position.y -= lowest - foot_clearance
 	return true
+
+# Fallback grounding from the model's MESH bounds (not the skeleton), used when the skeleton
+# never poses enough to ground from. Lowers the model so its lowest mesh point rests
+# foot_clearance above the animator's origin (the feet). Measured in animator-local space.
+func _ground_to_aabb(model: Node3D) -> void:
+	var inv := global_transform.affine_inverse()
+	var lowest := INF
+	for vi in _find_meshes(model):
+		var box: AABB = vi.get_aabb()
+		var to_local: Transform3D = inv * vi.global_transform
+		for ci in range(8):
+			var corner_y: float = (to_local * box.get_endpoint(ci)).y
+			if corner_y < lowest:
+				lowest = corner_y
+	if lowest == INF:
+		return
+	model.position.y -= lowest - foot_clearance
 
 func _apply_skin(model: Node3D) -> void:
 	if skin_texture == null:
