@@ -16,6 +16,13 @@
 extends RefCounted
 
 const SHADER_PATH: String = "res://assets/shaders/ui/glass_panel.gdshader"
+## How much the glass blurs the view behind it (shader `blur_amount`; the shader default is 2.0).
+## Higher = blurrier/softer. Tune here to dial all glass at once.
+const BLUR_AMOUNT: float = 1.5
+## Film-grain noise on the glass (shader `grain_amount`; default 0.05). 0 = clean, no speckle.
+const GRAIN_AMOUNT: float = 0.0
+## Alpha of the full-screen frost backdrop (lower = the scene shows through more clearly).
+const FROST_ALPHA: float = 0.10
 
 # One shared ShaderMaterial for every glass surface — the shader has no per-panel state, so sharing
 # is correct and cheap.
@@ -29,6 +36,8 @@ static func material() -> ShaderMaterial:
 			return null
 		_material = ShaderMaterial.new()
 		_material.shader = sh
+		_material.set_shader_parameter("blur_amount", BLUR_AMOUNT)
+		_material.set_shader_parameter("grain_amount", GRAIN_AMOUNT)
 	return _material
 
 # A glass stylebox: transparent centre (the shader fills it with the blurred view), a blended white
@@ -58,7 +67,7 @@ static func apply(ctrl: Control, corner: int = 14, border: int = 18) -> void:
 static func frost(rect: ColorRect) -> void:
 	if rect == null:
 		return
-	rect.color = Color(1, 1, 1, 0.16)
+	rect.color = Color(1, 1, 1, FROST_ALPHA)
 	var m: ShaderMaterial = material()
 	if m != null:
 		rect.material = m

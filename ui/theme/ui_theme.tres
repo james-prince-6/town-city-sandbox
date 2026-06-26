@@ -1,23 +1,98 @@
-[gd_resource type="Theme" format=3]
+[gd_resource type="Theme" load_steps=7 format=3]
+
+[sub_resource type="StyleBoxFlat" id="sb_btn_normal"]
+bg_color = Color(0.8, 0.83, 0.88, 0.5)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+
+[sub_resource type="StyleBoxFlat" id="sb_btn_hover"]
+bg_color = Color(0.9, 0.93, 0.97, 0.62)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+
+[sub_resource type="StyleBoxFlat" id="sb_btn_pressed"]
+bg_color = Color(0.68, 0.71, 0.78, 0.7)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+
+[sub_resource type="StyleBoxFlat" id="sb_btn_focus"]
+bg_color = Color(0.87, 0.9, 0.95, 0.55)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 1, 1, 0.65)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+
+[sub_resource type="StyleBoxFlat" id="sb_btn_disabled"]
+bg_color = Color(0.62, 0.64, 0.69, 0.3)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+
+[sub_resource type="StyleBoxFlat" id="sb_panel"]
+bg_color = Color(0.8, 0.83, 0.88, 0.4)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+content_margin_left = 12.0
+content_margin_top = 10.0
+content_margin_right = 12.0
+content_margin_bottom = 10.0
 
 [resource]
 Label/colors/font_color = Color(0.09, 0.1, 0.13, 1)
 Label/colors/font_outline_color = Color(1, 1, 1, 0.5)
 Label/constants/outline_size = 3
-Button/colors/font_color = Color(0.09, 0.1, 0.13, 1)
-Button/colors/font_hover_color = Color(0, 0, 0, 1)
-Button/colors/font_pressed_color = Color(0.25, 0.25, 0.3, 1)
-Button/colors/font_focus_color = Color(0.09, 0.1, 0.13, 1)
-Button/colors/font_disabled_color = Color(0.45, 0.45, 0.5, 1)
-Button/colors/font_outline_color = Color(1, 1, 1, 0.5)
-Button/constants/outline_size = 3
-CheckButton/colors/font_color = Color(0.09, 0.1, 0.13, 1)
-CheckButton/colors/font_hover_color = Color(0, 0, 0, 1)
-CheckButton/colors/font_pressed_color = Color(0.25, 0.25, 0.3, 1)
-CheckButton/colors/font_outline_color = Color(1, 1, 1, 0.5)
-CheckButton/constants/outline_size = 3
-CheckBox/colors/font_color = Color(0.09, 0.1, 0.13, 1)
-CheckBox/colors/font_outline_color = Color(1, 1, 1, 0.5)
-CheckBox/constants/outline_size = 3
 RichTextLabel/colors/default_color = Color(0.09, 0.1, 0.13, 1)
 LineEdit/colors/font_color = Color(0.09, 0.1, 0.13, 1)
+Button/colors/font_color = Color(0.09, 0.1, 0.13, 1)
+Button/colors/font_hover_color = Color(0, 0, 0, 1)
+Button/colors/font_pressed_color = Color(0.1, 0.1, 0.15, 1)
+Button/colors/font_focus_color = Color(0.09, 0.1, 0.13, 1)
+Button/colors/font_disabled_color = Color(0.4, 0.42, 0.47, 1)
+Button/styles/normal = SubResource("sb_btn_normal")
+Button/styles/hover = SubResource("sb_btn_hover")
+Button/styles/pressed = SubResource("sb_btn_pressed")
+Button/styles/focus = SubResource("sb_btn_focus")
+Button/styles/disabled = SubResource("sb_btn_disabled")
+CheckButton/colors/font_color = Color(0.09, 0.1, 0.13, 1)
+CheckButton/colors/font_hover_color = Color(0, 0, 0, 1)
+CheckButton/styles/normal = SubResource("sb_btn_normal")
+CheckButton/styles/hover = SubResource("sb_btn_hover")
+CheckButton/styles/pressed = SubResource("sb_btn_pressed")
+CheckButton/styles/focus = SubResource("sb_btn_focus")
+CheckBox/colors/font_color = Color(0.09, 0.1, 0.13, 1)
+PanelContainer/styles/panel = SubResource("sb_panel")
+Panel/styles/panel = SubResource("sb_panel")
