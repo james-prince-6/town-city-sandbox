@@ -180,6 +180,9 @@ func build(seed: int, difficulty_level: int = 1) -> void:
 	# 4) Emit geometry from the tile map (floors + auto-enclosing walls + navmesh).
 	_build_floor_and_walls(floor_map)
 	_place_pillars(rooms)
+	# Decorative themed clutter (rocks, barrels, dead trees, mushrooms...). Own rng seeded from
+	# `seed` so it's stable per floor yet never perturbs the main rng (loot/enemies stay identical).
+	_scatter_clutter(rooms, seed)
 
 	# Atmosphere + navigation aids + progression furniture.
 	_build_lights(rooms, rng)
@@ -516,6 +519,66 @@ func _place_pillars(rooms: Array) -> void:
 				var p: Node3D = KIT_PILLAR.instantiate()
 				p.position = Vector3(cx, 0.0, cz)
 				holder.add_child(p)
+
+
+# --- Decorative clutter ----------------------------------------------------
+
+# Scatter purely-decorative themed clutter (rocks, barrels, wood, ore, plus theme flavour like
+# mushrooms in the Bog or dead trees in the Ember) on random room-interior tiles. No collision,
+# so it never blocks the baked navmesh. Uses its OWN rng (seeded from the floor seed) so it's
+# deterministic per floor without disturbing the main rng's loot/enemy placement.
+func _scatter_clutter(rooms: Array, seed: int) -> void:
+	var pool: Array = _clutter_pool(String(_theme.get("name", "Stone")))
+	if pool.is_empty():
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed * 31 + 17
+	var holder := Node3D.new()
+	holder.name = "Clutter"
+	add_child(holder)
+	for room in rooms:
+		var rect: Rect2i = room
+		var n: int = clampi((rect.size.x * rect.size.y) / 4, 2, 8)
+		for k in range(n):
+			var tx: int = rect.position.x + rng.randi_range(0, rect.size.x - 1)
+			var tz: int = rect.position.y + rng.randi_range(0, rect.size.y - 1)
+			var center: Vector3 = _tile_to_world(Vector2i(tx, tz))
+			var ps: PackedScene = pool[rng.randi() % pool.size()]
+			var inst: Node3D = ps.instantiate() as Node3D
+			if inst == null:
+				continue
+			holder.add_child(inst)
+			inst.position = Vector3(center.x + rng.randf_range(-1.2, 1.2), 0.0, center.z + rng.randf_range(-1.2, 1.2))
+			inst.rotation.y = rng.randf() * TAU
+			inst.scale = Vector3.ONE * rng.randf_range(0.8, 1.25)
+
+# The clutter model set for a theme: shared rocks/barrels/wood/ore + theme-specific flavour.
+func _clutter_pool(theme_name: String) -> Array:
+	var nat := "res://assets/models/nature/stylized-megakit/"
+	var res := "res://assets/models/props/kaykit_resources/"
+	var pool: Array = []
+	pool += _load_clutter(res, ["Fuel_A_Barrel.gltf", "Fuel_A_Barrels.gltf", "Fuel_B_Barrel.gltf", "Wood_Log_A.gltf", "Wood_Log_Stack.gltf", "Stone_Chunks_Large.gltf", "Stone_Chunks_Small.gltf", "Stone_Bricks_Stack_Medium.gltf", "Pallet_Wood.gltf"])
+	pool += _load_clutter(nat, ["Rock_Medium_1.gltf", "Rock_Medium_2.gltf", "Rock_Medium_3.gltf", "Pebble_Round_1.gltf", "Pebble_Square_1.gltf"])
+	match theme_name:
+		"Bog":
+			pool += _load_clutter(nat, ["Mushroom_Common.gltf", "Mushroom_Laetiporus.gltf", "Fern_1.gltf", "Plant_1.gltf", "Plant_7.gltf", "TwistedTree_1.gltf"])
+		"Ember":
+			pool += _load_clutter(nat, ["DeadTree_1.gltf", "TwistedTree_1.gltf", "TwistedTree_2.gltf"])
+		"Frost":
+			pool += _load_clutter(nat, ["DeadTree_2.gltf", "DeadTree_3.gltf"])
+			pool += _load_clutter(res, ["Iron_Nugget_Large.gltf", "Copper_Nugget_Large.gltf"])
+		_:
+			pool += _load_clutter(res, ["Iron_Nugget_Large.gltf", "Iron_Nugget_Medium.gltf", "Copper_Nugget_Large.gltf"])
+			pool += _load_clutter(nat, ["DeadTree_4.gltf"])
+	return pool
+
+func _load_clutter(dir: String, names: Array) -> Array:
+	var out: Array = []
+	for n in names:
+		var r: Resource = load(dir + String(n))
+		if r is PackedScene:
+			out.append(r)
+	return out
 
 
 # --- Lights ----------------------------------------------------------------
