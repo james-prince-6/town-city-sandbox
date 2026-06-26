@@ -1,0 +1,23 @@
+[gd_resource type="Theme" format=3]
+
+[resource]
+Label/colors/font_color = Color(0.09, 0.1, 0.13, 1)
+Label/colors/font_outline_color = Color(1, 1, 1, 0.5)
+Label/constants/outline_size = 3
+Button/colors/font_color = Color(0.09, 0.1, 0.13, 1)
+Button/colors/font_hover_color = Color(0, 0, 0, 1)
+Button/colors/font_pressed_color = Color(0.25, 0.25, 0.3, 1)
+Button/colors/font_focus_color = Color(0.09, 0.1, 0.13, 1)
+Button/colors/font_disabled_color = Color(0.45, 0.45, 0.5, 1)
+Button/colors/font_outline_color = Color(1, 1, 1, 0.5)
+Button/constants/outline_size = 3
+CheckButton/colors/font_color = Color(0.09, 0.1, 0.13, 1)
+CheckButton/colors/font_hover_color = Color(0, 0, 0, 1)
+CheckButton/colors/font_pressed_color = Color(0.25, 0.25, 0.3, 1)
+CheckButton/colors/font_outline_color = Color(1, 1, 1, 0.5)
+CheckButton/constants/outline_size = 3
+CheckBox/colors/font_color = Color(0.09, 0.1, 0.13, 1)
+CheckBox/colors/font_outline_color = Color(1, 1, 1, 0.5)
+CheckBox/constants/outline_size = 3
+RichTextLabel/colors/default_color = Color(0.09, 0.1, 0.13, 1)
+LineEdit/colors/font_color = Color(0.09, 0.1, 0.13, 1)
