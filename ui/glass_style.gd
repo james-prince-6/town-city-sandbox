@@ -16,19 +16,26 @@
 extends RefCounted
 
 const SHADER_PATH: String = "res://assets/shaders/ui/glass_panel.gdshader"
-## How much the glass blurs the view behind it (shader `blur_amount`; the shader default is 2.0).
-## Higher = blurrier/softer. Tune here to dial all glass at once.
+## How much the GLASS PANELS blur the view behind them (shader `blur_amount`; default 2.0).
+## Higher = blurrier/softer. The panels are intentionally blurrier than the backdrop below.
 const BLUR_AMOUNT: float = 1.5
 ## Film-grain noise on the glass (shader `grain_amount`; default 0.05). 0 = clean, no speckle.
 const GRAIN_AMOUNT: float = 0.0
-## Alpha of the full-screen frost backdrop (lower = the scene shows through more clearly).
-const FROST_ALPHA: float = 0.10
+## Backdrop frost: kept LESS blurry than the panels so the glass always reads as blurrier on top.
+const FROST_BLUR: float = 0.4
+## Negative brightness darkens the backdrop a bit so the menu pops (shader `brightness`).
+const FROST_BRIGHTNESS: float = -0.1
+## Alpha of the full-screen frost backdrop ColorRect (its rgb tint multiplies the blurred scene).
+const FROST_ALPHA: float = 0.12
+## rgb tint multiplied onto the blurred scene behind a menu — below white = darker.
+const FROST_TINT: Color = Color(0.82, 0.82, 0.86)
 
-# One shared ShaderMaterial for every glass surface — the shader has no per-panel state, so sharing
-# is correct and cheap.
+# Shared materials — the shader has no per-panel state, so sharing per role is correct and cheap.
+# Panels and the backdrop use SEPARATE materials so they can have different blur/brightness.
 static var _material: ShaderMaterial = null
+static var _frost_material: ShaderMaterial = null
 
-# The shared glass material, or null if the shader is missing (callers then degrade to plain).
+# The shared glass-PANEL material, or null if the shader is missing (callers then degrade to plain).
 static func material() -> ShaderMaterial:
 	if _material == null:
 		var sh: Shader = load(SHADER_PATH) as Shader
@@ -39,6 +46,20 @@ static func material() -> ShaderMaterial:
 		_material.set_shader_parameter("blur_amount", BLUR_AMOUNT)
 		_material.set_shader_parameter("grain_amount", GRAIN_AMOUNT)
 	return _material
+
+# The shared full-screen BACKDROP material: less blur than the panels + a slight darken, so the
+# glass panels on top always look blurrier and the menu stands out.
+static func frost_material() -> ShaderMaterial:
+	if _frost_material == null:
+		var sh: Shader = load(SHADER_PATH) as Shader
+		if sh == null:
+			return null
+		_frost_material = ShaderMaterial.new()
+		_frost_material.shader = sh
+		_frost_material.set_shader_parameter("blur_amount", FROST_BLUR)
+		_frost_material.set_shader_parameter("grain_amount", GRAIN_AMOUNT)
+		_frost_material.set_shader_parameter("brightness", FROST_BRIGHTNESS)
+	return _frost_material
 
 # A glass stylebox: transparent centre (the shader fills it with the blurred view), a blended white
 # border that becomes the bright rim, rounded corners. `border` is the rim thickness in px.
@@ -67,8 +88,8 @@ static func apply(ctrl: Control, corner: int = 14, border: int = 18) -> void:
 static func frost(rect: ColorRect) -> void:
 	if rect == null:
 		return
-	rect.color = Color(1, 1, 1, FROST_ALPHA)
-	var m: ShaderMaterial = material()
+	rect.color = Color(FROST_TINT.r, FROST_TINT.g, FROST_TINT.b, FROST_ALPHA)
+	var m: ShaderMaterial = frost_material()
 	if m != null:
 		rect.material = m
 
