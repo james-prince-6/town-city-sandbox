@@ -73,7 +73,20 @@ var _dodge_dir: Vector3 = Vector3.ZERO
 # Camera-feel state (captured in _ready; restored continuously by _update_camera_feel).
 var _cam_base_fov: float = 75.0
 var _cam_base_y: float = 0.0
+var _cam_base_x: float = 0.0
 var _lean_target_deg: float = 0.0
+# View-bob state: a phase advanced by ground speed, plus an amplitude eased in/out so the bob
+# ramps up as you walk/sprint and fades smoothly when you stop or a menu opens.
+var _bob_phase: float = 0.0
+var _bob_amp: float = 0.0
+# The first-person held-item viewmodel (created in _ready); we push it the walk bob each frame
+# for a weightier hand sway on top of the camera bob it already inherits.
+var _held_display: Node3D = null
+## Radians of bob phase advanced per metre travelled (tunes how fast the bob cycles).
+const BOB_FREQ: float = 1.6
+## Camera bob magnitudes (metres) — kept slight so it reads as life, not seasickness.
+const BOB_CAM_VERTICAL: float = 0.035
+const BOB_CAM_HORIZONTAL: float = 0.022
 
 ## True while holding block AND the held item can block (block_modifier > 0). Read in
 ## _on_hurt to soak front hits for stamina.
@@ -156,11 +169,13 @@ func _ready():
 	interaction_ui.hide_prompt()
 	# Spawn the first-person held-item viewmodel under the camera. It watches the
 	# Hotbar and shows the selected item's 3D model in hand.
-	$Head/Camera3D.add_child(load("res://entities/player/held_item_display.gd").new())
-	# Remember the camera's resting FOV / height so the dodge feel can return to them.
+	_held_display = load("res://entities/player/held_item_display.gd").new()
+	$Head/Camera3D.add_child(_held_display)
+	# Remember the camera's resting FOV / height / x so the dodge feel + view bob return to them.
 	var cam := get_camera()
 	_cam_base_fov = cam.fov
 	_cam_base_y = cam.position.y
+	_cam_base_x = cam.position.x
 
 func _unhandled_input(event):
 	# A blocking UI (dialogue / inventory) swallows all gameplay input.
@@ -455,12 +470,36 @@ func _update_camera_feel(delta: float) -> void:
 	var f: float = 0.0
 	if dodge_duration > 0.0 and _dodge_time_left > 0.0:
 		f = clampf(_dodge_time_left / dodge_duration, 0.0, 1.0)
+	# Walk bob: a slight camera sway synced to footstep cadence, folded into the same lerp
+	# targets so it composes with the dodge dip instead of fighting it.
+	_update_bob(delta)
+	var bob_y: float = sin(_bob_phase * 2.0) * _bob_amp * BOB_CAM_VERTICAL
+	var bob_x: float = cos(_bob_phase) * _bob_amp * BOB_CAM_HORIZONTAL
 	var w: float = clampf(delta * 14.0, 0.0, 1.0)  # smoothing weight
 	cam.fov = lerpf(cam.fov, _cam_base_fov + dodge_fov_kick * f, w)
-	cam.position.y = lerpf(cam.position.y, _cam_base_y - dodge_dip * f, w)
+	cam.position.y = lerpf(cam.position.y, _cam_base_y - dodge_dip * f + bob_y, w)
+	cam.position.x = lerpf(cam.position.x, _cam_base_x + bob_x, w)
 	# Roll (lean): ease toward the target, and bleed the target back to upright.
 	_lean_target_deg = move_toward(_lean_target_deg, 0.0, dodge_lean_degrees * 5.0 * delta)
 	cam.rotation.z = lerp_angle(cam.rotation.z, deg_to_rad(_lean_target_deg), w)
+	# Push a stronger bob to the held item so the weapon visibly sways in hand (it sits under the
+	# camera, so this rides on top of the camera bob for a sense of weight).
+	if is_instance_valid(_held_display) and _held_display.has_method("apply_walk_bob"):
+		_held_display.apply_walk_bob(_bob_phase, _bob_amp)
+
+# Advance the view-bob phase by ground speed and ease its amplitude in/out: the bob ramps up
+# while walking/sprinting on the ground and fades when you stop, jump, or a menu opens.
+func _update_bob(delta: float) -> void:
+	var hspeed: float = Vector2(velocity.x, velocity.z).length()
+	var moving: bool = is_on_floor() and hspeed > 0.5 and not _is_ui_blocking()
+	var target_amp: float = 0.0
+	if moving:
+		# Grow the bob with speed (a floor so a slow creep still bobs a little), full at sprint.
+		target_amp = clampf(hspeed / sprint_speed, 0.35, 1.0)
+		_bob_phase += hspeed * delta * BOB_FREQ
+		if _bob_phase > TAU * 1000.0:
+			_bob_phase -= TAU * 1000.0
+	_bob_amp = lerpf(_bob_amp, target_amp, clampf(delta * 8.0, 0.0, 1.0))
 
 # The respawn FALLBACK location: where the player stood when the scene loaded.
 # DeathScreen calls this only when the scene has no "respawn_point" markers.

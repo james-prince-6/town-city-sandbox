@@ -34,6 +34,13 @@ const HELD_AIM: Vector3 = Vector3(0.0, 0.6, -0.8)
 ## cross-section — i.e. it's clearly a long thin blade/shaft, not a chunky block (pickaxe head,
 ## lantern, shield). Below this the long axis is ambiguous, so we keep the manual base pose.
 const AUTO_MIN_ELONG: float = 2.2
+## Held-item walk-bob magnitudes. This whole display node sways under the camera while walking,
+## ON TOP of the camera's own bob, so the weapon reads as having weight in hand. Position in
+## metres, rotation in radians; kept modest but a touch stronger than the camera bob.
+const BOB_POS_X: float = 0.014
+const BOB_POS_Y: float = 0.012
+const BOB_ROT_Z: float = 0.035
+const BOB_ROT_X: float = 0.022
 
 var _current: Node3D
 var _swing_tween: Tween
@@ -164,6 +171,15 @@ func _from_to_quat(from: Vector3, to: Vector3) -> Quaternion:
 	var axis := a.cross(b).normalized()
 	var angle: float = acos(clampf(d, -1.0, 1.0))
 	return Quaternion(axis, angle)
+
+# Push the player's current view-bob to the held viewmodel so the weapon sways with each step,
+# a bit more than the camera does for a sense of weight. `phase` is the shared walk phase and
+# `amp` (0..1) fades the sway in/out. This moves the whole display NODE — the swing animation
+# operates on the model CHILD, so the two compose cleanly. Called every frame by the player.
+func apply_walk_bob(phase: float, amp: float) -> void:
+	position = Vector3(cos(phase) * amp * BOB_POS_X, sin(phase * 2.0) * amp * BOB_POS_Y, 0.0)
+	rotation.z = cos(phase) * amp * BOB_ROT_Z
+	rotation.x = sin(phase * 2.0) * amp * BOB_ROT_X
 
 # Play a quick swing (melee) or recoil (ranged) on the current model. Other item
 # kinds (consumables, tools) don't animate.
