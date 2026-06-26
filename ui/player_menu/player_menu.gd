@@ -15,6 +15,8 @@
 
 extends CanvasLayer
 
+const Glass = preload("res://ui/glass_style.gd")
+
 signal opened
 signal closed
 
@@ -97,9 +99,10 @@ func _select_tab(tab: int) -> void:
 
 func _build_shell() -> void:
 	_dim = ColorRect.new()
-	_dim.color = Color(0, 0, 0, 0.7)
+	# Full-screen frosted-glass backdrop (no black) that also eats clicks behind the menu.
 	_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	Glass.frost(_dim)
 	add_child(_dim)
 
 	var center := CenterContainer.new()
@@ -108,6 +111,7 @@ func _build_shell() -> void:
 
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(900, 560)
+	Glass.apply(panel, 18, 22)
 	center.add_child(panel)
 
 	var root := VBoxContainer.new()
@@ -141,6 +145,7 @@ func _build_shell() -> void:
 	# Content area (rebuilt per tab).
 	_content = PanelContainer.new()
 	_content.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	Glass.apply(_content, 14, 18)
 	root.add_child(_content)
 
 	_close_btn = Button.new()

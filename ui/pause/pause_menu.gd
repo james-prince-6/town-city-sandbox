@@ -98,12 +98,14 @@ func close() -> void:
 
 # --- UI construction (all in code) -----------------------------------------
 
+const Glass = preload("res://ui/glass_style.gd")
+
 func _build_ui() -> void:
-	# Dim backdrop that also eats clicks behind the menu.
+	# Full-screen frosted-glass backdrop (no black) that also eats clicks behind the menu.
 	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.6)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	Glass.frost(dim)
 	add_child(dim)
 	_root = dim
 
@@ -126,10 +128,15 @@ func _make_center_column(title: String, buttons: Array) -> Control:
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 
+	# Glass box behind the menu content (the border width doubles as inner padding).
+	var panel := PanelContainer.new()
+	Glass.apply(panel, 18, 24)
+	center.add_child(panel)
+
 	var vbox := VBoxContainer.new()
 	vbox.custom_minimum_size = Vector2(280, 0)
 	vbox.add_theme_constant_override("separation", 14)
-	center.add_child(vbox)
+	panel.add_child(vbox)
 
 	var title_label := Label.new()
 	title_label.text = title

@@ -19,6 +19,8 @@
 
 extends CanvasLayer
 
+const Glass = preload("res://ui/glass_style.gd")
+
 ## Emitted when the menu opens / closes. The player listens so it can stop moving
 ## and free the mouse (same pattern as InventoryUI / BrewingUI).
 signal opened
@@ -39,6 +41,8 @@ func _ready() -> void:
 	# even if something pauses the tree.
 	layer = 9
 	process_mode = Node.PROCESS_MODE_ALWAYS
+	# Frosted-glass content box (no dark default-theme panel).
+	Glass.apply($Panel, 18, 22)
 	hide()
 	# Rebuild when the bag changes (sell column + affordability) and when money
 	# changes (money label + Buy buttons enable/disable).
@@ -147,6 +151,7 @@ func _build_buy_column() -> void:
 # Builds a single buy row: name, price, and a "Buy" button (gated by can_buy).
 func _make_buy_row(item_id: StringName) -> Control:
 	var panel := PanelContainer.new()
+	Glass.apply(panel, 10, 12)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 4)
 	panel.add_child(box)
@@ -189,6 +194,7 @@ func _build_sell_column() -> void:
 # Builds a single sell row: name + count held, price, and a "Sell" button.
 func _make_sell_row(item_id: StringName) -> Control:
 	var panel := PanelContainer.new()
+	Glass.apply(panel, 10, 12)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 4)
 	panel.add_child(box)

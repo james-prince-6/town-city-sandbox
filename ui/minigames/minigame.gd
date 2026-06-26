@@ -19,6 +19,8 @@
 class_name Minigame
 extends CanvasLayer
 
+const Glass = preload("res://ui/glass_style.gd")
+
 ## Emitted exactly once when the game ends — either naturally ("Done"/timeout)
 ## or early via Escape. `reward` is the money the manager should grant.
 signal finished(score: int, reward: int)
@@ -80,10 +82,10 @@ func _current_reward() -> int:
 ## it so subclasses can parent their content onto it. Call once from _ready().
 func _make_backdrop() -> Control:
 	var dim := ColorRect.new()
-	dim.color = Color(0.05, 0.05, 0.08, 0.85)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(dim)
+	Glass.frost(dim)
 	return dim
 
 ## Standard centered column with the title at the top. Returns the VBox so the
@@ -93,10 +95,14 @@ func _make_column(parent: Control) -> VBoxContainer:
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	parent.add_child(center)
 
+	var panel := PanelContainer.new()
+	Glass.apply(panel, 18, 22)
+	center.add_child(panel)
+
 	var vbox := VBoxContainer.new()
 	vbox.custom_minimum_size = Vector2(420, 0)
 	vbox.add_theme_constant_override("separation", 14)
-	center.add_child(vbox)
+	panel.add_child(vbox)
 
 	var title_label := Label.new()
 	title_label.text = title

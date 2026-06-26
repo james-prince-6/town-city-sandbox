@@ -15,6 +15,8 @@
 
 extends CanvasLayer
 
+const Glass = preload("res://ui/glass_style.gd")
+
 ## Emitted when the panel opens / closes. The player connects these to its existing
 ## _on_menu_opened / _on_menu_closed so gameplay pauses and the mouse frees, exactly like
 ## the inventory and shop menus.
@@ -89,10 +91,10 @@ func close() -> void:
 func _build_ui() -> void:
 	# Dim backdrop that also eats clicks behind the panel.
 	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.7)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(dim)
+	Glass.frost(dim)
 	_root = dim
 
 	var center := CenterContainer.new()
@@ -101,6 +103,7 @@ func _build_ui() -> void:
 
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(720, 0)
+	Glass.apply(panel, 18, 22)
 	center.add_child(panel)
 
 	var outer := VBoxContainer.new()

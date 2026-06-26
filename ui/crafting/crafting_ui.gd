@@ -16,6 +16,8 @@
 
 extends CanvasLayer
 
+const Glass = preload("res://ui/glass_style.gd")
+
 signal opened
 signal closed
 
@@ -155,10 +157,10 @@ func _on_machine_changed(changed: StringName) -> void:
 
 func _build_ui() -> void:
 	_dim = ColorRect.new()
-	_dim.color = Color(0, 0, 0, 0.55)
 	_dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(_dim)
+	Glass.frost(_dim)
 
 	_window = PanelContainer.new()
 	_window.set_anchors_preset(Control.PRESET_CENTER)
@@ -170,6 +172,7 @@ func _build_ui() -> void:
 	_window.anchor_bottom = 0.5
 	_window.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_window.grow_vertical = Control.GROW_DIRECTION_BOTH
+	Glass.apply(_window, 18, 22)
 	_dim.add_child(_window)
 
 	var root := VBoxContainer.new()

@@ -1,7 +1,6 @@
-[gd_scene load_steps=6 format=3 uid="uid://cppmnlasls1hp"]
+[gd_scene load_steps=5 format=3 uid="uid://cppmnlasls1hp"]
 
 [ext_resource type="Script" uid="uid://boq4ilcpva3qr" path="res://entities/player/player.gd" id="1_w7xyi"]
-[ext_resource type="PackedScene" uid="uid://df40x646kfehy" path="res://ui/interactions/interaction_ui.tscn" id="3_ygwbr"]
 [ext_resource type="Script" path="res://components/hurt_box.gd" id="4_hurt"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_wccpv"]
@@ -36,5 +35,3 @@ team = 0
 [node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBox"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("CapsuleShape3D_hurt")
-
-[node name="InteractionUI" parent="." instance=ExtResource("3_ygwbr")]

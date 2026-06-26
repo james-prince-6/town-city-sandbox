@@ -20,6 +20,8 @@
 
 extends CanvasLayer
 
+const Glass = preload("res://ui/glass_style.gd")
+
 ## How long a toast stays fully visible before it begins to fade, in seconds.
 const HOLD_SECONDS: float = 2.2
 ## How long the fade-out itself takes, in seconds. HOLD + FADE is the total lifetime.
@@ -121,12 +123,8 @@ func _make_toast(text: String, color: Color) -> PanelContainer:
 	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	panel.size_flags_horizontal = Control.SIZE_SHRINK_END
 
-	# Semi-transparent dark backing so light text stays readable over any scene.
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.06, 0.05, 0.08, 0.82)
-	style.set_corner_radius_all(6)
-	style.set_content_margin_all(8)
-	panel.add_theme_stylebox_override("panel", style)
+	# Frosted-glass backing (no dark box); the border width doubles as the text padding.
+	Glass.apply(panel, 8, 10)
 
 	var label := Label.new()
 	label.text = text

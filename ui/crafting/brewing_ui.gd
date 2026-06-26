@@ -17,6 +17,8 @@
 
 extends CanvasLayer
 
+const Glass = preload("res://ui/glass_style.gd")
+
 ## Emitted when the menu opens / closes. The player listens so it can stop moving
 ## and free the mouse (same pattern as InventoryUI / Dialogue).
 signal opened
@@ -24,6 +26,7 @@ signal closed
 
 @onready var title: Label = $Panel/Margin/VBox/Title
 @onready var rows: VBoxContainer = $Panel/Margin/VBox/Rows
+@onready var _panel: PanelContainer = $Panel
 
 var is_open: bool = false
 
@@ -37,6 +40,8 @@ func _ready() -> void:
 	layer = 9
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_to_group("exclusive_menu")  # so opening another menu closes this one
+	# Frosted-glass backdrop instead of the default dark panel box.
+	Glass.apply(_panel, 18, 22)
 	hide()
 	# Rebuild when our machine changes state (brew started / finished / collected),
 	# and when the bag changes (so Brew buttons enable/disable as inputs come and go).
@@ -167,6 +172,7 @@ func _build_idle() -> void:
 # Builds a single recipe row: output, inputs, brew time, and a Brew button.
 func _make_recipe_row(recipe: Recipe) -> Control:
 	var panel := PanelContainer.new()
+	Glass.apply(panel, 12, 16)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 4)
 	panel.add_child(box)

@@ -12,8 +12,11 @@
 
 extends CanvasLayer
 
+const Glass = preload("res://ui/glass_style.gd")
+
 @onready var list: VBoxContainer = $Panel/Margin/VBox/List
 @onready var empty_label: Label = $Panel/Margin/VBox/EmptyLabel
+@onready var _panel: PanelContainer = $Panel
 
 func _ready() -> void:
 	# Draw above the world (but below the inventory bag at 10) and keep working
@@ -21,6 +24,8 @@ func _ready() -> void:
 	layer = 6
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_to_group("exclusive_menu")  # so opening another menu closes this one (no stacking)
+	# Frosted-glass backdrop instead of the default dark panel box.
+	Glass.apply(_panel, 18, 22)
 	hide()
 
 	# Rebuild whenever the quest picture changes.

@@ -20,7 +20,10 @@ const JOY_LOOK_DEADZONE: float = 0.15
 # --- Node References ---
 @onready var head = $Head
 @onready var interaction_raycast = $Head/Camera3D/InteractionRayCast
-@onready var interaction_ui = $InteractionUI # This node now has the interaction_ui.gd script
+@onready var interaction_ui = InteractionUI # The InteractionUI autoload (a top-level CanvasLayer).
+# NOTE: the old $InteractionUI CHILD was a plain Control parented under the player, which lives
+# inside the world SubViewport (the pixel-art render layer) — its prompt rendered off-screen there.
+# The autoload draws at full screen, so the prompt is actually visible.
 
 # --- State Variables ---
 var gravity = ProjectSettings.get_setting("physics/3d/default_gravity")

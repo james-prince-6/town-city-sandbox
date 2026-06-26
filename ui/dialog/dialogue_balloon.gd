@@ -34,6 +34,8 @@ const BLIP_VOLUME_DB: float = -22.0
 const NEXT_ACTION: StringName = &"ui_accept"
 
 # --- UI (built in code) ----------------------------------------------------
+const Glass = preload("res://ui/glass_style.gd")
+
 var _panel: PanelContainer
 var _portrait_rect: TextureRect
 var _portrait_initial: Label
@@ -223,6 +225,7 @@ func _build_ui() -> void:
 	_panel.offset_top = -360.0
 	_panel.offset_bottom = -24.0
 	_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	Glass.apply(_panel, 18, 20)
 	anchor.add_child(_panel)
 
 	var margin := MarginContainer.new()

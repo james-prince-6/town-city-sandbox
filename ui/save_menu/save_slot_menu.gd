@@ -25,6 +25,8 @@
 
 extends CanvasLayer
 
+const Glass = preload("res://ui/glass_style.gd")
+
 ## The two things this screen can do with a slot.
 enum Mode { SAVE, LOAD }
 
@@ -124,9 +126,10 @@ func _on_slot_pressed(slot: int) -> void:
 # are (re)built per-open in _rebuild_rows() so save state stays current.
 func _build_shell() -> void:
 	var dim := ColorRect.new()
-	dim.color = Color(0, 0, 0, 0.7)
+	# Full-screen frosted-glass backdrop (no black) that also eats clicks behind the menu.
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
+	Glass.frost(dim)
 	add_child(dim)
 	_root = dim
 
@@ -134,10 +137,15 @@ func _build_shell() -> void:
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_root.add_child(center)
 
+	# Glass box behind the menu content (the border width doubles as inner padding).
+	var panel := PanelContainer.new()
+	Glass.apply(panel, 18, 22)
+	center.add_child(panel)
+
 	var vbox := VBoxContainer.new()
 	vbox.custom_minimum_size = Vector2(420, 0)
 	vbox.add_theme_constant_override("separation", 14)
-	center.add_child(vbox)
+	panel.add_child(vbox)
 
 	_title_label = Label.new()
 	_title_label.text = "Load Game"

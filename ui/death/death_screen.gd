@@ -19,6 +19,8 @@
 
 extends CanvasLayer
 
+const Glass = preload("res://ui/glass_style.gd")
+
 # Dying inside a procedural dungeon kicks the player back to the OVERWORLD instead of
 # respawning them among the monsters (dungeons drop local respawn_point markers, which would
 # otherwise drop them right back in). Overworld deaths still respawn locally as before.
@@ -141,20 +143,24 @@ func _nearest_respawn_transform(from: Vector3) -> Variant:
 func _build_ui() -> void:
 	# Dark red-tinted backdrop that also eats clicks behind the overlay.
 	var dim := ColorRect.new()
-	dim.color = Color(0.15, 0.0, 0.0, 0.85)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(dim)
+	Glass.frost(dim)
 	_root = dim
 
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_root.add_child(center)
 
+	var panel := PanelContainer.new()
+	Glass.apply(panel, 18, 22)
+	center.add_child(panel)
+
 	var vbox := VBoxContainer.new()
 	vbox.custom_minimum_size = Vector2(320, 0)
 	vbox.add_theme_constant_override("separation", 18)
-	center.add_child(vbox)
+	panel.add_child(vbox)
 
 	var title := Label.new()
 	title.text = "You Died"
