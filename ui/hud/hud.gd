@@ -233,24 +233,10 @@ func _refresh_slot(index: int) -> void:
 	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	slot.add_child(box)
 
-	var item := Inventory.get_item(id)
-
-	# Most items have no art yet, so fall back to the display name as text — the
-	# same trick the bag UI uses.
-	if item and item.icon:
-		var icon := TextureRect.new()
-		icon.texture = item.icon
-		icon.custom_minimum_size = Vector2(40, 40)
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		box.add_child(icon)
-	else:
-		var name_label := Label.new()
-		name_label.text = item.display_name if item else String(id)
-		name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		name_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		name_label.add_theme_font_size_override("font_size", 11)
-		box.add_child(name_label)
+	# Show a rendered 3D thumbnail of the item (falling back to its 2D icon, then to
+	# its name as text). ItemThumbnail handles the render/cache and the one-frame delay.
+	var visual: Control = ItemThumbnail.make_visual(id, 40.0)
+	box.add_child(visual)
 
 	# How many of this item the player is actually carrying.
 	var count_label := Label.new()

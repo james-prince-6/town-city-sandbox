@@ -19,6 +19,12 @@
 
 extends CanvasLayer
 
+# Dying inside a procedural dungeon kicks the player back to the OVERWORLD instead of
+# respawning them among the monsters (dungeons drop local respawn_point markers, which would
+# otherwise drop them right back in). Overworld deaths still respawn locally as before.
+const DUNGEON_DEATH_SCENE: String = "res://stages/overworld/town_template.tscn"
+const DUNGEON_DEATH_SPAWN: StringName = &"from_dungeon"
+
 var is_open: bool = false
 
 var _root: Control
@@ -56,8 +62,14 @@ func _on_respawn_pressed() -> void:
 		return
 	# Bring the player back to full health/stamina and clear the death guard.
 	PlayerStats.reset()
-	# Move the body to wherever it should reappear, then hand control back.
-	_move_player_to_spawn()
+	# Dying in a dungeon sends you back to the overworld; otherwise respawn locally. The scene
+	# change is deferred inside SceneManager, so we still run the teardown below this frame and
+	# SceneManager places the player on the town's "from_dungeon" marker once it loads.
+	if _current_scene_is_dungeon():
+		SceneManager.change_scene(DUNGEON_DEATH_SCENE, DUNGEON_DEATH_SPAWN)
+	else:
+		# Move the body to wherever it should reappear, then hand control back.
+		_move_player_to_spawn()
 	is_open = false
 	hide()
 	get_tree().paused = false
@@ -69,6 +81,18 @@ func _on_quit_pressed() -> void:
 	get_tree().quit()
 
 # --- Respawn destination ---------------------------------------------------
+
+# True when the active gameplay scene is a procedural dungeon, so death should boot the player
+# back to the overworld rather than to a local respawn_point. Detected robustly: either the
+# world node carries the DungeonGenerator script, or its scene path mentions "dungeon".
+func _current_scene_is_dungeon() -> bool:
+	var world: Node = SceneManager.current_world()
+	if world == null:
+		return false
+	if world is DungeonGenerator:
+		return true
+	var path: String = world.scene_file_path
+	return path.to_lower().contains("dungeon")
 
 # Teleports the player (group "player") to the nearest respawn_point Marker if the
 # current scene has any, otherwise back to its recorded start transform. Does

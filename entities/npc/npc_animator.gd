@@ -384,6 +384,38 @@ func _bake_retargeted_clip(src_clip: Animation, src_skel: Skeleton3D, model_skel
 			var dbc: Vector3 = clp.normalized() if clp.length() > 0.0001 else Vector3.UP
 			m_rest_dir[i] = (m_rest_q[i] as Quaternion) * dbc
 
+	# Vertical root motion: the aim is rotation-only, so a clip that drops the body (death/fall)
+	# or lifts it (jump) wouldn't move vertically — a dying body would tip over yet hover at hip
+	# height. Re-add the HIPS' VERTICAL travel only (horizontal stays frozen so locomotion never
+	# slides), re-based onto the model's rest hip height and scaled for the rig-size difference.
+	var s_hips := -1
+	for i in range(s_count):
+		if src_skel.get_bone_name(i).ends_with("Hips"):
+			s_hips = i
+			break
+	var s_hips_pos_track := -1
+	for ti in range(src_clip.get_track_count()):
+		if src_clip.track_get_type(ti) == Animation.TYPE_POSITION_3D and String(src_clip.track_get_path(ti).get_concatenated_subnames()).ends_with("Hips"):
+			s_hips_pos_track = ti
+			break
+	var m_hips := -1
+	for i in range(m_count):
+		if model_skel.get_bone_name(i).ends_with("Hips"):
+			m_hips = i
+			break
+	var hips_track := -1
+	var m_hips_rest := Vector3.ZERO
+	var hips_y0 := 0.0
+	var hips_scale := 1.0
+	if m_hips >= 0 and s_hips >= 0 and s_hips_pos_track >= 0:
+		m_hips_rest = model_skel.get_bone_rest(m_hips).origin
+		var s_hips_rest_y: float = (s_rest[s_hips] as Transform3D).origin.y
+		if absf(s_hips_rest_y) > 0.0001:
+			hips_scale = m_hips_rest.y / s_hips_rest_y
+		hips_y0 = src_clip.position_track_interpolate(s_hips_pos_track, 0.0).y
+		hips_track = out.add_track(Animation.TYPE_POSITION_3D)
+		out.track_set_path(hips_track, NodePath("Skeleton3D:" + model_skel.get_bone_name(m_hips)))
+
 	# Per frame: build the source global transforms analytically, then aim each model bone.
 	var s_glob: Array = []
 	s_glob.resize(s_count)
@@ -425,6 +457,9 @@ func _bake_retargeted_clip(src_clip: Animation, src_skel: Skeleton3D, model_skel
 			m_glob[i] = pb * Basis(q)
 			if m_track.has(i):
 				out.rotation_track_insert_key(int(m_track[i]), t, q.normalized())
+		if hips_track >= 0:
+			var hp_y: float = src_clip.position_track_interpolate(s_hips_pos_track, t).y
+			out.position_track_insert_key(hips_track, t, Vector3(m_hips_rest.x, m_hips_rest.y + (hp_y - hips_y0) * hips_scale, m_hips_rest.z))
 	return out
 
 # Shortest-arc rotation taking direction `a` onto direction `b`, with a stable fallback when

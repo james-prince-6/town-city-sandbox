@@ -181,8 +181,13 @@ func _grab_first_focus() -> void:
 
 func _first_focusable(node: Node) -> Control:
 	for c in node.get_children():
-		if c is Button and not (c as Button).disabled:
-			return c
+		if c is Control:
+			var ctl := c as Control
+			var ok: bool = ctl.focus_mode == Control.FOCUS_ALL and ctl.visible
+			if ctl is Button and (ctl as Button).disabled:
+				ok = false
+			if ok:
+				return ctl
 		var deeper := _first_focusable(c)
 		if deeper != null:
 			return deeper
@@ -191,7 +196,11 @@ func _first_focusable(node: Node) -> Control:
 # --- Tab: Inventory --------------------------------------------------------
 
 func _build_inventory() -> Control:
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 8)
+
 	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var grid := GridContainer.new()
 	grid.columns = 6
 	grid.add_theme_constant_override("h_separation", 6)
@@ -207,35 +216,29 @@ func _build_inventory() -> Control:
 		keys.sort()
 		for id in keys:
 			grid.add_child(_make_inv_slot(id, contents[id]))
-	return scroll
+	v.add_child(scroll)
+
+	# Discoverability hint for the assign paths (mouse drag + keyboard/controller).
+	var hint := Label.new()
+	hint.text = "Drag an item onto a hotbar slot below  •  or select an item and press 1-8  (A: first free slot)"
+	hint.add_theme_font_size_override("font_size", 12)
+	hint.modulate = Color(0.7, 0.7, 0.7)
+	v.add_child(hint)
+
+	# A live hotbar row that doubles as the drag-and-drop target for assignment.
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 6)
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	for i in Hotbar.SLOT_COUNT:
+		var drop := HotbarDropSlot.new()
+		row.add_child(drop)
+		drop.setup(i)
+	v.add_child(row)
+	return v
 
 func _make_inv_slot(id: StringName, count: int) -> Control:
-	var item: Item = Inventory.get_item(id)
-	var slot := PanelContainer.new()
-	slot.custom_minimum_size = Vector2(120, 96)
-	if item != null:
-		slot.tooltip_text = "%s\n%s" % [item.display_name, item.description]
-	var box := VBoxContainer.new()
-	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	slot.add_child(box)
-	if item != null and item.icon != null:
-		var icon := TextureRect.new()
-		icon.texture = item.icon
-		icon.custom_minimum_size = Vector2(56, 56)
-		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		box.add_child(icon)
-	else:
-		var nm := Label.new()
-		nm.text = item.display_name if item != null else String(id)
-		nm.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		nm.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		nm.add_theme_font_size_override("font_size", 12)
-		box.add_child(nm)
-	var cnt := Label.new()
-	cnt.text = "x%d" % count
-	cnt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	box.add_child(cnt)
+	var slot := InventorySlot.new()
+	slot.setup(id, count)
 	return slot
 
 # --- Tab: Skills -----------------------------------------------------------

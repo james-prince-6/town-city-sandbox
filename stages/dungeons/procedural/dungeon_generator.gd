@@ -35,8 +35,8 @@
 #   - "Respawn_Entrance" Marker3D in the START room  (group "respawn_point") — mine-style entry id
 #   - "Respawn_Room_<n>" Marker3D per room           (group "respawn_point")
 #   - "EnemySpawn_*"     Marker3D scattered in non-start rooms (group "enemy_spawn")
-#   - "ExitTeleport"     teleport_raycast.tscn instance in the END room (falls back to a bare
-#                        Marker3D named "Exit" if that scene is missing)
+#   - "ExitTeleport"     an ExitPortal (exit_portal.gd) in the START room — a glowing, signed
+#                        "Leave Dungeon" portal (walk into it OR look + interact) back to town
 
 class_name DungeonGenerator
 extends Node3D
@@ -603,41 +603,25 @@ func _random_point_in_room(rect: Rect2i, rng: RandomNumberGenerator) -> Vector3:
 
 # --- Exit (to town) + descend portal (deeper) ------------------------------
 
-# Instance the shared teleport_raycast.tscn in a corner of the START room and wire it to the
-# overworld, so the player can always bail out near where they came in. Falls back to a bare
-# Marker3D named "Exit" if the teleport scene is missing.
+# Place a big, OBVIOUS ExitPortal in a corner of the START room, wired to the overworld, so the
+# player can always find their way out near where they came in. The portal glows, casts light,
+# and floats a "Leave Dungeon" sign; it triggers either by WALKING INTO it or by LOOKING at it +
+# pressing "interact" (see exit_portal.gd). This replaces the old, easy-to-miss raycast teleporter.
 func _place_town_exit(rooms: Array) -> void:
 	if rooms.is_empty():
 		return
-	# A corner tile of the start room so the exit doesn't sit on top of the spawn point.
+	# A corner tile of the start room so the exit doesn't sit on top of the spawn point. Origin
+	# on the floor (y = 0) — the ExitPortal stacks its own slab/light/sign up from there.
 	var start_rect: Rect2i = rooms[0]
 	var corner: Vector3 = _tile_to_world(Vector2i(start_rect.position.x, start_rect.position.y))
-	var exit_pos := Vector3(corner.x, MARKER_Y, corner.z)
+	var exit_pos := Vector3(corner.x, 0.0, corner.z)
 
-	var teleport_path: String = "res://global/teleport area/teleport_raycast.tscn"
-	if ResourceLoader.exists(teleport_path):
-		var packed: PackedScene = load(teleport_path)
-		var exit: Node = packed.instantiate()
-		exit.name = "ExitTeleport"
-		add_child(exit)
-		(exit as Node3D).global_position = exit_pos
-		# Give the teleport body a trigger volume (the base scene ships its CollisionShape3D
-		# without a shape) and wire its destination.
-		var col := exit.get_node_or_null("CollisionShape3D")
-		if col is CollisionShape3D:
-			var box := BoxShape3D.new()
-			box.size = Vector3(2.0, 2.5, 0.5)
-			(col as CollisionShape3D).shape = box
-		exit.set("target_scene_path", exit_scene_path)
-		exit.set("prompt_text", "Leave Dungeon")
-		exit.set("target_spawn_point", exit_spawn_point)
-	else:
-		# Missing scene: leave a named marker for manual wiring.
-		var holder := get_node_or_null("Markers")
-		if holder == null:
-			holder = self
-		_add_marker(holder as Node3D, "Exit", exit_pos, [])
-		push_warning("DungeonGenerator: teleport_raycast.tscn not found; placed bare 'Exit' marker.")
+	var portal := ExitPortal.new()
+	portal.name = "ExitTeleport"
+	portal.target_scene_path = exit_scene_path
+	portal.target_spawn_point = exit_spawn_point
+	add_child(portal)
+	portal.global_position = exit_pos
 
 
 # A glowing "stairs down" pad in the END room that rebuilds the dungeon one floor deeper.
