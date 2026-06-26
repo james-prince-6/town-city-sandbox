@@ -37,6 +37,11 @@ const SCENE_BRUTE: PackedScene = preload("res://entities/enemies/obsidian_brute.
 const SCENE_GNASHER: PackedScene = preload("res://entities/enemies/gnasher.tscn")
 const SCENE_STALKER: PackedScene = preload("res://entities/enemies/stalker.tscn")
 const SCENE_RAVAGER: PackedScene = preload("res://entities/enemies/ravager.tscn")
+const SCENE_CASTER: PackedScene = preload("res://entities/enemies/cinder_caster.tscn")
+const SCENE_FROST: PackedScene = preload("res://entities/enemies/frost_caster.tscn")
+const SCENE_VENOM: PackedScene = preload("res://entities/enemies/venom_spitter.tscn")
+const SCENE_RIME: PackedScene = preload("res://entities/enemies/rime_stalker.tscn")
+const SCENE_BOG: PackedScene = preload("res://entities/enemies/bog_lurker.tscn")
 
 # --- Tuning ----------------------------------------------------------------
 ## Base threat budget spent regardless of difficulty (a near-empty dungeon still bites).
@@ -87,6 +92,11 @@ func _spawn_table() -> Array:
 		{"scene": SCENE_GNASHER, "cost": 1, "weight": 4.0}, # fast, fragile swarm-biter
 		{"scene": SCENE_STALKER, "cost": 3, "weight": 1.5}, # heavy ambusher w/ slam
 		{"scene": SCENE_RAVAGER, "cost": 5, "weight": 0.75},# big elite bruiser
+		{"scene": SCENE_VENOM, "cost": 2, "weight": 2.0},   # ranged poison spitter
+		{"scene": SCENE_FROST, "cost": 3, "weight": 1.3},   # ranged ice caster (volley)
+		{"scene": SCENE_CASTER, "cost": 4, "weight": 0.8},  # heavy fire caster (ring barrage)
+		{"scene": SCENE_RIME, "cost": 2, "weight": 2.0},    # fast ice melee, chills on hit
+		{"scene": SCENE_BOG, "cost": 3, "weight": 1.2},     # poison melee w/ slam
 	]
 
 
