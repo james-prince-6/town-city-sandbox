@@ -19,6 +19,8 @@ extends RigidBody3D
 
 # Guard against fuse + impact both firing.
 var _popped: bool = false
+# The thrower, so we don't pop point-blank on their own body right after launch.
+var _source: Node = null
 
 func _ready() -> void:
 	contact_monitor = true
@@ -29,11 +31,15 @@ func _ready() -> void:
 	fuse.timeout.connect(_pop)
 
 ## Called once by the thrower to launch the grenade.
-func launch(velocity: Vector3, _source: Node) -> void:
+func launch(velocity: Vector3, source: Node) -> void:
+	_source = source
 	linear_velocity = velocity
 	angular_velocity = Vector3(4.0, 3.0, 0.0)
 
 func _on_body_entered(_body: Node) -> void:
+	# Ignore the thrower's own body so the grenade doesn't pop at their feet on release.
+	if _body == _source:
+		return
 	_pop()
 
 # Spawn the cloud at our position and disappear.

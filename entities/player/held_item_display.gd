@@ -54,6 +54,10 @@ func _ready() -> void:
 	_refresh()
 
 func _refresh() -> void:
+	# Kill any in-flight swing tween before freeing the model it animates, so it doesn't step
+	# on a freed node when the selection changes mid-swing.
+	if _swing_tween and _swing_tween.is_valid():
+		_swing_tween.kill()
 	if is_instance_valid(_current):
 		_current.queue_free()
 	_current = null
@@ -105,6 +109,9 @@ func _apply_held_transform(model: Node3D, item: Item) -> void:
 	var scale_factor: float = item.held_scale
 	if longest > 0.0:
 		scale_factor = (held_size / longest) * item.held_scale
+	# Never allow a zero/negative scale: in the auto path it makes a singular basis whose
+	# decomposed euler is NaN, which then poisons _rest_rotation and the swing tween.
+	scale_factor = maxf(scale_factor, 0.0001)
 
 	# Primary (longest) axis index and how elongated the model is along it.
 	var i := 0

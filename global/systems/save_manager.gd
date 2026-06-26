@@ -168,9 +168,21 @@ func _restore_location(loc: Dictionary) -> void:
 	# Let SceneManager swap the scene, then drop the player back on their spot
 	# once the new scene is ready.
 	SceneManager.scene_loaded.connect(_on_scene_loaded_place_player, CONNECT_ONE_SHOT)
+	# If that load fails, the place handler will never fire — clear the pending transform and
+	# drop the dangling one-shot so a LATER scene change doesn't teleport the player to this
+	# stale spot.
+	SceneManager.scene_load_failed.connect(_on_restore_scene_failed, CONNECT_ONE_SHOT)
 	SceneManager.change_scene(scene_path)
 
+func _on_restore_scene_failed(_scene_path: String) -> void:
+	_pending_player_transform = null
+	if SceneManager.scene_loaded.is_connected(_on_scene_loaded_place_player):
+		SceneManager.scene_loaded.disconnect(_on_scene_loaded_place_player)
+
 func _on_scene_loaded_place_player(_scene_path: String) -> void:
+	# The load succeeded, so the paired failure one-shot is no longer needed; drop it.
+	if SceneManager.scene_load_failed.is_connected(_on_restore_scene_failed):
+		SceneManager.scene_load_failed.disconnect(_on_restore_scene_failed)
 	if _pending_player_transform != null:
 		var player := get_tree().get_first_node_in_group("player")
 		if player is Node3D:

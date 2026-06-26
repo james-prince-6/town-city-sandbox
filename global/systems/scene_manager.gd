@@ -36,6 +36,10 @@ extends Node
 
 ## Emitted right after a new scene has loaded and the player has been placed.
 signal scene_loaded(scene_path: String)
+## Emitted when a requested scene could not be loaded (missing/corrupt resource). The old world
+## is kept intact in that case, so listeners (e.g. SaveManager's restore) can clean up their
+## pending one-shots instead of dangling.
+signal scene_load_failed(scene_path: String)
 
 ## Pixel-art downscale factor: the world renders at (window size / PIXEL_SHRINK) then is
 ## upscaled with nearest-neighbour filtering for crisp, chunky pixels. Set to 1 to
@@ -110,7 +114,15 @@ func change_scene(scene_path: String, spawn_point: StringName = &"") -> void:
 func _change_scene_deferred(scene_path: String) -> void:
 	var tree := get_tree()
 
-	# Tear down the active world we're tracking (it lives under the viewport)...
+	# Load FIRST, before tearing anything down. If the load fails we keep the current world
+	# intact (no blank, unrecoverable screen) and tell listeners so they can clean up.
+	var packed: PackedScene = load(scene_path)
+	if packed == null:
+		push_error("SceneManager: could not load scene at %s" % scene_path)
+		scene_load_failed.emit(scene_path)
+		return
+
+	# Load succeeded — now tear down the active world we're tracking (it lives under the viewport)...
 	if is_instance_valid(_current_world):
 		_current_world.free()
 		_current_world = null
@@ -119,10 +131,6 @@ func _change_scene_deferred(scene_path: String) -> void:
 		tree.current_scene.free()
 
 	# Build and install the new one.
-	var packed: PackedScene = load(scene_path)
-	if packed == null:
-		push_error("SceneManager: could not load scene at %s" % scene_path)
-		return
 	var next_scene := packed.instantiate()
 	# Parent gameplay scenes under the world SubViewport so they render pixel-art; fall
 	# back to root only if the viewport somehow isn't ready.

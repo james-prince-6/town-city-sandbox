@@ -29,7 +29,16 @@ func _ready() -> void:
 	max_contacts_reported = 4
 	body_entered.connect(_on_body_entered)
 
-	# Start the fuse. Even if it never hits anything, it goes off.
+	# Start the fuse DEFERRED. BombItem sets fuse_time right after we're added to the tree
+	# (synchronously, same frame), so reading it here in _ready would latch the scene's default
+	# and ignore the item's value. A deferred call runs after that config has landed.
+	_start_fuse.call_deferred()
+
+# Arm the fuse using the (now item-configured) fuse_time. Even if the bomb never hits anything,
+# it goes off when this elapses.
+func _start_fuse() -> void:
+	if _exploded:
+		return
 	var fuse: SceneTreeTimer = get_tree().create_timer(fuse_time)
 	fuse.timeout.connect(_explode)
 
@@ -42,6 +51,10 @@ func launch(velocity: Vector3, source: Node) -> void:
 	angular_velocity = Vector3(6.0, 2.0, 0.0)
 
 func _on_body_entered(_body: Node) -> void:
+	# Don't detonate on the thrower: the bomb spawns just 0.6 m in front of the camera, so a
+	# throw made while backed against a wall would otherwise pop point-blank in the player's face.
+	if _body == _source:
+		return
 	# Hit the ground / a wall / an enemy body — blow up on contact.
 	_explode()
 

@@ -79,7 +79,10 @@ func _on_leveled_up(level: int, _points_gained: int) -> void:
 # Tween a toast: hold at full opacity, then fade out, then free it. Uses real time and
 # survives a tree pause so it behaves the same whether or not the game is paused.
 func _animate(toast: Control) -> void:
-	var tween := create_tween()
+	# Bind the tween to the TOAST (not the feed). If _trim_overflow frees this toast early, a
+	# feed-bound tween would step on the freed node next frame and spam errors; a toast-bound
+	# tween is auto-killed when the toast is freed.
+	var tween := toast.create_tween()
 	tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
 	tween.tween_interval(HOLD_SECONDS)
 	tween.tween_property(toast, "modulate:a", 0.0, FADE_SECONDS)

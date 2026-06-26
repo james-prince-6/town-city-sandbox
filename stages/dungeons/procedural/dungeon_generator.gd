@@ -996,6 +996,9 @@ func _spawn_boss(rooms: Array, portal: DescendPortal, rng: RandomNumberGenerator
 	var boss_scene: PackedScene = load(chosen_path)
 	if boss_scene == null:
 		push_warning("DungeonGenerator: boss scene '%s' could not be loaded." % chosen_path)
+		# Don't trap the player on a boss floor we couldn't populate — open the descent.
+		if portal != null:
+			portal.unlock()
 		return
 	var boss: Node = boss_scene.instantiate()
 	add_child(boss)
@@ -1014,8 +1017,13 @@ func _spawn_boss(rooms: Array, portal: DescendPortal, rng: RandomNumberGenerator
 		health.max_health = base_max * hp_scale
 		health.current = health.max_health
 
-	if portal != null and health != null and health.has_signal("died"):
-		health.connect("died", Callable(portal, "unlock"))
+	# Gate the descend portal on the boss's death. If the boss has no Health to die from (a
+	# misconfigured boss scene), unlock immediately rather than soft-locking the floor forever.
+	if portal != null:
+		if health != null and health.has_signal("died"):
+			health.connect("died", Callable(portal, "unlock"))
+		else:
+			portal.unlock()
 
 
 # --- Starter kit (direct-play convenience) ---------------------------------

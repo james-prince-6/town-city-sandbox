@@ -124,7 +124,11 @@ func has_any() -> bool:
 # Health.apply_damage for enemies (so resistances + floating numbers apply) or PlayerStats for
 # the player.
 func _tick_damage() -> void:
-	for kind in _effects:
+	# Iterate a key SNAPSHOT: apply_damage can re-enter (a death/reflect effect could add or
+	# refresh a status), and mutating _effects mid-iteration over the live dict would error.
+	for kind in _effects.keys():
+		if not _effects.has(kind):
+			continue
 		var e: Dictionary = _effects[kind]
 		var dps: float = float(e["dps"])
 		if dps <= 0.0:

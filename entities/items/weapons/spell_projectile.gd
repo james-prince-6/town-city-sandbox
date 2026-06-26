@@ -189,9 +189,11 @@ func _apply_homing(delta: float) -> void:
 	var weight: float = clampf(homing_strength * delta, 0.0, 1.0)
 	var new_dir: Vector3 = current_dir.slerp(desired, weight)
 	_velocity = new_dir * speed
-	# Keep the mesh pointing where it now flies.
+	# Keep the mesh pointing where it now flies. Use a side up-vector when the new direction is
+	# near-vertical so look_at doesn't error on a parallel up/forward.
 	if not new_dir.is_equal_approx(Vector3.ZERO):
-		look_at(global_position + new_dir, Vector3.UP)
+		var up: Vector3 = Vector3.UP if absf(new_dir.dot(Vector3.UP)) < 0.999 else Vector3.FORWARD
+		look_at(global_position + new_dir, up)
 
 func _on_lifetime_expired() -> void:
 	if is_instance_valid(self):

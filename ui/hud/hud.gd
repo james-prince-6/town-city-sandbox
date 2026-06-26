@@ -38,6 +38,7 @@ var _slot_widgets: Array[PanelContainer] = []
 # A frosted-glass panel drawn BEHIND the hotbar strip (the glass UI shader refracts/blurs the
 # game view behind it). Sized to wrap the strip once the layout settles.
 var _hotbar_glass: Panel = null
+var _glass_fit_retries: int = 0
 
 # --- Combat-feedback tuning ------------------------------------------------
 
@@ -113,9 +114,14 @@ func _build_hotbar_glass() -> void:
 	move_child(glass, 0)  # behind BottomCenter / the slots
 	_hotbar_glass = glass
 	_fit_hotbar_glass()
+	# Keep the glass wrapped around the strip when the window resizes (the BottomCenter strip
+	# recenters) and when the strip itself relayouts — otherwise it drifts out of alignment.
+	get_viewport().size_changed.connect(_fit_hotbar_glass)
+	if hotbar_strip != null:
+		hotbar_strip.resized.connect(_fit_hotbar_glass)
 
 # Size + position the glass to wrap the hotbar strip (with a little padding), after the strip
-# has been laid out. Re-run if the strip's rect changes.
+# has been laid out. Re-runs on window/strip resize (connected in _build_hotbar_glass).
 func _fit_hotbar_glass() -> void:
 	await get_tree().process_frame
 	await get_tree().process_frame
@@ -123,7 +129,13 @@ func _fit_hotbar_glass() -> void:
 		return
 	var r: Rect2 = hotbar_strip.get_global_rect()
 	if r.size == Vector2.ZERO:
+		# Strip isn't laid out yet — retry a bounded number of times instead of bailing forever
+		# (which would leave the glass stuck at its default 0-size, invisible).
+		if _glass_fit_retries < 10:
+			_glass_fit_retries += 1
+			_fit_hotbar_glass.call_deferred()
 		return
+	_glass_fit_retries = 0
 	var pad := Vector2(26.0, 18.0)
 	_hotbar_glass.global_position = r.position - pad
 	_hotbar_glass.size = r.size + pad * 2.0

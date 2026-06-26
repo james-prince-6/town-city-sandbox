@@ -106,6 +106,9 @@ func use(player: Node) -> void:
 	# Add to the live scene, then place it in front of the camera along its forward
 	# axis (-z). Placing AFTER add_child so global_position takes effect in the tree.
 	var scene := SceneManager.current_world()
+	if scene == null:
+		hit.queue_free()  # world is tearing down mid-swing; don't leak the orphaned HitBox
+		return
 	scene.add_child(hit)
 	var forward: Vector3 = -camera.global_transform.basis.z
 	hit.global_position = camera.global_position + forward * range

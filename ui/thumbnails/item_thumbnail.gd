@@ -148,7 +148,7 @@ func _process_queue() -> void:
 func _render(id: StringName) -> void:
 	var item: Item = Inventory.get_item(id)
 	if item == null or item.world_model == null:
-		_pending.erase(id)
+		_fail_render(id, item)
 		return
 
 	for c in _model_holder.get_children():
@@ -156,7 +156,7 @@ func _render(id: StringName) -> void:
 
 	var model: Node3D = item.world_model.instantiate() as Node3D
 	if model == null:
-		_pending.erase(id)
+		_fail_render(id, item)
 		return
 	_model_holder.add_child(model)
 
@@ -177,6 +177,22 @@ func _render(id: StringName) -> void:
 
 	_deliver(id, tex)
 	thumbnail_ready.emit(id, tex)
+
+# A render couldn't run (item/model failed to instance). Cache a fallback texture (the item's
+# 2D icon if it has one, else a 1x1 transparent pixel) so the id is NEVER re-queued — otherwise
+# get_texture() would re-request and re-fail on every redraw — and resolve any waiting rects so
+# they stop sitting on a placeholder forever (and _waiting[id] doesn't leak).
+func _fail_render(id: StringName, item: Item) -> void:
+	var tex: Texture2D
+	if item != null and item.icon != null:
+		tex = item.icon
+	else:
+		var img := Image.create(1, 1, false, Image.FORMAT_RGBA8)
+		img.set_pixel(0, 0, Color(0, 0, 0, 0))
+		tex = ImageTexture.create_from_image(img)
+	_cache[id] = tex
+	_pending.erase(id)
+	_deliver(id, tex)
 
 # Position the camera so the whole model fits, viewed from a pleasant 3/4 angle.
 func _frame_camera(model: Node3D) -> void:

@@ -56,6 +56,9 @@ func _scatter() -> void:
 	rng.seed = rng_seed
 	var space: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
 	var origin: Vector3 = global_position
+	# Colliders of props we've already placed (when make_collision). Excluded from the ground
+	# ray so a later instance doesn't land on an earlier prop's box and stack into a tower.
+	var placed_rids: Array[RID] = []
 	for i in range(count):
 		var ps: PackedScene = pool[rng.randi() % pool.size()]
 		if ps == null:
@@ -70,6 +73,7 @@ func _scatter() -> void:
 		if ground_align:
 			var params := PhysicsRayQueryParameters3D.create(pos + Vector3.UP * 60.0, pos + Vector3.DOWN * 60.0)
 			params.collision_mask = ground_mask
+			params.exclude = placed_rids
 			var hit: Dictionary = space.intersect_ray(params)
 			if hit.is_empty():
 				continue  # nothing to stand on here — skip
@@ -90,6 +94,7 @@ func _scatter() -> void:
 		holder.scale = Vector3.ONE * rng.randf_range(min_scale, max_scale)
 		if make_collision:
 			_add_box_collider(holder as StaticBody3D, model)
+			placed_rids.append((holder as StaticBody3D).get_rid())
 
 # The set of models to scatter: the explicit `models` list if given, else every imported
 # scene in `models_dir` that passes `name_filter`.

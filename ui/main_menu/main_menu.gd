@@ -116,8 +116,10 @@ func _on_continue() -> void:
 	# location via SceneManager, so we just need to dismiss the menu and recapture input.
 	if not SaveManager.has_save(DEFAULT_SLOT):
 		return # Shouldn't happen (button is disabled), but guard anyway.
-	_enter_world()
-	SaveManager.load_game(DEFAULT_SLOT)
+	# Load FIRST; only dismiss the menu and capture the mouse if the load actually succeeded,
+	# so a failed/corrupt load can't strand us with the menu gone and no world.
+	if SaveManager.load_game(DEFAULT_SLOT):
+		_enter_world()
 
 func _on_load_game() -> void:
 	# Open the slot browser in LOAD mode as an overlay on top of the title. We stay

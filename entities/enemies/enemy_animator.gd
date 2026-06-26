@@ -276,7 +276,11 @@ func _collect_kit_clips(library: AnimationLibrary) -> void:
 const RETARGET_FPS: float = 30.0
 
 func _collect_mixamo_clips(library: AnimationLibrary) -> void:
-	var cached = _mixamo_cache.get(MIXAMO_DIR)
+	# Key the cache per MODEL, not just per source directory: the bake is retargeted against
+	# THIS model's skeleton (rest pose, proportions, hip height), so a differently-rigged model
+	# must not reuse another's baked clips. Same model -> same key -> the bake still runs once.
+	var cache_key: String = MIXAMO_DIR + "::" + (model_scene.resource_path if model_scene != null else "")
+	var cached = _mixamo_cache.get(cache_key)
 	if cached != null:
 		var lib: AnimationLibrary = cached
 		for clip_name in lib.get_animation_list():
@@ -294,7 +298,7 @@ func _collect_mixamo_clips(library: AnimationLibrary) -> void:
 		if baked != null:
 			library.add_animation(StringName(key), baked)
 
-	_mixamo_cache[MIXAMO_DIR] = library
+	_mixamo_cache[cache_key] = library
 
 # Load one Mixamo fbx, grab its motion clip + source skeleton, and bake a model-retargeted clip.
 func _load_and_retarget(path: String, model_skel: Skeleton3D, loop: bool) -> Animation:

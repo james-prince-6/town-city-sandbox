@@ -82,11 +82,16 @@ func use(player: Node) -> void:
 	var forward: Vector3 = -camera.global_transform.basis.z
 	var arrow := projectile_scene.instantiate()
 	var scene := SceneManager.current_world()
+	if scene == null:
+		arrow.queue_free()  # world is tearing down mid-shot; don't leak the orphaned projectile
+		return
 	scene.add_child(arrow)
 	arrow.global_position = camera.global_position + forward * 0.5  # nudge clear of the camera
-	# Face the arrow along its travel direction so the mesh points where it flies.
+	# Face the arrow along its travel direction so the mesh points where it flies. Use a side
+	# up-vector when firing near-vertically, so look_at doesn't error on a parallel up/forward.
 	if not forward.is_equal_approx(Vector3.ZERO):
-		arrow.look_at(arrow.global_position + forward, Vector3.UP)
+		var up: Vector3 = Vector3.UP if absf(forward.normalized().dot(Vector3.UP)) < 0.999 else Vector3.FORWARD
+		arrow.look_at(arrow.global_position + forward, up)
 
 	# Scale damage by the Ranged-branch progression (with a crit roll), then hand the
 	# arrow everything it needs to deal damage and move. The Piercing Shot perk makes the
