@@ -1,0 +1,38 @@
+[gd_resource type="Resource" script_class="Quest" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://global/quests/quest.gd" id="1_quest"]
+[ext_resource type="Script" path="res://global/quests/quest_objective.gd" id="2_objective"]
+[ext_resource type="Script" path="res://global/quests/game_effect.gd" id="3_effect"]
+
+[sub_resource type="Resource" id="obj_ingots"]
+script = ExtResource("2_objective")
+description = "Smelt 2 copper ingots for Ember"
+kind = 0
+target = &"copper_ingot"
+required_count = 2
+
+[sub_resource type="Resource" id="reward_money"]
+script = ExtResource("3_effect")
+type = 5
+target = &""
+amount = 80
+
+[sub_resource type="Resource" id="reward_item"]
+script = ExtResource("3_effect")
+type = 2
+target = &"hand_axe"
+amount = 1
+
+[sub_resource type="Resource" id="reward_rep"]
+script = ExtResource("3_effect")
+type = 4
+target = &"ember"
+amount = 10
+
+[resource]
+script = ExtResource("1_quest")
+id = &"ember_commission"
+title = "Ember's Commission"
+description = "Ember needs copper for the forge. Smelt 2 copper ingots at the smelter and deliver them."
+objectives = Array[ExtResource("2_objective")]([SubResource("obj_ingots")])
+rewards = Array[ExtResource("3_effect")]([SubResource("reward_money"), SubResource("reward_item"), SubResource("reward_rep")])

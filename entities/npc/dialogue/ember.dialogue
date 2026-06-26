@@ -44,6 +44,10 @@ Ember: [#gesture=angry] Buy something or move along — I haven't got all day.
 	=> metals
 - Can you forge me something special? [if Reputation.get_reputation("ember") >= 20 /]
 	=> commission
+- Got any work at the forge? [if not QuestSystem.is_active("ember_commission") and not QuestSystem.is_completed("ember_commission") /]
+	do QuestSystem.start_quest("ember_commission")
+	do Reputation.add_reputation("ember", 5)
+	=> commission_work
 - Just browsing, thanks.
 	=> bye
 
@@ -65,6 +69,11 @@ Ember: [#gesture=look] The gold-glowing elites down there carry rarer stuff. Bri
 ~ commission
 Ember: [#gesture=salute] For a steady customer? Aye. Bring me obsidian and I'll fold you a blade that outlasts you.
 Ember: [#gesture=talk] None of that dungeon-junk steel, mind. Real metal, real work.
+=> hub
+
+~ commission_work
+Ember: [#gesture=talk] As it happens, aye. I'm out of copper — smelt me two ingots?
+Ember: [#gesture=talk] The smelter's by the square: copper ore in, ingots out. Do that and there's a tool in it for you.
 => hub
 
 ~ bye

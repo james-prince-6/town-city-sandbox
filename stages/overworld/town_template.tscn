@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3 uid="uid://dr8g6lixms4ln"]
+[gd_scene load_steps=45 format=3 uid="uid://dr8g6lixms4ln"]
 
 [ext_resource type="PackedScene" uid="uid://cppmnlasls1hp" path="res://entities/player/player.tscn" id="1_player"]
 [ext_resource type="Script" uid="uid://cddg1xr5hye1d" path="res://addons/MarchingSquaresTerrain/algorithm/terrain/marching_squares_terrain.gd" id="2_7hyfw"]
@@ -16,6 +16,12 @@
 [ext_resource type="Resource" path="res://global/npc/definitions/mira.tres" id="12_mira"]
 [ext_resource type="PackedScene" uid="uid://74dh8h8lk67p" path="res://assets/models/buildings/city-commercial/building-d.fbx" id="12_qykeb"]
 [ext_resource type="Resource" uid="uid://bvqta1skc7aqh" path="res://global/npc/definitions/wanderer_pip.tres" id="13_pip"]
+[ext_resource type="Resource" path="res://global/npc/definitions/marlo.tres" id="30_marlo"]
+[ext_resource type="Resource" path="res://global/npc/definitions/sela.tres" id="31_sela"]
+[ext_resource type="Resource" path="res://global/npc/definitions/shopkeeper_ember.tres" id="32_ember"]
+[ext_resource type="PackedScene" path="res://entities/machines/brewing_machine.tscn" id="33_brew"]
+[ext_resource type="PackedScene" path="res://entities/machines/smelter.tscn" id="34_smelt"]
+[ext_resource type="PackedScene" path="res://entities/machines/cooking_station.tscn" id="35_cook"]
 [ext_resource type="PackedScene" uid="uid://b0pvwhmrfu7qt" path="res://assets/models/buildings/city-commercial/building-a.fbx" id="13_xd1vs"]
 [ext_resource type="PackedScene" uid="uid://bhw4l70xeuog1" path="res://assets/models/buildings/city-suburban/building-type-e.fbx" id="14_k2yk1"]
 [ext_resource type="PackedScene" uid="uid://csfd54c6f3k0" path="res://assets/models/buildings/city-commercial/building-e.fbx" id="14_wp223"]
@@ -97,6 +103,28 @@ definition = ExtResource("12_mira")
 [node name="Pip" parent="." instance=ExtResource("11_npc")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -3)
 definition = ExtResource("13_pip")
+
+[node name="Marlo" parent="." instance=ExtResource("11_npc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -4)
+definition = ExtResource("30_marlo")
+
+[node name="Sela" parent="." instance=ExtResource("11_npc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -8)
+definition = ExtResource("31_sela")
+
+[node name="Ember" parent="." instance=ExtResource("11_npc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -3)
+definition = ExtResource("32_ember")
+
+[node name="BrewingMachine" parent="." instance=ExtResource("33_brew")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -6)
+machine_id = &"town_brewery"
+
+[node name="Smelter" parent="." instance=ExtResource("34_smelt")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -6)
+
+[node name="CookingStation" parent="." instance=ExtResource("35_cook")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -8)
 
 [node name="Player" parent="." instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 0)
@@ -695,13 +723,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -29.446114, 0.24277201, 21.97
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29.01009, 0.24277201, -1.7547531)
 
 [node name="planter" parent="." instance=ExtResource("21_bl5uh")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.414953, 0, 13.85457)
+transform = Transform3D(0.7064209, 0, 0, 0, 0.7064209, 0, 0, 0, 0.7064209, -7.414953, 0, 13.85457)
 
 [node name="planter2" parent="." instance=ExtResource("21_bl5uh")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.83928, 0, 13.836393)
+transform = Transform3D(0.66236585, 0, 0, 0, 0.66236585, 0, 0, 0, 0.66236585, 6.83928, 0, 13.836393)
 
 [node name="fountain-round" parent="." instance=ExtResource("22_qu54j")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.24316823, 1.9073486e-06, 26.894602)
+transform = Transform3D(0.4977187, 0, 0, 0, 0.4977187, 0, 0, 0, 0.4977187, -0.24316823, 1.9073486e-06, 9.693552)
 
 [node name="CommonTree_32" parent="." instance=ExtResource("23_d4ody")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.397116, 0.24277201, -8.846491)

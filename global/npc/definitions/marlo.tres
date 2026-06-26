@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="NPCDefinition" load_steps=5 format=3]
+
+; Marlo — the town brewer (referenced in Mira's lore; now an actual NPC by the brew kettle).
+[ext_resource type="Script" path="res://global/npc/npc_definition.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/psx/Male/Character_01.fbx" id="2"]
+[ext_resource type="Texture2D" path="res://assets/models/characters/psx/Textures/Character_01.png" id="3"]
+[ext_resource type="Resource" path="res://entities/npc/dialogue/marlo.dialogue" id="4"]
+
+[resource]
+script = ExtResource("1")
+id = &"marlo"
+display_name = "Marlo"
+model_scene = ExtResource("2")
+skin_texture = ExtResource("3")
+target_height = 1.75
+move_speed = 1.8
+turn_speed_degrees = 440.0
+default_behavior = 0
+default_mood = &"neutral"
+dialogue = ExtResource("4")

@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="Quest" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://global/quests/quest.gd" id="1_quest"]
+[ext_resource type="Script" path="res://global/quests/quest_objective.gd" id="2_objective"]
+[ext_resource type="Script" path="res://global/quests/game_effect.gd" id="3_effect"]
+
+[sub_resource type="Resource" id="obj_mushrooms"]
+script = ExtResource("2_objective")
+description = "Gather 4 cave mushrooms for Sela"
+kind = 0
+target = &"cave_mushroom"
+required_count = 4
+
+[sub_resource type="Resource" id="reward_money"]
+script = ExtResource("3_effect")
+type = 5
+target = &""
+amount = 40
+
+[sub_resource type="Resource" id="reward_rep"]
+script = ExtResource("3_effect")
+type = 4
+target = &"sela"
+amount = 10
+
+[resource]
+script = ExtResource("1_quest")
+id = &"sela_harvest"
+title = "Sela's Harvest"
+description = "Sela wants a basket of cave mushrooms from the groves. Gather 4 and bring them back."
+objectives = Array[ExtResource("2_objective")]([SubResource("obj_mushrooms")])
+rewards = Array[ExtResource("3_effect")]([SubResource("reward_money"), SubResource("reward_rep")])

@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="Quest" load_steps=5 format=3]
+
+[ext_resource type="Script" path="res://global/quests/quest.gd" id="1_quest"]
+[ext_resource type="Script" path="res://global/quests/quest_objective.gd" id="2_objective"]
+[ext_resource type="Script" path="res://global/quests/game_effect.gd" id="3_effect"]
+
+[sub_resource type="Resource" id="obj_ale"]
+script = ExtResource("2_objective")
+description = "Brew an Ember Ale at the brew kettle"
+kind = 0
+target = &"ember_ale"
+required_count = 1
+
+[sub_resource type="Resource" id="reward_money"]
+script = ExtResource("3_effect")
+type = 5
+target = &""
+amount = 60
+
+[sub_resource type="Resource" id="reward_rep"]
+script = ExtResource("3_effect")
+type = 4
+target = &"marlo"
+amount = 10
+
+[resource]
+script = ExtResource("1_quest")
+id = &"marlo_brew"
+title = "Marlo's Brew"
+description = "Marlo is short-handed. Brew an Ember Ale at the brew kettle in the square (lava ash does the trick) and bring it to him."
+objectives = Array[ExtResource("2_objective")]([SubResource("obj_ale")])
+rewards = Array[ExtResource("3_effect")]([SubResource("reward_money"), SubResource("reward_rep")])

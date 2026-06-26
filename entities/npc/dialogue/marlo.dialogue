@@ -31,6 +31,10 @@ Marlo: [#gesture=talk] Stop by once you've got something brewing. I'm always thi
 	=> rumor
 - Got a minute, friend? [if Reputation.get_reputation("marlo") >= 15 /]
 	=> friendly
+- Need a hand around the brewery? [if not QuestSystem.is_active("marlo_brew") and not QuestSystem.is_completed("marlo_brew") /]
+	do QuestSystem.start_quest("marlo_brew")
+	do Reputation.add_reputation("marlo", 5)
+	=> brew_accept
 - I'll leave you to it.
 	=> bye
 
@@ -79,6 +83,11 @@ Marlo: [#gesture=talk] You ever need a favor, you've got one waiting right here.
 ~ friendly
 Marlo: [#gesture=cheer] Ha! Always got a minute for a friend.
 Marlo: [#gesture=talk] Pull up a stool, the mocha's on me today.
+=> hub
+
+~ brew_accept
+Marlo: [#gesture=cheer] Bless you. I'm behind on a batch — brew me an Ember Ale, would you?
+Marlo: [#gesture=talk] There's a kettle right here in the square. A few lumps of lava ash is all it takes.
 => hub
 
 ~ bye

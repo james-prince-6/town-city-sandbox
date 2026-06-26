@@ -36,6 +36,10 @@ Sela: [#gesture=talk] Mind the cracks in the ground - it's a bit unstable here.
 	=> forage
 - Anything for a trusted friend? [if Reputation.get_reputation("sela") >= 25 /]
 	=> friendly
+- Got any other work going? [if not QuestSystem.is_active("sela_harvest") and not QuestSystem.is_completed("sela_harvest") /]
+	do QuestSystem.start_quest("sela_harvest")
+	do Reputation.add_reputation("sela", 5)
+	=> harvest_accept
 - I'll let you work.
 	=> bye
 
@@ -68,6 +72,11 @@ Sela: [#gesture=look] I don't go past the cave mouth anymore. Something new took
 ~ friendly
 Sela: [#gesture=salute] For you? Always. Stop by whenever the brewery gets too busy.
 Sela: [#gesture=talk] I'll keep the good mangoes set aside.
+=> hub
+
+~ harvest_accept
+Sela: [#gesture=cheer] Always! I'm clean out of cave mushrooms — fetch me four from the groves?
+Sela: [#gesture=talk] They cluster in the damp near the cave mouth. Mind the critters down there.
 => hub
 
 ~ bye
