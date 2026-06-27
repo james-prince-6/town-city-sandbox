@@ -1,4 +1,4 @@
-[gd_scene load_steps=45 format=3 uid="uid://dr8g6lixms4ln"]
+[gd_scene load_steps=46 format=3 uid="uid://dr8g6lixms4ln"]
 
 [ext_resource type="PackedScene" uid="uid://cppmnlasls1hp" path="res://entities/player/player.tscn" id="1_player"]
 [ext_resource type="Script" uid="uid://cddg1xr5hye1d" path="res://addons/MarchingSquaresTerrain/algorithm/terrain/marching_squares_terrain.gd" id="2_7hyfw"]
@@ -8,6 +8,7 @@
 [ext_resource type="PackedScene" uid="uid://dpifyleduqaom" path="res://assets/models/buildings/modular-buildings/building-sample-house-b.fbx" id="5_gg670"]
 [ext_resource type="PackedScene" path="res://entities/props/roads/fantasy/fantasy_road.tscn" id="6_road"]
 [ext_resource type="Script" path="res://components/building_collision.gd" id="7_bldcol"]
+[ext_resource type="Script" path="res://components/auto_world_colliders.gd" id="40_autocol"]
 [ext_resource type="Script" uid="uid://dm68qf0hx2ap" path="res://global/teleport area/teleport_raycast.gd" id="8_teleport"]
 [ext_resource type="PackedScene" uid="uid://c6tvji1qpj8y3" path="res://entities/npc/shopkeeper.tscn" id="9_shop"]
 [ext_resource type="PackedScene" path="res://entities/machines/workbench.tscn" id="10_bench"]
@@ -633,6 +634,9 @@ transform = Transform3D(-0.034311607, 0, 1.9997057, 0, 2, 0, -1.9997057, 0, -0.0
 
 [node name="Buildings" type="Node3D" parent="."]
 script = ExtResource("7_bldcol")
+
+[node name="WorldColliders" type="Node" parent="."]
+script = ExtResource("40_autocol")
 
 [node name="building-sample-house-b" parent="Buildings" instance=ExtResource("5_gg670")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.037249, 0, -36.221527)
