@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=4 format=3]
+
+[ext_resource type="Script" path="res://global/crafting/recipe.gd" id="1_recipe"]
+[ext_resource type="Script" path="res://global/crafting/recipe_ingredient.gd" id="2_ingredient"]
+
+[sub_resource type="Resource" id="ing_log"]
+script = ExtResource("2_ingredient")
+item_id = &"wood_log"
+count = 1
+
+[resource]
+script = ExtResource("1_recipe")
+id = &"plank_craft"
+display_name = "Wood Plank"
+inputs = [SubResource("ing_log")]
+output_id = &"wood_plank"
+output_count = 1
+brew_minutes = 0
+instant = true
+machine_type = 2

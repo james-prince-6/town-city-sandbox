@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="UpgradeDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://global/house/upgrade_def.gd" id="1_upg"]
+
+[resource]
+script = ExtResource("1_upg")
+id = &"decor"
+display_name = "Cozy Decor"
+description = "Rugs, lamps and wall hangings to make the place feel like home. Purely for the vibes."
+cost_money = 800
+cost_item_id = &""
+cost_item_count = 0
+prerequisite = &"comfy_bed"
+sort_order = 60

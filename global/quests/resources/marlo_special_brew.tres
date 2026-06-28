@@ -1,0 +1,53 @@
+[gd_resource type="Resource" script_class="Quest" load_steps=9 format=3]
+
+[ext_resource type="Script" path="res://global/quests/quest.gd" id="1_quest"]
+[ext_resource type="Script" path="res://global/quests/quest_objective.gd" id="2_objective"]
+[ext_resource type="Script" path="res://global/quests/game_effect.gd" id="3_effect"]
+
+[sub_resource type="Resource" id="obj_honey"]
+script = ExtResource("2_objective")
+description = "Gather 4 wild honey"
+kind = 0
+target = &"wild_honey"
+required_count = 4
+
+[sub_resource type="Resource" id="obj_mushroom"]
+script = ExtResource("2_objective")
+description = "Gather 3 cave mushrooms"
+kind = 0
+target = &"cave_mushroom"
+required_count = 3
+
+[sub_resource type="Resource" id="obj_glow"]
+script = ExtResource("2_objective")
+description = "Bring 2 glow crystals to give the brew its shine"
+kind = 0
+target = &"glow_crystal"
+required_count = 2
+
+[sub_resource type="Resource" id="reward_money"]
+script = ExtResource("3_effect")
+type = 5
+target = &""
+amount = 60
+
+[sub_resource type="Resource" id="reward_rep"]
+script = ExtResource("3_effect")
+type = 4
+target = &"marlo"
+amount = 12
+
+[sub_resource type="Resource" id="reward_item"]
+script = ExtResource("3_effect")
+type = 2
+target = &"lava_latte"
+amount = 2
+
+[resource]
+script = ExtResource("1_quest")
+id = &"marlo_special_brew"
+title = "Marlo's Special Brew"
+description = "Marlo is experimenting with a one-of-a-kind drink. Bring 4 wild honey, 3 cave mushrooms, and 2 glow crystals, and he'll pour you the first round."
+tier = 1
+objectives = Array[ExtResource("2_objective")]([SubResource("obj_honey"), SubResource("obj_mushroom"), SubResource("obj_glow")])
+rewards = Array[ExtResource("3_effect")]([SubResource("reward_money"), SubResource("reward_rep"), SubResource("reward_item")])

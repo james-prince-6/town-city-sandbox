@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="UpgradeDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://global/house/upgrade_def.gd" id="1_upg"]
+
+[resource]
+script = ExtResource("1_upg")
+id = &"garden"
+display_name = "Herb Garden"
+description = "A small raised bed out back that regrows a renewable patch of herbs you can harvest each day."
+cost_money = 650
+cost_item_id = &"plant_fiber"
+cost_item_count = 10
+prerequisite = &""
+sort_order = 50

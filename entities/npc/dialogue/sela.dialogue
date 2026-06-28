@@ -34,12 +34,23 @@ Sela: [#gesture=talk] Mind the cracks in the ground - it's a bit unstable here.
 	=> nag
 - What grows up in those groves?
 	=> forage
-- Anything for a trusted friend? [if Reputation.get_reputation("sela") >= 25 /]
+- Anything for a trusted friend? [if Reputation.is_at_least("sela", "FRIENDLY") /]
 	=> friendly
+- Have I done something to upset you? [if Reputation.is_at_most("sela", "HOSTILE") /]
+	=> cold
+- Got anything set aside for me? [if Reputation.is_at_least("sela", "BELOVED") /]
+	=> beloved
 - Got any other work going? [if not QuestSystem.is_active("sela_harvest") and not QuestSystem.is_completed("sela_harvest") /]
 	do QuestSystem.start_quest("sela_harvest")
 	do Reputation.add_reputation("sela", 5)
 	=> harvest_accept
+- Got any odd jobs? [if QuestSystem.has_task_available("sela") /]
+	do QuestSystem.request_task("sela")
+	=> odd_jobs
+- Those caves below — what's really down there? [if not QuestSystem.is_active("depths_below") and not QuestSystem.is_completed("depths_below") /]
+	do QuestSystem.start_quest("depths_below")
+	do Reputation.add_reputation("sela", 5)
+	=> depths_intro
 - I'll let you work.
 	=> bye
 
@@ -74,9 +85,29 @@ Sela: [#gesture=salute] For you? Always. Stop by whenever the brewery gets too b
 Sela: [#gesture=talk] I'll keep the good mangoes set aside.
 => hub
 
+~ cold
+Sela: [#gesture=look] You have, rather. Word travels fast in a market this size.
+Sela: [#gesture=talk] I'll trade with you, but don't expect a smile with it. Or a discount.
+=> hub
+
+~ beloved
+Sela: [#gesture=cheer] Always! I set the ripest of everything aside the moment I see you coming.
+Sela: [#gesture=salute] The grove's practically yours now. Take what you need — friends don't haggle.
+=> hub
+
 ~ harvest_accept
 Sela: [#gesture=cheer] Always! I'm clean out of cave mushrooms — fetch me four from the groves?
 Sela: [#gesture=talk] They cluster in the damp near the cave mouth. Mind the critters down there.
+=> hub
+
+~ odd_jobs
+Sela: [#gesture=cheer] As it happens, yes! Take a look — I've jotted the details in your journal.
+Sela: [#gesture=talk] Bring it back before too long and there's coin and my thanks in it.
+=> hub
+
+~ depths_intro
+Sela: [#gesture=look] You'd chart them for me? I've always wondered, never dared. Glowing crystals down there, they say, deeper than any grove.
+Sela: [#gesture=talk] Bring me what you find — first the crystal cave, then the old mine, then the sewers below town. Three steps. It's in your journal.
 => hub
 
 ~ bye

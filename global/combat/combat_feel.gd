@@ -45,6 +45,8 @@ const SHAKE_LAND_HIT_STRENGTH: float = 0.18
 const SHAKE_LAND_HIT_DURATION: float = 0.12
 ## Maximum camera h/v offset (in Camera3D offset units) at full shake strength.
 const SHAKE_MAX_OFFSET: float = 0.28
+## Extra shake punch when the landed blow is a critical hit.
+const CRIT_SHAKE_MULTIPLIER: float = 1.6
 
 # --- Damage number tunables ------------------------------------------------
 ## How far (metres) the number drifts upward over its life.
@@ -54,6 +56,12 @@ const DMG_NUMBER_LIFETIME: float = 0.7
 ## Font sizes for normal vs critical hits.
 const DMG_NUMBER_FONT_SIZE: int = 48
 const DMG_NUMBER_CRIT_FONT_SIZE: int = 76
+
+# --- Kill text tunables ----------------------------------------------------
+## How far (metres) the floating "KILL" label drifts upward over its life.
+const KILL_TEXT_RISE: float = 1.6
+## Seconds the "KILL" label floats before it fades out and frees.
+const KILL_TEXT_LIFETIME: float = 0.9
 
 # --- Impact particle tunables ----------------------------------------------
 const IMPACT_PARTICLE_COUNT: int = 14
@@ -113,6 +121,42 @@ var block_sounds: Array[AudioStream] = [
 	preload("res://assets/audio/combat/block_a.ogg"),
 	preload("res://assets/audio/combat/block_b.ogg"),
 ]
+## A quiet "click/inhale" tell when an enemy begins a TELEGRAPHED normal attack (see
+## enemy.gd attack_windup). Left EMPTY by default (assets pending) so the cue is silent
+## until a designer drops .ogg files here — play_attack_tell() then no-ops gracefully.
+var attack_tell_sounds: Array[AudioStream] = []
+## A short warning sting fired the moment the player's stamina hits empty mid-use (sprint /
+## dodge / block). Also EMPTY by default (assets pending); play_stamina_warning() no-ops
+## until populated. The on-screen stamina vignette (HUD) already covers the visual side.
+var stamina_warning_sounds: Array[AudioStream] = []
+
+# --- Per-weapon-class knockback -------------------------------------------
+# A landed hit's KNOCKBACK (never its damage) is scaled by the attacking weapon's class, so
+# a crossbow bolt or a heavy maul visibly shoves while a light sword merely nudges. Looked up
+# when the shove is applied (see enemy.gd _on_hurt); an unknown/!player attacker uses 1.0, so
+# nothing changes unless the held weapon classifies into a heavier tier. Tunable: edit the
+# multipliers or add new class keys, then map weapons to them in weapon_class_for().
+var weapon_knockback_mult: Dictionary = {
+	&"sword": 1.0,     # light melee — unchanged baseline shove
+	&"bow": 1.2,       # arrows tap a little harder
+	&"crossbow": 1.4,  # heavier bolt, meatier punch
+	&"heavy": 1.8,     # mauls / great-weapons really throw the target
+}
+## Multiplier used when a weapon doesn't classify into weapon_knockback_mult (keeps behavior
+## identical to before the per-class scaling for anything unrecognized).
+const DEFAULT_KNOCKBACK_MULT: float = 1.0
+## Melee id substrings that mark a weapon as the "heavy" class. Matched case-insensitively
+## against the held item's id, so future hammers/mauls/axes shove hard without code changes.
+const HEAVY_WEAPON_KEYWORDS: Array = ["hammer", "maul", "club", "mace", "axe", "greatsword", "great_"]
+
+# --- Landing impact tunables ----------------------------------------------
+## Hitstop length (real seconds) at a FULL-intensity landing; scaled down by air-time. 0 = none.
+const LANDING_HITSTOP_MAX: float = 0.05
+## Camera-shake strength/duration at a full-intensity landing (scaled by air-time).
+const LANDING_SHAKE_STRENGTH_MAX: float = 0.35
+const LANDING_SHAKE_DURATION: float = 0.18
+## Extra footstep volume (dB) added to the landing thud at full intensity (a harder thump).
+const LANDING_VOLUME_BOOST_DB: float = 4.0
 
 # --- Internal state --------------------------------------------------------
 # True while a hitstop is in effect, so overlapping hits don't stack/extend it.
@@ -154,6 +198,81 @@ func play_footstep() -> void:
 func play_block() -> void:
 	_play_random(block_sounds)
 
+## Quiet "tell" cue when an enemy starts a telegraphed normal attack. A touch quieter than a
+## normal impact; silent while attack_tell_sounds is empty (assets pending).
+func play_attack_tell() -> void:
+	_play_random(attack_tell_sounds, SFX_VOLUME_DB - 8.0)
+
+## Short warning sting when the player's stamina runs dry mid-use. Silent until the pool is
+## populated (assets pending), so this is always safe to call.
+func play_stamina_warning() -> void:
+	_play_random(stamina_warning_sounds)
+
+## Footstep with explicit pitch/volume modifiers (used for surface variation). `pitch_center`
+## centres the usual pitch wobble; `volume_db_offset` is added to the base footstep volume.
+func play_footstep_modulated(pitch_center: float, volume_db_offset: float) -> void:
+	_play_random(footstep_sounds, SFX_VOLUME_DB + volume_db_offset, pitch_center)
+
+## A landing's weight, scaled by air-time (`intensity` 0..1). Layers a touch of hitstop, a
+## downward-reading camera shake, and a deeper/louder footstep thud. No-ops for a tiny hop
+## (intensity <= 0) and degrades gracefully if the footstep pool is empty.
+func report_landing(intensity: float) -> void:
+	var t: float = clampf(intensity, 0.0, 1.0)
+	if t <= 0.0:
+		return
+	var stop: float = LANDING_HITSTOP_MAX * t
+	if stop > 0.0:
+		hitstop(stop)
+	shake(LANDING_SHAKE_STRENGTH_MAX * t, LANDING_SHAKE_DURATION)
+	# Deeper thud the harder you hit (lower pitch), and a little louder at full intensity.
+	var pitch: float = lerpf(0.95, 0.72, t)
+	_play_random(footstep_sounds, SFX_VOLUME_DB + LANDING_VOLUME_BOOST_DB * t, pitch)
+
+# --- Per-weapon-class knockback lookups ------------------------------------
+
+## Knockback multiplier for a weapon class StringName (sword/bow/crossbow/heavy); unknown
+## classes fall back to DEFAULT_KNOCKBACK_MULT (1.0, unchanged behavior).
+func knockback_mult_for_class(weapon_class: StringName) -> float:
+	var m = weapon_knockback_mult.get(weapon_class, DEFAULT_KNOCKBACK_MULT)
+	return float(m)
+
+## Classify a held weapon Item into a knockback class. Ranged splits crossbow vs bow (wands
+## read as bow); melee is "heavy" if its id contains a heavy keyword, else "sword". A null /
+## unrecognized item reads as "sword" (mult 1.0), so unclassified attacks shove as before.
+## Duck-typed (a ranged weapon exposes projectile_speed, melee doesn't) so this autoload never
+## hard-depends on the weapon class scripts.
+func weapon_class_for(item: Object) -> StringName:
+	if item == null:
+		return &"sword"
+	var id_str: String = ""
+	var raw_id = item.get(&"id")
+	if raw_id != null:
+		id_str = String(raw_id).to_lower()
+	if item.get(&"projectile_speed") != null:
+		# A ranged weapon (bow / crossbow / wand).
+		if id_str.contains("crossbow"):
+			return &"crossbow"
+		return &"bow"
+	# Melee: heavy if the id names a heavy weapon, otherwise a light sword.
+	for kw in HEAVY_WEAPON_KEYWORDS:
+		if id_str.contains(String(kw)):
+			return &"heavy"
+	return &"sword"
+
+## Knockback multiplier for whatever weapon `source` is attacking with. Only the PLAYER's
+## currently-held hotbar weapon is tiered; any other attacker returns 1.0 (unchanged). Fully
+## guarded so a missing Hotbar autoload simply yields the default.
+func weapon_knockback_mult_for_source(source: Object) -> float:
+	if not (source is Node):
+		return DEFAULT_KNOCKBACK_MULT
+	if not (source as Node).is_in_group(&"player"):
+		return DEFAULT_KNOCKBACK_MULT
+	var hb = get_node_or_null("/root/Hotbar")
+	if hb == null or not hb.has_method("get_selected_item"):
+		return DEFAULT_KNOCKBACK_MULT
+	var item = hb.get_selected_item()
+	return knockback_mult_for_class(weapon_class_for(item))
+
 func _process(delta: float) -> void:
 	_update_shake(delta)
 
@@ -174,12 +293,21 @@ func report_hit(info: DamageInfo, victim_team: int) -> void:
 		shake(SHAKE_PLAYER_HURT_STRENGTH, SHAKE_PLAYER_HURT_DURATION)
 		_play_random(player_hurt_sounds)
 	else:
+		# The player LANDED a blow: snappy hitstop + a slightly heavier shake on crits.
 		hitstop(HITSTOP_DURATION_ENEMY_HIT)
-		shake(SHAKE_LAND_HIT_STRENGTH, SHAKE_LAND_HIT_DURATION)
+		var land_strength: float = SHAKE_LAND_HIT_STRENGTH * (CRIT_SHAKE_MULTIPLIER if info.is_crit else 1.0)
+		shake(land_strength, SHAKE_LAND_HIT_DURATION)
 		if info.is_crit and not crit_hit_sounds.is_empty():
 			_play_random(crit_hit_sounds)
 		else:
 			_play_random(hit_sounds)
+		# HUD juice (guarded): pop the crosshair hit-marker; flash white on a crit.
+		var hud = get_node_or_null("/root/HUD")
+		if hud != null:
+			if hud.has_method("_flash_crosshair"):
+				hud._flash_crosshair()
+			if info.is_crit and hud.has_method("show_crit_flash"):
+				hud.show_crit_flash()
 
 ## Called by Health.apply_damage once the FINAL (post resistance/weakness) damage
 ## is known. Spawns the floating number and the impact burst at info.hit_position.
@@ -193,6 +321,49 @@ func show_damage(info: DamageInfo, final_amount: float, victim: Node) -> void:
 		return
 	_spawn_damage_number(info, final_amount, parent)
 	_spawn_impact_particles(info, parent)
+	# Killing blow? Health.apply_damage calls us right AFTER take_damage, so the victim
+	# is already flagged dead here. Guarded: a victim without is_dead() simply skips it.
+	if is_instance_valid(victim) and victim.has_method("is_dead") and victim.is_dead():
+		_on_enemy_killed(info.hit_position, parent)
+
+# Reacts to a confirmed kill: a golden HUD flash plus a floating "KILL" label at the
+# death position. Both are best-effort and guarded so a missing HUD/parent is a no-op.
+func _on_enemy_killed(world_pos: Vector3, parent: Node) -> void:
+	var hud = get_node_or_null("/root/HUD")
+	if hud != null and hud.has_method("show_kill_flash"):
+		hud.show_kill_flash()
+	show_kill_text(world_pos, parent)
+
+## Spawns a lightweight billboard "KILL" Label3D at `world_pos` that floats up, fades
+## out and frees itself. `parent` is the world node the FX should live under.
+func show_kill_text(world_pos: Vector3, parent: Node) -> void:
+	if not is_instance_valid(parent):
+		return
+	var label := Label3D.new()
+	label.text = "KILL"
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	label.fixed_size = true
+	label.shaded = false
+	label.double_sided = true
+	label.render_priority = 11
+	label.outline_render_priority = 10
+	label.outline_size = 12
+	label.outline_modulate = Color(0.0, 0.0, 0.0, 1.0)
+	label.font_size = DMG_NUMBER_CRIT_FONT_SIZE
+	label.modulate = Color(1.0, 0.85, 0.1)  # gold, matching the kill flash
+	label.process_mode = Node.PROCESS_MODE_ALWAYS
+	parent.add_child(label)
+	label.global_position = world_pos + Vector3(0.0, 0.6, 0.0)
+
+	var rise_to: float = label.position.y + KILL_TEXT_RISE
+	var tween := label.create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(label, "position:y", rise_to, KILL_TEXT_LIFETIME) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	tween.tween_property(label, "modulate:a", 0.0, KILL_TEXT_LIFETIME) \
+		.set_ease(Tween.EASE_IN)
+	tween.chain().tween_callback(label.queue_free)
 
 # ===========================================================================
 #  HITSTOP
@@ -364,8 +535,10 @@ func _color_for_type(t: int) -> Color:
 			return Color(1.0, 1.0, 1.0)
 
 # Play a random stream from `pool` on a throwaway player (so rapid hits layer
-# instead of cutting each other off), with a small pitch wobble for variety.
-func _play_random(pool: Array[AudioStream]) -> void:
+# instead of cutting each other off), with a small pitch wobble for variety. The optional
+# `volume_db` / `pitch_center` let callers retune a single play (surface footsteps, a quiet
+# tell, a heavy landing thud); their defaults reproduce the original behavior exactly.
+func _play_random(pool: Array[AudioStream], volume_db: float = SFX_VOLUME_DB, pitch_center: float = 1.0) -> void:
 	if pool.is_empty():
 		return
 	var stream: AudioStream = pool[randi() % pool.size()]
@@ -373,10 +546,10 @@ func _play_random(pool: Array[AudioStream]) -> void:
 		return
 	var p := AudioStreamPlayer.new()
 	p.stream = stream
-	p.volume_db = SFX_VOLUME_DB
+	p.volume_db = volume_db
 	if AudioServer.get_bus_index(&"SFX") != -1:
 		p.bus = &"SFX"
-	p.pitch_scale = randf_range(0.92, 1.08)
+	p.pitch_scale = pitch_center * randf_range(0.92, 1.08)
 	p.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(p)
 	p.finished.connect(p.queue_free)

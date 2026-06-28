@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://entities/props/upgrade_station.gd" id="1_upg"]
+
+[node name="UpgradeStation" type="StaticBody3D"]
+script = ExtResource("1_upg")

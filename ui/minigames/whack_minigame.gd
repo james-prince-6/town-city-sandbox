@@ -15,7 +15,8 @@ const GRID := 3                    # 3x3 board.
 const ROUND_SECONDS := 20.0        # Total play time.
 const HIT_POINTS := 10             # Score per successful hit.
 const MISS_PENALTY := 5            # Score lost for clicking a dark cell.
-const REWARD_PER_POINT := 0.5      # Money per point (see _current_reward()).
+const REWARD_PER_POINT := 0.12     # Money per point (see _current_reward()).
+const REWARD_CAP := 30             # Hard ceiling so the arcade is a bonus, not income.
 
 # Lights start slow and speed up as the round progresses.
 const LIT_TIME_START := 1.1        # Seconds a light stays up at the start.
@@ -158,4 +159,5 @@ func _current_score() -> int:
 	return _score
 
 func _current_reward() -> int:
-	return int(ceil(_score * REWARD_PER_POINT))
+	# Cap the payout so even a flawless run is a minor bonus, never an income loop.
+	return mini(int(ceil(_score * REWARD_PER_POINT)), REWARD_CAP)

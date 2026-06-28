@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="Item" load_steps=2 format=3]
+[gd_resource type="Resource" script_class="HealthPotionItem" load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://global/items/item.gd" id="1_item"]
+[ext_resource type="Script" path="res://entities/items/consumables/health_potion_item.gd" id="1_item"]
 
 [resource]
 script = ExtResource("1_item")
@@ -10,3 +10,4 @@ description = "Juicy and golden. The island's most-bartered fruit."
 category = 5
 max_stack = 32
 base_value = 5
+heal_amount = 8.0

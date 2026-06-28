@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3]
+
+; SURVIVAL end-game perk: scales with PLAYER LEVEL, not rank. Progression.bonus_max_health() adds
+; IRON_RESOLVE_HP_PER_LEVEL of FLAT max health per level above ENDGAME_SCALE_LEVEL once owned
+; (get_rank > 0). No stat_per_rank — the bonus is level-derived in code, so durability keeps
+; climbing after Toughness has maxed. _apply_to_player_stats() tops the bar up each level-up.
+
+[ext_resource type="Script" path="res://global/progression/skill.gd" id="1_skill"]
+
+[resource]
+script = ExtResource("1_skill")
+id = &"iron_resolve"
+display_name = "Iron Resolve"
+description = "Hardship forges you onward. +4 max health for every level you earn past 10."
+branch = 2
+max_rank = 1
+cost = 2
+required_level = 10
+prerequisite = &"toughness"
+prerequisite_rank = 3
+is_perk = true
+stat_per_rank = {}

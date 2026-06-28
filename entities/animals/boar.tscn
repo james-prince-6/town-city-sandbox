@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+; Hostile boar (hog model). Charges the player and gores. Drops raw_meat x2.
+
+[ext_resource type="PackedScene" path="res://entities/animals/animal.tscn" id="1_base"]
+[ext_resource type="PackedScene" path="res://assets/models/critters/cube-pets/animal-hog.fbx" id="2_model"]
+
+[node name="Boar" instance=ExtResource("1_base")]
+model_scene = ExtResource("2_model")
+display_name = "Boar"
+target_height = 1.0
+max_health = 55.0
+move_speed = 4.5
+hostile = true
+contact_damage = 10.0
+loot_item_id = &"raw_meat"
+loot_amount = 2

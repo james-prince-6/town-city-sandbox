@@ -36,6 +36,17 @@ const FIRST_SCENE: String = "res://stages/overworld/town_template.tscn"
 ## (F5/F9 both use slot 0), so Continue resumes the most recent quicksave.
 const DEFAULT_SLOT: int = 0
 
+## Keyboard fallback glyphs for the first-run controls toast, used only when InputDevice
+## (the live device-aware glyph source) isn't available. Keep in sync with the bindings.
+const CONTROLS_FALLBACK_GLYPHS: Dictionary = {
+	&"interact": "E",
+	&"inventory": "I",
+	&"quest_log": "J",
+	&"pause": "Esc",
+	&"jump": "Space",
+	&"sprint": "Shift",
+}
+
 ## True while the title screen is visible. Mirrors the is_open flag the other menus use
 ## (MenuManager reads it to decide whether an exclusive menu is currently up).
 var is_open: bool = false
@@ -108,8 +119,83 @@ func focus_first() -> void:
 func _on_new_game() -> void:
 	# Fresh run: jump straight into the world WITHOUT touching any save. Autoloads keep
 	# their launch defaults, so this is a clean game.
+	_maybe_show_controls_hint()
+	_grant_starting_tools()
+	# Give the player an obvious first objective. start_quest no-ops if it's already
+	# active/completed, and this only runs on New Game — the Continue/Load path restores
+	# QuestSystem from the save, so we never auto-start there.
+	if QuestSystem != null:
+		QuestSystem.start_quest(&"getting_started")
 	_enter_world()
 	SceneManager.change_scene(FIRST_SCENE)
+
+# New-game-only grant of the four basic tools. Guarded by a dedicated GameState flag so it
+# never re-grants on a subsequent New Game within the same process, and so it stays distinct
+# from the dungeon direct-play kit's &"starter_kit_granted" latch. Adds the items to the bag
+# AND lays them out on the first four hotbar slots so the player starts ready to mine/chop/fight.
+func _grant_starting_tools() -> void:
+	if GameState.get_flag(&"starting_tools_granted"):
+		return
+	GameState.set_flag(&"starting_tools_granted", true)
+	Inventory.add(&"pickaxe", 1)
+	Inventory.add(&"hatchet", 1)
+	Inventory.add(&"iron_sword", 1)
+	Inventory.add(&"bow", 1)
+	Hotbar.set_slot(0, &"pickaxe")
+	Hotbar.set_slot(1, &"hatchet")
+	Hotbar.set_slot(2, &"iron_sword")
+	Hotbar.set_slot(3, &"bow")
+	Hotbar.select(0)
+
+# First-run onboarding: on a genuinely fresh start (no loadable save anywhere) pop a few
+# toasts listing the core bindings so new players aren't stranded. Fully guarded — if the
+# feed autoload is missing we silently skip it, and it never touches the continue/save
+# flow. Glyphs are device-aware (controller labels on a pad) via InputDevice when present.
+func _maybe_show_controls_hint() -> void:
+	if SaveManager != null and SaveManager.has_loadable_save(DEFAULT_SLOT):
+		return # Returning player resuming a save; don't nag with the controls primer.
+	var feed := get_node_or_null("/root/NotificationFeed")
+	if feed == null or not feed.has_method("notify"):
+		return
+	for line in _controls_hint_lines():
+		feed.notify(line)
+
+# Builds the 2-3 device-aware controls lines. Reads InputDevice (guarded) so the glyphs
+# match the player's current device; falls back to keyboard literals when it's absent.
+func _controls_hint_lines() -> Array[String]:
+	var devices := get_node_or_null("/root/InputDevice")
+	var on_pad: bool = devices != null and ("current_device" in devices) and int(devices.current_device) == 1
+	# Movement / camera line: the analog vs. WASD distinction has no single InputMap glyph,
+	# so it adapts off the device family directly.
+	var move_line: String
+	if on_pad:
+		move_line = "L-Stick Move   R-Stick Look   %s Sprint" % _controls_glyph(devices, &"sprint", "L3")
+	else:
+		move_line = "WASD Move   Mouse Look   %s Sprint" % _controls_glyph(devices, &"sprint", "Shift")
+	var action_line: String = "%s   %s   %s" % [
+		_controls_prompt(devices, &"interact", "Interact"),
+		_controls_prompt(devices, &"inventory", "Inventory"),
+		_controls_prompt(devices, &"quest_log", "Quests"),
+	]
+	var system_line: String = "%s   %s" % [
+		_controls_prompt(devices, &"jump", "Jump"),
+		_controls_prompt(devices, &"pause", "Pause"),
+	]
+	return [move_line, action_line, system_line]
+
+# "[glyph] Label" for an action, device-aware via InputDevice; literal fallback otherwise.
+func _controls_prompt(devices: Node, action: StringName, label: String) -> String:
+	if devices != null and devices.has_method("prompt_text"):
+		return String(devices.prompt_text(action, label))
+	return "[%s] %s" % [String(CONTROLS_FALLBACK_GLYPHS.get(action, "?")), label]
+
+# Bare glyph for an action (no label), device-aware; `fallback` used if unresolved.
+func _controls_glyph(devices: Node, action: StringName, fallback: String) -> String:
+	if devices != null and devices.has_method("action_glyph"):
+		var g: String = String(devices.action_glyph(action))
+		if g != "" and g != "?":
+			return g
+	return fallback
 
 func _on_continue() -> void:
 	# Resume the default slot. load_game() restores every system AND the saved scene/

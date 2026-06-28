@@ -51,7 +51,9 @@ func _ready() -> void:
 	# Inventory database. If the .tres resources aren't there yet we just leave
 	# the slots empty rather than pointing at ids that resolve to nothing.
 	_seed_slot_if_known(0, &"pickaxe")
-	_seed_slot_if_known(1, &"driftwood_club")
+	_seed_slot_if_known(1, &"hatchet")
+	_seed_slot_if_known(2, &"iron_sword")
+	_seed_slot_if_known(3, &"bow")
 
 ## Helper for _ready(): place `id` into slot `i`, but only when the Inventory
 ## database can resolve it to a real Item. Keeps the startup seeding safe.

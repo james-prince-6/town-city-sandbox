@@ -1,0 +1,135 @@
+[gd_resource type="Resource" script_class="Quest" load_steps=22 format=3]
+
+[ext_resource type="Script" path="res://global/quests/quest.gd" id="1_quest"]
+[ext_resource type="Script" path="res://global/quests/quest_objective.gd" id="2_objective"]
+[ext_resource type="Script" path="res://global/quests/game_effect.gd" id="3_effect"]
+[ext_resource type="Script" path="res://global/quests/quest_stage.gd" id="4_stage"]
+
+; --- Stage 1: Scrap Run ---
+[sub_resource type="Resource" id="s1_obj_scrap"]
+script = ExtResource("2_objective")
+description = "Salvage 6 scrap metal from the mine or sewer"
+kind = 0
+target = &"scrap_metal"
+required_count = 6
+
+[sub_resource type="Resource" id="s1_obj_plank"]
+script = ExtResource("2_objective")
+description = "Bring 3 wood planks to brace the forge"
+kind = 0
+target = &"wood_plank"
+required_count = 3
+
+[sub_resource type="Resource" id="s1_money"]
+script = ExtResource("3_effect")
+type = 5
+target = &""
+amount = 50
+
+[sub_resource type="Resource" id="s1_rep"]
+script = ExtResource("3_effect")
+type = 4
+target = &"ember"
+amount = 5
+
+[sub_resource type="Resource" id="s1_flag"]
+script = ExtResource("3_effect")
+type = 0
+target = &"ember_scrap_gathered"
+amount = 1
+
+[sub_resource type="Resource" id="stage1"]
+script = ExtResource("4_stage")
+title = "Scrap Run"
+objectives = Array[ExtResource("2_objective")]([SubResource("s1_obj_scrap"), SubResource("s1_obj_plank")])
+on_complete = Array[ExtResource("3_effect")]([SubResource("s1_money"), SubResource("s1_rep"), SubResource("s1_flag")])
+
+; --- Stage 2: The Power Core ---
+[sub_resource type="Resource" id="s2_obj_core"]
+script = ExtResource("2_objective")
+description = "Recover 1 power core from the abandoned power plant"
+kind = 0
+target = &"power_core"
+required_count = 1
+
+[sub_resource type="Resource" id="s2_obj_copper"]
+script = ExtResource("2_objective")
+description = "Smelt 4 copper ingots for the wiring"
+kind = 0
+target = &"copper_ingot"
+required_count = 4
+
+[sub_resource type="Resource" id="s2_money"]
+script = ExtResource("3_effect")
+type = 5
+target = &""
+amount = 75
+
+[sub_resource type="Resource" id="s2_rep"]
+script = ExtResource("3_effect")
+type = 4
+target = &"ember"
+amount = 8
+
+[sub_resource type="Resource" id="s2_flag"]
+script = ExtResource("3_effect")
+type = 0
+target = &"ember_core_recovered"
+amount = 1
+
+[sub_resource type="Resource" id="stage2"]
+script = ExtResource("4_stage")
+title = "The Power Core"
+objectives = Array[ExtResource("2_objective")]([SubResource("s2_obj_core"), SubResource("s2_obj_copper")])
+on_complete = Array[ExtResource("3_effect")]([SubResource("s2_money"), SubResource("s2_rep"), SubResource("s2_flag")])
+
+; --- Stage 3: Fire It Up ---
+[sub_resource type="Resource" id="s3_obj_glow"]
+script = ExtResource("2_objective")
+description = "Charge the core with 2 glow crystals"
+kind = 0
+target = &"glow_crystal"
+required_count = 2
+
+[sub_resource type="Resource" id="s3_flag"]
+script = ExtResource("3_effect")
+type = 0
+target = &"town_power_restored"
+amount = 1
+
+[sub_resource type="Resource" id="stage3"]
+script = ExtResource("4_stage")
+title = "Fire It Up"
+objectives = Array[ExtResource("2_objective")]([SubResource("s3_obj_glow")])
+on_complete = Array[ExtResource("3_effect")]([SubResource("s3_flag")])
+
+; --- Final rewards ---
+[sub_resource type="Resource" id="rw_money"]
+script = ExtResource("3_effect")
+type = 5
+target = &""
+amount = 500
+
+[sub_resource type="Resource" id="rw_item"]
+script = ExtResource("3_effect")
+type = 2
+target = &"crystal_pickaxe"
+amount = 1
+
+[sub_resource type="Resource" id="rw_rep"]
+script = ExtResource("3_effect")
+type = 4
+target = &"ember"
+amount = 25
+
+[resource]
+script = ExtResource("1_quest")
+id = &"powering_the_town"
+title = "Powering the Town"
+description = "Ember's forge has gone cold and half of Town City sits in the dark. The old grid finally gave out, and the blacksmith is convinced she can rebuild it from salvage if someone brave enough digs through the mine, the sewer, and the abandoned power plant for the parts.
+
+Scrounge the scrap, recover an intact power core, and charge it with glow crystals to bring the lights back on."
+tier = 0
+stages = Array[ExtResource("4_stage")]([SubResource("stage1"), SubResource("stage2"), SubResource("stage3")])
+rewards = Array[ExtResource("3_effect")]([SubResource("rw_money"), SubResource("rw_item"), SubResource("rw_rep")])
+giver_npc_id = &"ember"

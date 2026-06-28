@@ -8,6 +8,7 @@
 ~ start
 if not GameState.get_flag("met_marlo")
 	do GameState.set_flag("met_marlo")
+	do QuestSystem.mark_flag("met_marlo")
 	=> greeting
 else
 	=> hub
@@ -29,12 +30,23 @@ Marlo: [#gesture=talk] Stop by once you've got something brewing. I'm always thi
 	=> quest_done
 - Heard anything worth hearing?
 	=> rumor
-- Got a minute, friend? [if Reputation.get_reputation("marlo") >= 15 /]
+- Got a minute, friend? [if Reputation.is_at_least("marlo", "FRIENDLY") /]
 	=> friendly
+- Something eating you, Marlo? [if Reputation.is_at_most("marlo", "HOSTILE") /]
+	=> cold
+- Anything special for your favorite regular? [if Reputation.is_at_least("marlo", "BELOVED") /]
+	=> beloved
 - Need a hand around the brewery? [if not QuestSystem.is_active("marlo_brew") and not QuestSystem.is_completed("marlo_brew") /]
 	do QuestSystem.start_quest("marlo_brew")
 	do Reputation.add_reputation("marlo", 5)
 	=> brew_accept
+- Got any odd jobs going? [if QuestSystem.has_task_available("marlo") /]
+	do QuestSystem.request_task("marlo")
+	=> odd_jobs
+- Working on something special? [if QuestSystem.is_completed("marlo_brew") and not QuestSystem.is_active("marlo_special_brew") and not QuestSystem.is_completed("marlo_special_brew") /]
+	do QuestSystem.start_quest("marlo_special_brew")
+	do Reputation.add_reputation("marlo", 5)
+	=> special_brew_intro
 - I'll leave you to it.
 	=> bye
 
@@ -64,7 +76,7 @@ Marlo: [#gesture=angry] Don't come crying when you want a favor later.
 => hub
 
 ~ quest_nag
-% Marlo: [#gesture=talk] Two iron ore — the old mine east of the square's your best bet.
+% Marlo: [#gesture=talk] Two iron ore — the Iron Hills, south of the square, are your best bet.
 % Marlo: [#gesture=look] No rush. Well. Some rush. The fittings won't fix themselves.
 => hub
 
@@ -85,9 +97,29 @@ Marlo: [#gesture=cheer] Ha! Always got a minute for a friend.
 Marlo: [#gesture=talk] Pull up a stool, the mocha's on me today.
 => hub
 
+~ cold
+Marlo: [#gesture=angry] You've got some nerve, after the way you've carried on.
+Marlo: [#gesture=angry] Say your piece and clear off. The kettle's not for the likes of you today.
+=> hub
+
+~ beloved
+Marlo: [#gesture=cheer] For you? The good barrel, the deep cut — anything you like.
+Marlo: [#gesture=talk] Coin barely matters between us now. You've earned the family rate, and then some.
+=> hub
+
 ~ brew_accept
 Marlo: [#gesture=cheer] Bless you. I'm behind on a batch — brew me an Ember Ale, would you?
 Marlo: [#gesture=talk] There's a kettle right here in the square. A few lumps of lava ash is all it takes.
+=> hub
+
+~ odd_jobs
+Marlo: [#gesture=talk] Always something needs doing round here. Here's what I'm after — it's in your log.
+Marlo: [#gesture=look] Be quick about it, mind. These things won't keep forever.
+=> hub
+
+~ special_brew_intro
+Marlo: [#gesture=cheer] Ahh, now you're asking! I've a recipe rattling round my skull — wild honey, cave mushrooms, and a glow crystal for the sparkle.
+Marlo: [#gesture=talk] Bring me the lot and I'll cut you in on the first batch. Details are in your log.
 => hub
 
 ~ bye

@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 GameState="*res://global/systems/game_state.gd"
 Inventory="*res://global/systems/inventory.gd"
+HouseUpgrades="*res://global/systems/house_upgrades.gd"
 SceneManager="*res://global/systems/scene_manager.gd"
 InputDevice="*res://global/systems/input_device.gd"
 DialogueManager="*res://addons/dialogue_manager/dialogue_manager.gd"
@@ -27,6 +28,8 @@ InteractionUI="*res://ui/interactions/interaction_prompt.tscn"
 InventoryUI="*res://ui/inventory/inventory_ui.tscn"
 ItemThumbnail="*res://ui/thumbnails/item_thumbnail.gd"
 Clock="*res://global/systems/clock.gd"
+ScreenFade="*res://global/ui/screen_fade.gd"
+AreaTitleCard="*res://global/ui/area_title_card.gd"
 PlayerStats="*res://global/systems/player_stats.gd"
 Hotbar="*res://global/systems/hotbar.gd"
 Reputation="*res://global/systems/reputation.gd"
@@ -36,6 +39,7 @@ NPCMoods="*res://global/npc/npc_moods.gd"
 CraftingSystem="*res://global/systems/crafting_system.gd"
 HUD="*res://ui/hud/hud.tscn"
 QuestLog="*res://ui/quest_log/quest_log.tscn"
+QuestTracker="*res://ui/hud/quest_tracker.gd"
 BrewingUI="*res://ui/crafting/brewing_ui.tscn"
 SaveManager="*res://global/systems/save_manager.gd"
 ShopSystem="*res://global/systems/shop_system.gd"
@@ -49,9 +53,11 @@ UISound="*res://global/ui/ui_sound.gd"
 MenuManager="*res://global/ui/menu_manager.gd"
 CraftingUI="*res://ui/crafting/crafting_ui.tscn"
 PlayerMenu="*res://ui/player_menu/player_menu.tscn"
+UpgradeUI="*res://ui/house/upgrade_ui.gd"
 MainMenu="*res://ui/main_menu/main_menu.gd"
 SaveSlotMenu="*res://ui/save_menu/save_slot_menu.gd"
 NotificationFeed="*res://ui/notifications/notification_feed.gd"
+FirstRunPanel="*res://ui/hud/first_run_panel.gd"
 AmbientAudio="*res://global/systems/ambient_audio.gd"
 
 [dialogue_manager]
@@ -61,6 +67,10 @@ runtime/balloon_path="res://ui/dialog/dialogue_balloon.tscn"
 [editor_plugins]
 
 enabled=PackedStringArray("res://addons/MarchingSquaresTerrain/plugin.cfg", "res://addons/dialogue_manager/plugin.cfg")
+
+[gui]
+
+theme/custom="res://ui/theme/ui_theme.tres"
 
 [input]
 

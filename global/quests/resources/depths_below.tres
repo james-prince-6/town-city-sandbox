@@ -1,0 +1,135 @@
+[gd_resource type="Resource" script_class="Quest" load_steps=22 format=3]
+
+[ext_resource type="Script" path="res://global/quests/quest.gd" id="1_quest"]
+[ext_resource type="Script" path="res://global/quests/quest_objective.gd" id="2_objective"]
+[ext_resource type="Script" path="res://global/quests/game_effect.gd" id="3_effect"]
+[ext_resource type="Script" path="res://global/quests/quest_stage.gd" id="4_stage"]
+
+; --- Stage 1: Into the Cave ---
+[sub_resource type="Resource" id="s1_obj_glow"]
+script = ExtResource("2_objective")
+description = "Harvest 4 glow crystals from the crystal cave"
+kind = 0
+target = &"glow_crystal"
+required_count = 4
+
+[sub_resource type="Resource" id="s1_obj_gem"]
+script = ExtResource("2_objective")
+description = "Pry 2 raw gemstones from the cave walls"
+kind = 0
+target = &"raw_gemstone"
+required_count = 2
+
+[sub_resource type="Resource" id="s1_money"]
+script = ExtResource("3_effect")
+type = 5
+target = &""
+amount = 40
+
+[sub_resource type="Resource" id="s1_rep"]
+script = ExtResource("3_effect")
+type = 4
+target = &"sela"
+amount = 5
+
+[sub_resource type="Resource" id="s1_flag"]
+script = ExtResource("3_effect")
+type = 0
+target = &"sela_cave_charted"
+amount = 1
+
+[sub_resource type="Resource" id="stage1"]
+script = ExtResource("4_stage")
+title = "Into the Cave"
+objectives = Array[ExtResource("2_objective")]([SubResource("s1_obj_glow"), SubResource("s1_obj_gem")])
+on_complete = Array[ExtResource("3_effect")]([SubResource("s1_money"), SubResource("s1_rep"), SubResource("s1_flag")])
+
+; --- Stage 2: The Old Mine ---
+[sub_resource type="Resource" id="s2_obj_key"]
+script = ExtResource("2_objective")
+description = "Find the rusted key sealing the old mine"
+kind = 0
+target = &"rusted_key"
+required_count = 1
+
+[sub_resource type="Resource" id="s2_obj_scrap"]
+script = ExtResource("2_objective")
+description = "Clear 5 scrap metal blocking the shafts"
+kind = 0
+target = &"scrap_metal"
+required_count = 5
+
+[sub_resource type="Resource" id="s2_money"]
+script = ExtResource("3_effect")
+type = 5
+target = &""
+amount = 60
+
+[sub_resource type="Resource" id="s2_rep"]
+script = ExtResource("3_effect")
+type = 4
+target = &"sela"
+amount = 8
+
+[sub_resource type="Resource" id="s2_flag"]
+script = ExtResource("3_effect")
+type = 0
+target = &"sela_mine_opened"
+amount = 1
+
+[sub_resource type="Resource" id="stage2"]
+script = ExtResource("4_stage")
+title = "The Old Mine"
+objectives = Array[ExtResource("2_objective")]([SubResource("s2_obj_key"), SubResource("s2_obj_scrap")])
+on_complete = Array[ExtResource("3_effect")]([SubResource("s2_money"), SubResource("s2_rep"), SubResource("s2_flag")])
+
+; --- Stage 3: Sewer Secrets ---
+[sub_resource type="Resource" id="s3_obj_gem"]
+script = ExtResource("2_objective")
+description = "Recover 3 raw gemstones from the flooded sewer vault"
+kind = 0
+target = &"raw_gemstone"
+required_count = 3
+
+[sub_resource type="Resource" id="s3_flag"]
+script = ExtResource("3_effect")
+type = 0
+target = &"depths_fully_explored"
+amount = 1
+
+[sub_resource type="Resource" id="stage3"]
+script = ExtResource("4_stage")
+title = "Sewer Secrets"
+objectives = Array[ExtResource("2_objective")]([SubResource("s3_obj_gem")])
+on_complete = Array[ExtResource("3_effect")]([SubResource("s3_flag")])
+
+; --- Final rewards ---
+[sub_resource type="Resource" id="rw_money"]
+script = ExtResource("3_effect")
+type = 5
+target = &""
+amount = 450
+
+[sub_resource type="Resource" id="rw_item"]
+script = ExtResource("3_effect")
+type = 2
+target = &"crystal_blade"
+amount = 1
+
+[sub_resource type="Resource" id="rw_rep"]
+script = ExtResource("3_effect")
+type = 4
+target = &"sela"
+amount = 25
+
+[resource]
+script = ExtResource("1_quest")
+id = &"depths_below"
+title = "The Depths Below"
+description = "Sela has mapped every grove above ground, but the tunnels beneath Town City are still a blank space on her charts. Strange lights flicker up from the crystal cave, the old mine was sealed for a reason no one remembers, and the sewers run deeper than any drain should.
+
+Chart the cave, force open the old mine, and uncover what the sewers have been hiding. Sela will pay well for whatever you bring back from the dark."
+tier = 0
+stages = Array[ExtResource("4_stage")]([SubResource("stage1"), SubResource("stage2"), SubResource("stage3")])
+rewards = Array[ExtResource("3_effect")]([SubResource("rw_money"), SubResource("rw_item"), SubResource("rw_rep")])
+giver_npc_id = &"sela"

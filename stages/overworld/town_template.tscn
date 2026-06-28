@@ -1,4 +1,4 @@
-[gd_scene load_steps=46 format=3 uid="uid://dr8g6lixms4ln"]
+[gd_scene load_steps=50 format=3 uid="uid://dr8g6lixms4ln"]
 
 [ext_resource type="PackedScene" uid="uid://cppmnlasls1hp" path="res://entities/player/player.tscn" id="1_player"]
 [ext_resource type="Script" uid="uid://cddg1xr5hye1d" path="res://addons/MarchingSquaresTerrain/algorithm/terrain/marching_squares_terrain.gd" id="2_7hyfw"]
@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://components/building_collision.gd" id="7_bldcol"]
 [ext_resource type="Script" path="res://components/auto_world_colliders.gd" id="40_autocol"]
 [ext_resource type="Script" uid="uid://dm68qf0hx2ap" path="res://global/teleport area/teleport_raycast.gd" id="8_teleport"]
+[ext_resource type="PackedScene" path="res://entities/props/task_board.tscn" id="50_taskboard"]
 [ext_resource type="PackedScene" uid="uid://c6tvji1qpj8y3" path="res://entities/npc/shopkeeper.tscn" id="9_shop"]
 [ext_resource type="PackedScene" path="res://entities/machines/workbench.tscn" id="10_bench"]
 [ext_resource type="PackedScene" uid="uid://c3l8evawwhddp" path="res://assets/models/buildings/city-suburban/building-type-g.fbx" id="11_b0fy5"]
@@ -60,6 +61,20 @@ tonemap_mode = 2
 
 [sub_resource type="BoxShape3D" id="DungeonCol"]
 size = Vector3(4.038208, 4.227417, 1)
+
+[sub_resource type="BoxShape3D" id="GateBox"]
+size = Vector3(2, 3, 2)
+
+[sub_resource type="BoxMesh" id="GatePost"]
+size = Vector3(0.7, 3, 0.7)
+
+[sub_resource type="StandardMaterial3D" id="GateMat"]
+albedo_color = Color(0.35, 0.6, 0.95, 1)
+metallic = 0.4
+roughness = 0.4
+emission_enabled = true
+emission = Color(0.4, 0.7, 1, 1)
+emission_energy_multiplier = 2.0
 
 [node name="Town" type="Node3D"]
 
@@ -767,3 +782,308 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.933494, -1.9073486e-06, 13.
 
 [node name="torch_mounted2" parent="." instance=ExtResource("33_cgxc0")]
 transform = Transform3D(0.84115225, 0, 0.54079837, 0, 1, 0, -0.54079837, 0, 0.84115225, -21.480389, 2.1456635, -19.237843)
+
+; ============================================================================
+; WILD-AREA GATES + BUILDING ENTRANCES (appended). Each gate is a teleport_raycast
+; (script id 8_teleport) sending the player into a sub-scene at its "from_town" marker;
+; each paired Marker3D (from_x) is where the player lands when they Leave that sub-scene.
+; ============================================================================
+
+[node name="GateWoods" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 1, 16)
+script = ExtResource("8_teleport")
+target_scene_path = "res://stages/wild/whispering_woods.tscn"
+prompt_text = "Enter the Whispering Woods"
+target_spawn_point = &"from_town"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GateWoods"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("GateBox")
+
+[node name="Post" type="MeshInstance3D" parent="GateWoods"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("GatePost")
+surface_material_override/0 = SubResource("GateMat")
+
+[node name="Sign" type="Label3D" parent="GateWoods"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+pixel_size = 0.011
+billboard = 1
+font_size = 64
+outline_size = 12
+text = "Whispering Woods"
+
+[node name="from_woods" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 1, 13)
+
+[node name="GateMeadow" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1, 18)
+script = ExtResource("8_teleport")
+target_scene_path = "res://stages/wild/sunpetal_meadow.tscn"
+prompt_text = "Enter Sunpetal Meadow"
+target_spawn_point = &"from_town"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GateMeadow"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("GateBox")
+
+[node name="Post" type="MeshInstance3D" parent="GateMeadow"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("GatePost")
+surface_material_override/0 = SubResource("GateMat")
+
+[node name="Sign" type="Label3D" parent="GateMeadow"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+pixel_size = 0.011
+billboard = 1
+font_size = 64
+outline_size = 12
+text = "Sunpetal Meadow"
+
+[node name="from_meadow" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 1, 15)
+
+[node name="GateHills" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, 18)
+script = ExtResource("8_teleport")
+target_scene_path = "res://stages/wild/iron_hills.tscn"
+prompt_text = "Enter the Iron Hills"
+target_spawn_point = &"from_town"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GateHills"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("GateBox")
+
+[node name="Post" type="MeshInstance3D" parent="GateHills"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("GatePost")
+surface_material_override/0 = SubResource("GateMat")
+
+[node name="Sign" type="Label3D" parent="GateHills"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+pixel_size = 0.011
+billboard = 1
+font_size = 64
+outline_size = 12
+text = "Iron Hills"
+
+[node name="from_hills" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 1, 15)
+
+[node name="GateBarrens" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 1, 16)
+script = ExtResource("8_teleport")
+target_scene_path = "res://stages/wild/cinder_barrens.tscn"
+prompt_text = "Enter the Cinder Barrens"
+target_spawn_point = &"from_town"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GateBarrens"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("GateBox")
+
+[node name="Post" type="MeshInstance3D" parent="GateBarrens"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("GatePost")
+surface_material_override/0 = SubResource("GateMat")
+
+[node name="Sign" type="Label3D" parent="GateBarrens"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+pixel_size = 0.011
+billboard = 1
+font_size = 64
+outline_size = 12
+text = "Cinder Barrens"
+
+[node name="from_barrens" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 14, 1, 13)
+
+[node name="GateHome" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 1, 4)
+script = ExtResource("8_teleport")
+target_scene_path = "res://stages/interiors/player_house.tscn"
+prompt_text = "Enter Home"
+target_spawn_point = &"from_town"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GateHome"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("GateBox")
+
+[node name="Post" type="MeshInstance3D" parent="GateHome"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("GatePost")
+surface_material_override/0 = SubResource("GateMat")
+
+[node name="Sign" type="Label3D" parent="GateHome"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+pixel_size = 0.011
+billboard = 1
+font_size = 64
+outline_size = 12
+text = "Home"
+
+[node name="from_house" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 1, 4)
+
+[node name="GateStore" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 1, -2)
+script = ExtResource("8_teleport")
+target_scene_path = "res://stages/interiors/general_store_inside.tscn"
+prompt_text = "Enter the General Store"
+target_spawn_point = &"from_town"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GateStore"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("GateBox")
+
+[node name="Post" type="MeshInstance3D" parent="GateStore"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("GatePost")
+surface_material_override/0 = SubResource("GateMat")
+
+[node name="Sign" type="Label3D" parent="GateStore"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+pixel_size = 0.011
+billboard = 1
+font_size = 64
+outline_size = 12
+text = "General Store"
+
+[node name="from_store" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 1, -2)
+
+[node name="GateApothecary" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 1, 10)
+script = ExtResource("8_teleport")
+target_scene_path = "res://stages/interiors/apothecary_inside.tscn"
+prompt_text = "Enter the Apothecary"
+target_spawn_point = &"from_town"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GateApothecary"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("GateBox")
+
+[node name="Post" type="MeshInstance3D" parent="GateApothecary"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("GatePost")
+surface_material_override/0 = SubResource("GateMat")
+
+[node name="Sign" type="Label3D" parent="GateApothecary"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+pixel_size = 0.011
+billboard = 1
+font_size = 64
+outline_size = 12
+text = "Apothecary"
+
+[node name="from_apothecary" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 1, 10)
+
+[node name="GateTownHall" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 1, 4)
+script = ExtResource("8_teleport")
+target_scene_path = "res://stages/interiors/town_hall.tscn"
+prompt_text = "Enter the Town Hall"
+target_spawn_point = &"from_town"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GateTownHall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("GateBox")
+
+[node name="Post" type="MeshInstance3D" parent="GateTownHall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("GatePost")
+surface_material_override/0 = SubResource("GateMat")
+
+[node name="Sign" type="Label3D" parent="GateTownHall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+pixel_size = 0.011
+billboard = 1
+font_size = 64
+outline_size = 12
+text = "Town Hall"
+
+[node name="from_townhall" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 1, 4)
+
+[node name="GateCottage1" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 1, -2)
+script = ExtResource("8_teleport")
+target_scene_path = "res://stages/interiors/cottage_warm.tscn"
+prompt_text = "Enter the Cottage"
+target_spawn_point = &"from_town"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GateCottage1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("GateBox")
+
+[node name="Post" type="MeshInstance3D" parent="GateCottage1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("GatePost")
+surface_material_override/0 = SubResource("GateMat")
+
+[node name="Sign" type="Label3D" parent="GateCottage1"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+pixel_size = 0.011
+billboard = 1
+font_size = 64
+outline_size = 12
+text = "Cottage"
+
+[node name="from_cottage1" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 1, -2)
+
+[node name="GateCottage2" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 1, 10)
+script = ExtResource("8_teleport")
+target_scene_path = "res://stages/interiors/cottage_cozy.tscn"
+prompt_text = "Enter the Cottage"
+target_spawn_point = &"from_town"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GateCottage2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("GateBox")
+
+[node name="Post" type="MeshInstance3D" parent="GateCottage2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("GatePost")
+surface_material_override/0 = SubResource("GateMat")
+
+[node name="Sign" type="Label3D" parent="GateCottage2"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+pixel_size = 0.011
+billboard = 1
+font_size = 64
+outline_size = 12
+text = "Cottage"
+
+[node name="from_cottage2" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 1, 10)
+
+; --- Sewer grate (enemy area entrance) + town notice board (timed tasks) ---
+
+[node name="GateSewer" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 1, 22)
+script = ExtResource("8_teleport")
+target_scene_path = "res://stages/dungeons/town_sewer.tscn"
+prompt_text = "Descend into the Sewer"
+target_spawn_point = &""
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GateSewer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("GateBox")
+
+[node name="Post" type="MeshInstance3D" parent="GateSewer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("GatePost")
+surface_material_override/0 = SubResource("GateMat")
+
+[node name="Sign" type="Label3D" parent="GateSewer"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+pixel_size = 0.011
+billboard = 1
+font_size = 64
+outline_size = 12
+text = "Sewer"
+
+[node name="TaskBoard" parent="." instance=ExtResource("50_taskboard")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 12)

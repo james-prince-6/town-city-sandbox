@@ -1,0 +1,58 @@
+[gd_resource type="Resource" script_class="Quest" load_steps=10 format=3]
+
+[ext_resource type="Script" path="res://global/quests/quest.gd" id="1_quest"]
+[ext_resource type="Script" path="res://global/quests/quest_objective.gd" id="2_objective"]
+[ext_resource type="Script" path="res://global/quests/game_effect.gd" id="3_effect"]
+
+[sub_resource type="Resource" id="obj_key"]
+script = ExtResource("2_objective")
+description = "Find the rusted key hidden in the ruins"
+kind = 0
+target = &"rusted_key"
+required_count = 1
+
+[sub_resource type="Resource" id="obj_gems"]
+script = ExtResource("2_objective")
+description = "Collect 2 raw gemstones to bankroll the dig"
+kind = 0
+target = &"raw_gemstone"
+required_count = 2
+
+[sub_resource type="Resource" id="reward_money"]
+script = ExtResource("3_effect")
+type = 5
+target = &""
+amount = 100
+
+[sub_resource type="Resource" id="reward_rep"]
+script = ExtResource("3_effect")
+type = 4
+target = &"pip"
+amount = 12
+
+[sub_resource type="Resource" id="reward_item"]
+script = ExtResource("3_effect")
+type = 2
+target = &"gold_ingot"
+amount = 1
+
+[sub_resource type="Resource" id="take_key"]
+script = ExtResource("3_effect")
+type = 3
+target = &"rusted_key"
+amount = 1
+
+[sub_resource type="Resource" id="take_gems"]
+script = ExtResource("3_effect")
+type = 3
+target = &"raw_gemstone"
+amount = 2
+
+[resource]
+script = ExtResource("1_quest")
+id = &"pip_treasure"
+title = "Pip's Treasure Hunt"
+description = "Pip swears an old strongbox lies buried beneath the ruins. Bring the rusted key that opens it and 2 raw gemstones to fund the excavation, and you'll split the find."
+tier = 1
+objectives = Array[ExtResource("2_objective")]([SubResource("obj_key"), SubResource("obj_gems")])
+rewards = Array[ExtResource("3_effect")]([SubResource("reward_money"), SubResource("reward_rep"), SubResource("reward_item"), SubResource("take_key"), SubResource("take_gems")])

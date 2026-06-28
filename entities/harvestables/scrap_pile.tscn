@@ -1,0 +1,15 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bhrv0base0scn" path="res://entities/harvestables/harvestable.tscn" id="1_base"]
+[ext_resource type="PackedScene" uid="uid://smnbvxbbvveq" path="res://assets/models/props/kaykit_resources/Iron_Nugget_Large.gltf" id="2_model"]
+
+[node name="ScrapPile" instance=ExtResource("1_base")]
+required_tool_type = 0
+required_power = 1
+durability = 4
+drop_item_id = &"scrap_metal"
+drop_amount = 2
+drop_as_world_item = true
+prompt_verb = "Salvage"
+respawn_seconds = 0.0
+model_scene = ExtResource("2_model")

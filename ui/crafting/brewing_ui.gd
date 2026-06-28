@@ -177,11 +177,20 @@ func _make_recipe_row(recipe: Recipe) -> Control:
 	box.add_theme_constant_override("separation", 4)
 	panel.add_child(box)
 
-	# Line 1: "Molten Mocha x1"
+	var affordable := CraftingSystem.can_craft(recipe)
+	# Opportunity, not punishment: affordable recipes read bright, the rest dim but
+	# still legible (so the player can plan toward them).
+	box.modulate = Color(1, 1, 1) if affordable else Color(0.7, 0.7, 0.7)
+
+	# Line 1: "Molten Mocha x1" + a green "Ready" badge when it can be brewed now.
 	var out_item := Inventory.get_item(recipe.output_id)
 	var out_name := out_item.display_name if out_item else String(recipe.output_id)
 	var header := Label.new()
-	header.text = "%s x%d" % [out_name, recipe.output_count]
+	if affordable:
+		header.text = "%s x%d    ✓ Ready" % [out_name, recipe.output_count]
+		header.modulate = Color(0.6, 1.0, 0.6)
+	else:
+		header.text = "%s x%d" % [out_name, recipe.output_count]
 	box.add_child(header)
 
 	# Line 2: the inputs ("Lava Ash x2, Lava Vial x1"), resolved to display names.
@@ -189,6 +198,14 @@ func _make_recipe_row(recipe: Recipe) -> Control:
 	inputs_label.text = "Needs: %s" % _format_inputs(recipe)
 	inputs_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(inputs_label)
+
+	# Line 2b: when unaffordable, spell out the first thing they're short on.
+	if not affordable:
+		var short_label := Label.new()
+		short_label.text = _shortfall_text(recipe)
+		short_label.add_theme_font_size_override("font_size", 12)
+		short_label.modulate = Color(0.95, 0.6, 0.6)
+		box.add_child(short_label)
 
 	# Line 3: how long it takes.
 	var time_label := Label.new()
@@ -198,12 +215,23 @@ func _make_recipe_row(recipe: Recipe) -> Control:
 	# Line 4: the Brew button, only usable if we can afford the inputs.
 	var brew_btn := Button.new()
 	brew_btn.text = "Brew"
-	brew_btn.disabled = not CraftingSystem.can_craft(recipe)
+	brew_btn.disabled = not affordable
 	# bind() passes the recipe id along to the handler when the button is pressed.
 	brew_btn.pressed.connect(_on_brew_pressed.bind(recipe.id))
 	box.add_child(brew_btn)
 
 	return panel
+
+# The first unmet ingredient as a friendly "Need N more <item>" hint, for recipe
+# rows the player can't afford yet.
+func _shortfall_text(recipe: Recipe) -> String:
+	for ingredient: RecipeIngredient in recipe.inputs:
+		var have: int = Inventory.count_of(ingredient.item_id)
+		if have < ingredient.count:
+			var item := Inventory.get_item(ingredient.item_id)
+			var item_name := item.display_name if item else String(ingredient.item_id)
+			return "Need %d more %s" % [ingredient.count - have, item_name]
+	return "Need more materials"
 
 # Turns a recipe's input list into "Lava Ash x2, Lava Vial x1".
 func _format_inputs(recipe: Recipe) -> String:

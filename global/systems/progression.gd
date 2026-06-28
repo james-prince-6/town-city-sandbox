@@ -41,6 +41,16 @@ const XP_PER_LEVEL: int = 40
 ## Skill points awarded each time the player levels up.
 const POINTS_PER_LEVEL: int = 1
 
+## End-game scaling perks (Survival branch). Flat skill passives hard-cap (~+60%), so these two
+## perks instead scale with PLAYER LEVEL beyond ENDGAME_SCALE_LEVEL, giving descent its late-game
+## reward without an unbounded curve. Each is gated by get_rank() > 0, so an un-perked build pays
+## nothing. Tunable here so the integrator can reshape the end-game without editing the getters.
+const ENDGAME_SCALE_LEVEL: int = 10
+## late_bloomer: extra weapon-damage MULTIPLIER added per player level above ENDGAME_SCALE_LEVEL.
+const LATE_BLOOMER_DMG_PER_LEVEL: float = 0.03
+## iron_resolve: extra FLAT max health added per player level above ENDGAME_SCALE_LEVEL.
+const IRON_RESOLVE_HP_PER_LEVEL: float = 4.0
+
 # --- Signals ---------------------------------------------------------------
 
 ## Emitted whenever XP changes (a kill, or a load). Carries the running totals plus how
@@ -146,6 +156,17 @@ func add_xp(amount: int) -> void:
 		skills_changed.emit()
 	xp_changed.emit(xp, level, xp_to_next(level))
 
+## Shave XP off the CURRENT level's progress (a death penalty). Never de-levels and never drops
+## below 0 — only the in-progress bar is reduced. Returns how much was actually removed so the
+## caller (the death screen) can report it, and emits xp_changed so the HUD bar updates.
+func lose_xp(amount: int) -> int:
+	if amount <= 0:
+		return 0
+	var lost: int = mini(amount, xp)
+	xp -= lost
+	xp_changed.emit(xp, level, xp_to_next(level))
+	return lost
+
 # --- Allocation ------------------------------------------------------------
 
 ## True if the skill exists and every gate (rank, points, level, prerequisite) is met.
@@ -212,13 +233,14 @@ func get_stat(stat_key: StringName) -> float:
 			total += per_rank * float(rank)
 	return total
 
-## Multiplier applied to melee weapon damage (1.0 = unmodified).
+## Multiplier applied to melee weapon damage (1.0 = unmodified). Adds the level-scaled late_bloomer
+## bonus on top of the flat skill passives so late-game levels keep mattering.
 func melee_damage_mult() -> float:
-	return 1.0 + get_stat(&"melee_damage_mult")
+	return 1.0 + get_stat(&"melee_damage_mult") + _late_bloomer_bonus()
 
-## Multiplier applied to ranged weapon damage (1.0 = unmodified).
+## Multiplier applied to ranged weapon damage (1.0 = unmodified). Same late_bloomer bonus as melee.
 func ranged_damage_mult() -> float:
-	return 1.0 + get_stat(&"ranged_damage_mult")
+	return 1.0 + get_stat(&"ranged_damage_mult") + _late_bloomer_bonus()
 
 ## Multiplier applied to ranged weapon cooldown (1.0 = unmodified, 0.3 = 70% faster).
 ## Clamped so cooldown can never drop below 30% of the weapon's base.
@@ -229,9 +251,30 @@ func ranged_cooldown_mult() -> float:
 func crit_chance() -> float:
 	return clampf(get_stat(&"crit_chance"), 0.0, 1.0)
 
-## Flat extra max health from the survival tree.
+## Flat extra max health from the survival tree, plus the level-scaled iron_resolve bonus so a
+## deep-into-the-game character keeps gaining durability after Toughness has maxed.
 func bonus_max_health() -> float:
-	return get_stat(&"max_health")
+	return get_stat(&"max_health") + _iron_resolve_bonus()
+
+## late_bloomer perk: +LATE_BLOOMER_DMG_PER_LEVEL to the melee/ranged damage multiplier for every
+## player level earned beyond ENDGAME_SCALE_LEVEL. Returns 0.0 until the perk is owned (get_rank > 0)
+## so it never touches an un-perked build; scales with rank too, should the .tres raise max_rank.
+func _late_bloomer_bonus() -> float:
+	var rank: int = get_rank(&"late_bloomer")
+	if rank <= 0:
+		return 0.0
+	var levels_over: int = maxi(level - ENDGAME_SCALE_LEVEL, 0)
+	return LATE_BLOOMER_DMG_PER_LEVEL * float(levels_over) * float(rank)
+
+## iron_resolve perk: +IRON_RESOLVE_HP_PER_LEVEL FLAT max health per player level beyond
+## ENDGAME_SCALE_LEVEL. Folded into bonus_max_health() so _apply_to_player_stats() tops the bar up
+## as the cap climbs each level-up. Returns 0.0 until owned.
+func _iron_resolve_bonus() -> float:
+	var rank: int = get_rank(&"iron_resolve")
+	if rank <= 0:
+		return 0.0
+	var levels_over: int = maxi(level - ENDGAME_SCALE_LEVEL, 0)
+	return IRON_RESOLVE_HP_PER_LEVEL * float(levels_over) * float(rank)
 
 ## Flat extra max stamina from the survival tree.
 func bonus_max_stamina() -> float:

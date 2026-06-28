@@ -1,4 +1,4 @@
-[gd_scene load_steps=4 format=3 uid="uid://crepc2svamqom"]
+[gd_scene load_steps=5 format=3 uid="uid://crepc2svamqom"]
 
 [ext_resource type="Script" uid="uid://3y2h481n1aue" path="res://ui/hud/hud.gd" id="1_hud"]
 
@@ -23,6 +23,13 @@ void fragment() {
 shader = SubResource("Shader_vignette")
 shader_parameter/intensity = 0.0
 shader_parameter/tint = Color(0.7, 0, 0, 1)
+
+; Reuses the same edge-vignette shader as the health one, but tinted warm
+; yellow/orange so a low-stamina warning never reads as a low-HEALTH (red) one.
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_stamina"]
+shader = SubResource("Shader_vignette")
+shader_parameter/intensity = 0.0
+shader_parameter/tint = Color(1.0, 0.6, 0.05, 1)
 
 [node name="HUD" type="CanvasLayer"]
 layer = 5
@@ -78,6 +85,16 @@ horizontal_alignment = 2
 
 [node name="LowHealthVignette" type="ColorRect" parent="."]
 material = SubResource("ShaderMaterial_vignette")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(1, 1, 1, 1)
+
+[node name="StaminaWarningVignette" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_stamina")
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0

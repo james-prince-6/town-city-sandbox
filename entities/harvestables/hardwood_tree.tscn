@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bhrv0base0scn" path="res://entities/harvestables/harvestable.tscn" id="1_base"]
+[ext_resource type="PackedScene" uid="uid://b2o1ko8jaykqn" path="res://assets/models/nature/stylized-megakit/TwistedTree_2.gltf" id="2_model"]
+
+[node name="HardwoodTree" instance=ExtResource("1_base")]
+required_tool_type = 1
+required_power = 2
+durability = 6
+drop_item_id = &"hardwood"
+drop_amount = 2
+drop_as_world_item = true
+prompt_verb = "Chop"
+model_scene = ExtResource("2_model")

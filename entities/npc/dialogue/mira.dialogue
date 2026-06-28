@@ -23,10 +23,22 @@
 	=> dungeon
 - You look well today.
 	=> compliment
-- We're friends, right? Spare anything for the road? [if Reputation.get_reputation("mira") >= 20 /]
+- We're friends, right? Spare anything for the road? [if Reputation.is_at_least("mira", "FRIENDLY") /]
 	=> friend
-- Between us — what do you really make of this place? [if Reputation.get_reputation("mira") >= 50 /]
+- Between us — what do you really make of this place? [if Reputation.is_at_least("mira", "BELOVED") /]
 	=> confidante
+- Have I made an enemy of you, Mira? [if Reputation.is_at_most("mira", "HOSTILE") /]
+	=> cold
+- Got any odd jobs? [if QuestSystem.has_task_available("mira") /]
+	do QuestSystem.request_task("mira")
+	=> odd_jobs
+- Those glowing crystals from below — aren't you curious? [if not QuestSystem.is_active("mira_curiosity") and not QuestSystem.is_completed("mira_curiosity") /]
+	do QuestSystem.start_quest("mira_curiosity")
+	do Reputation.add_reputation("mira", 5)
+	=> mira_curiosity_intro
+- Is Gus short on supplies again? [if not QuestSystem.is_active("gus_restock") and not QuestSystem.is_completed("gus_restock") /]
+	do QuestSystem.start_quest("gus_restock")
+	=> gus_restock_intro
 - Just passing through.
 	=> bye
 
@@ -82,6 +94,26 @@ else
 Mira: [#gesture=talk] Truthfully? I love this town, cracks and all. But I worry.
 Mira: [#gesture=look] The dungeon's getting bolder. One day what's down there won't stay down there.
 Mira: [#gesture=cheer] Still — with folk like you around, I sleep easier. Thank you.
+=> hub
+
+~ cold
+Mira: [#gesture=look] Enemy's a strong word. But you've given the square plenty to gossip about, and none of it kind.
+Mira: [#gesture=talk] Mend a few fences and we'll talk properly. Until then, I'll keep my distance.
+=> hub
+
+~ odd_jobs
+Mira: [#gesture=talk] Funny you should ask — there is a little something. I've noted it in your journal.
+Mira: [#gesture=cheer] See it done in good time and I'll not forget the favor.
+=> hub
+
+~ mira_curiosity_intro
+Mira: [#gesture=cheer] Oh, terribly! I collect oddments, and those crystals would be the prize of my shelf.
+Mira: [#gesture=talk] Fetch me a few glow crystals, then a raw gemstone? It's noted in your journal.
+=> hub
+
+~ gus_restock_intro
+Mira: [#gesture=talk] Funny you ask — Gus was just grumbling about it. Short on scrap and iron, he says.
+Mira: [#gesture=look] Help him out and he'll remember the kindness. I've jotted it down for you.
 => hub
 
 ~ bye

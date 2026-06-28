@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+; Peaceful chicken (chick model). Fragile. Drops raw_meat x1.
+
+[ext_resource type="PackedScene" path="res://entities/animals/animal.tscn" id="1_base"]
+[ext_resource type="PackedScene" path="res://assets/models/critters/cube-pets/animal-chick.fbx" id="2_model"]
+
+[node name="Chicken" instance=ExtResource("1_base")]
+model_scene = ExtResource("2_model")
+display_name = "Chicken"
+target_height = 0.5
+max_health = 10.0
+move_speed = 4.0
+hostile = false
+loot_item_id = &"raw_meat"
+loot_amount = 1

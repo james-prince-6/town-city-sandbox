@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="Recipe" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://global/crafting/recipe.gd" id="1_recipe"]
+[ext_resource type="Script" path="res://global/crafting/recipe_ingredient.gd" id="2_ingredient"]
+
+[sub_resource type="Resource" id="ing_gem"]
+script = ExtResource("2_ingredient")
+item_id = &"cut_gemstone"
+count = 2
+
+[sub_resource type="Resource" id="ing_metal"]
+script = ExtResource("2_ingredient")
+item_id = &"refined_metal"
+count = 1
+
+[sub_resource type="Resource" id="ing_gold"]
+script = ExtResource("2_ingredient")
+item_id = &"gold_ingot"
+count = 1
+
+[resource]
+script = ExtResource("1_recipe")
+id = &"craft_radiant_sword"
+display_name = "Radiant Sword"
+inputs = [SubResource("ing_gem"), SubResource("ing_metal"), SubResource("ing_gold")]
+output_id = &"radiant_sword"
+output_count = 1
+brew_minutes = 0
+instant = true
+machine_type = 2

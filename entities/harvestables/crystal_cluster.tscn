@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3]
+[gd_scene load_steps=4 format=3]
 
 [ext_resource type="PackedScene" uid="uid://bhrv0base0scn" path="res://entities/harvestables/harvestable.tscn" id="1_base"]
 [ext_resource type="Material" path="res://assets/materials/EnergyCrystalMaterial.tres" id="2_mat"]
+[ext_resource type="PackedScene" uid="uid://u431fjr63g8g" path="res://assets/models/nature/stylized-megakit/Rock_Medium_3.gltf" id="2_model"]
 
 [node name="CrystalCluster" instance=ExtResource("1_base")]
 required_tool_type = 0
@@ -12,6 +13,7 @@ drop_amount = 2
 drop_as_world_item = true
 prompt_verb = "Mine"
 respawn_seconds = 0.0
+model_scene = ExtResource("2_model")
 
 [node name="MeshInstance3D" parent="." index="1"]
 surface_material_override/0 = ExtResource("2_mat")

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="UpgradeDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://global/house/upgrade_def.gd" id="1_upg"]
+
+[resource]
+script = ExtResource("1_upg")
+id = &"comfy_bed"
+display_name = "Comfy Bed"
+description = "A proper bed. Sleep to restore your health and set this home as your respawn point."
+cost_money = 250
+cost_item_id = &"wood_plank"
+cost_item_count = 4
+prerequisite = &""
+sort_order = 20

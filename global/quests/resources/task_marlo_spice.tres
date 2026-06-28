@@ -1,0 +1,43 @@
+[gd_resource type="Resource" script_class="Quest" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://global/quests/quest.gd" id="1_quest"]
+[ext_resource type="Script" path="res://global/quests/quest_objective.gd" id="2_objective"]
+[ext_resource type="Script" path="res://global/quests/game_effect.gd" id="3_effect"]
+
+[sub_resource type="Resource" id="obj"]
+script = ExtResource("2_objective")
+description = "Bring Marlo 2 sulfur crystals for a spiced batch"
+kind = 0
+target = &"sulfur_crystal"
+required_count = 2
+
+[sub_resource type="Resource" id="reward_money"]
+script = ExtResource("3_effect")
+type = 5
+target = &""
+amount = 80
+
+[sub_resource type="Resource" id="reward_rep"]
+script = ExtResource("3_effect")
+type = 4
+target = &"marlo"
+amount = 12
+
+[sub_resource type="Resource" id="take_sulfur"]
+script = ExtResource("3_effect")
+type = 3
+target = &"sulfur_crystal"
+amount = 2
+
+[resource]
+script = ExtResource("1_quest")
+id = &"task_marlo_spice"
+title = "A Spicier Brew"
+description = "Marlo wants to kick up his next batch. Bring him 2 sulfur crystals from the dungeon before he loses the urge to experiment."
+tier = 2
+objectives = Array[ExtResource("2_objective")]([SubResource("obj")])
+rewards = Array[ExtResource("3_effect")]([SubResource("reward_money"), SubResource("reward_rep"), SubResource("take_sulfur")])
+time_limit_minutes = 480
+giver_npc_id = &"marlo"
+repeatable = true
+cooldown_minutes = 600

@@ -42,6 +42,18 @@ func play(minigame_scene: PackedScene) -> void:
 		push_warning("MinigameManager.play: null scene.")
 		return
 
+	# Once-per-in-game-day gate. The arcade is a small bonus, not the economy, so
+	# a given cabinet may only be played once per day. State lives in
+	# GameState.flags (which is SAVED). Guarded so a missing GameState never blocks.
+	var game_state = get_node_or_null("/root/GameState")
+	if game_state != null:
+		var gate_key := _day_gate_key(minigame_scene)
+		if game_state.get_flag(gate_key, -1) == game_state.day:
+			var feed = get_node_or_null("/root/NotificationFeed")
+			if feed != null and feed.has_method("notify"):
+				feed.notify("Come back tomorrow.")
+			return
+
 	var instance := minigame_scene.instantiate()
 	if instance is not Minigame:
 		push_warning("MinigameManager.play: scene root is not a Minigame, ignoring.")
@@ -49,6 +61,9 @@ func play(minigame_scene: PackedScene) -> void:
 		return
 
 	_active = instance as Minigame
+	# Mark this cabinet as played today now that the game is actually starting.
+	if game_state != null:
+		game_state.set_flag(_day_gate_key(minigame_scene), game_state.day)
 	# Connect first so a game that finishes on its very first frame is handled.
 	_active.finished.connect(_on_finished, CONNECT_ONE_SHOT)
 	add_child(_active)
@@ -58,6 +73,17 @@ func play(minigame_scene: PackedScene) -> void:
 	if Clock:
 		Clock.pause()
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+
+# --- Daily gate helpers ----------------------------------------------------
+
+## Per-cabinet flag key so each distinct minigame scene has its own daily cooldown
+## (playing whack doesn't lock simon). Falls back to a shared key if the scene has
+## no resource_path (e.g. a runtime-built PackedScene).
+func _day_gate_key(minigame_scene: PackedScene) -> StringName:
+	var path := minigame_scene.resource_path
+	if path.is_empty():
+		return &"minigame_last_day"
+	return StringName("minigame_last_day_" + path)
 
 # --- Signal handling -------------------------------------------------------
 

@@ -279,6 +279,7 @@ loot = ExtResource("13_lootore")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 1, 26)
 target_scene_path = "res://stages/overworld/town_template.tscn"
 prompt_text = "Exit to Town"
+target_spawn_point = &"from_dungeon"
 
 [node name="CollisionShape3D" parent="ExitTeleport" index="0"]
 shape = SubResource("Exit_shape")

@@ -1,6 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://bhrv0rock0scn"]
+[gd_scene load_steps=4 format=3 uid="uid://bhrv0rock0scn"]
 
 [ext_resource type="PackedScene" uid="uid://bhrv0base0scn" path="res://entities/harvestables/harvestable.tscn" id="1_base"]
+[ext_resource type="PackedScene" uid="uid://dxocy0qcbp082" path="res://assets/models/nature/stylized-megakit/Rock_Medium_2.gltf" id="2_model"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rock"]
 albedo_color = Color(0.45, 0.42, 0.4, 1)
@@ -13,6 +14,7 @@ drop_item_id = &"iron_ore"
 drop_amount = 2
 drop_as_world_item = true
 prompt_verb = "Mine"
+model_scene = ExtResource("2_model")
 
 [node name="MeshInstance3D" parent="." index="1"]
 surface_material_override/0 = SubResource("StandardMaterial3D_rock")

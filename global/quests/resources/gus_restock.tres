@@ -1,0 +1,46 @@
+[gd_resource type="Resource" script_class="Quest" load_steps=8 format=3]
+
+[ext_resource type="Script" path="res://global/quests/quest.gd" id="1_quest"]
+[ext_resource type="Script" path="res://global/quests/quest_objective.gd" id="2_objective"]
+[ext_resource type="Script" path="res://global/quests/game_effect.gd" id="3_effect"]
+
+[sub_resource type="Resource" id="obj_scrap"]
+script = ExtResource("2_objective")
+description = "Salvage 8 scrap metal from the ruins"
+kind = 0
+target = &"scrap_metal"
+required_count = 8
+
+[sub_resource type="Resource" id="obj_iron"]
+script = ExtResource("2_objective")
+description = "Mine 4 iron ore"
+kind = 0
+target = &"iron_ore"
+required_count = 4
+
+[sub_resource type="Resource" id="reward_money"]
+script = ExtResource("3_effect")
+type = 5
+target = &""
+amount = 70
+
+[sub_resource type="Resource" id="reward_rep"]
+script = ExtResource("3_effect")
+type = 4
+target = &"gus"
+amount = 12
+
+[sub_resource type="Resource" id="reward_item"]
+script = ExtResource("3_effect")
+type = 2
+target = &"copper_ingot"
+amount = 2
+
+[resource]
+script = ExtResource("1_quest")
+id = &"gus_restock"
+title = "Gus Restocks the Forge"
+description = "Gus is short on raw stock for the forge. Bring him 8 salvaged scrap metal and 4 iron ore and he'll square you up."
+tier = 1
+objectives = Array[ExtResource("2_objective")]([SubResource("obj_scrap"), SubResource("obj_iron")])
+rewards = Array[ExtResource("3_effect")]([SubResource("reward_money"), SubResource("reward_rep"), SubResource("reward_item")])

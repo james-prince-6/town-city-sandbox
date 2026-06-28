@@ -1,0 +1,18 @@
+[gd_scene load_steps=3 format=3]
+
+; Base Animal scene: a thin CharacterBody3D carrying animal.gd. Everything else
+; (Health, HurtBox, the visual model, and any attack HitBox) is built in code in
+; _ready, so this scene only needs the body's own movement collider. Variant scenes
+; (deer.tscn, boar.tscn, …) inherit this and fill in model_scene + the export tuning.
+
+[ext_resource type="Script" path="res://entities/animals/animal.gd" id="1_animal"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_animal"]
+radius = 0.4
+height = 1.0
+
+[node name="Animal" type="CharacterBody3D" groups=["critter", "animal"]]
+script = ExtResource("1_animal")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+shape = SubResource("CapsuleShape3D_animal")

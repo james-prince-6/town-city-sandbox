@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+; Hostile mountain lion (lion model). Fast predator. Drops raw_meat x1.
+
+[ext_resource type="PackedScene" path="res://entities/animals/animal.tscn" id="1_base"]
+[ext_resource type="PackedScene" path="res://assets/models/critters/cube-pets/animal-lion.fbx" id="2_model"]
+
+[node name="MountainLion" instance=ExtResource("1_base")]
+model_scene = ExtResource("2_model")
+display_name = "Mountain Lion"
+target_height = 1.1
+max_health = 50.0
+move_speed = 5.5
+hostile = true
+contact_damage = 12.0
+loot_item_id = &"raw_meat"
+loot_amount = 1

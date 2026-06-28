@@ -68,6 +68,27 @@ var _knockback_velocity: Vector3 = Vector3.ZERO
 @export var dodge_fov_kick: float = 10.0
 @export var dodge_dip: float = 0.12
 
+## Extra camera-feel for traversal & stance. All of these ride on the SAME camera-feel
+## lerp targets as the dodge kick (summed, not overwritten) so they compose cleanly.
+@export_group("Camera Feel")
+## Extra FOV added while sprinting at full speed, for a sense of pace. Eases in/out via the lerp.
+@export var sprint_fov_kick: float = 6.0
+## Grace window (seconds) after walking off a ledge during which a jump still fires. Pure help.
+@export var coyote_time: float = 0.1
+## Downward camera dip (metres) on a hard landing, scaled by fall time. Snaps down then eases back.
+@export var landing_dip_amount: float = 0.08
+## FOV change while blocking (negative = narrower, a defensive squint that pops back on release).
+@export var block_fov_shift: float = -4.0
+## Camera drop (metres) while blocking, to sell a defensive crouch.
+@export var block_height_shift: float = 0.08
+
+@export_group("Block")
+## Fraction of the normal stamina cost a blocked hit charges (0.5 = half cost). Lowering it
+## lets a raised guard soak more damage per point of stamina, so blocking is an active payoff
+## rather than a pure stopgap. The blocked hit also shoves the attacker back (see
+## HurtBox.block_shove_force on the player's hurtbox).
+@export_range(0.05, 1.0) var block_stamina_cost_mult: float = 0.5
+
 var _dodge_time_left: float = 0.0
 var _iframe_time_left: float = 0.0
 var _dodge_cooldown_left: float = 0.0
@@ -103,6 +124,40 @@ const STEP_DISTANCE: float = 2.2
 var _was_on_floor: bool = true
 var _air_time: float = 0.0
 const LAND_AIR_TIME: float = 0.2
+## Air-time (seconds) at which a landing reads as FULL intensity (max hitstop/shake/thud). A
+## drop this long or longer hits hardest; shorter falls scale down toward LAND_AIR_TIME.
+const LANDING_FULL_AIR_TIME: float = 0.9
+
+@export_group("Footsteps")
+## How far (m) to probe straight down for the surface under the player before a footstep, so
+## the step can be pitched/volumed to what we're walking on. Falls back to the plain step on a miss.
+@export var footstep_ray_length: float = 1.5
+## Per-surface footstep modifiers: surface key (StringName) -> Vector2(pitch_center, volume_db
+## offset). The surface is read from the collider under the player — its "surface_type" meta if
+## present, else the first of these keys it is in the group of. Unknown/undetected surfaces use
+## the plain footstep, so this is purely additive: populate it as world colliders get tagged.
+@export var footstep_surface_mods: Dictionary = {
+	&"grass": Vector2(1.05, -3.0),
+	&"stone": Vector2(0.92, 1.0),
+	&"rock": Vector2(0.90, 1.0),
+	&"wood": Vector2(1.00, 0.0),
+	&"metal": Vector2(0.85, 2.0),
+	&"sand": Vector2(1.15, -5.0),
+	&"snow": Vector2(1.20, -6.0),
+	&"water": Vector2(1.25, -4.0),
+}
+
+# Stamina-dry warning: remember last frame's stamina so we can fire a one-shot cue the moment
+# it transitions from >0 to empty during active use (sprint/dodge/block). Seeded in _ready.
+var _prev_stamina: float = 1.0
+
+# Coyote time: seconds of grace left after leaving the ground during which a jump still registers.
+# A time-left counter (NOT a cooldown), so it starts at 0 — refilled to coyote_time while grounded.
+var _coyote_time_left: float = 0.0
+# Landing dip: current downward camera offset (metres) from the last hard landing, eased back to 0.
+var _landing_dip: float = 0.0
+## Seconds for the landing dip to ease back up to rest.
+const LANDING_DIP_TIME: float = 0.15
 
 # When a menu/dialogue closes, the same button that closed it (e.g. B = ui_cancel AND
 # dodge, A = ui_accept AND jump) is still "just pressed" this frame. Polled gameplay
@@ -154,6 +209,11 @@ func _ready():
 	# stops movement and frees the mouse just like the inventory and brewing menus.
 	ShopUI.opened.connect(_on_menu_opened)
 	ShopUI.closed.connect(_on_menu_closed)
+	# The house upgrade menu (opened at the home upgrade station) is the same kind of
+	# blocking UI; connect it too so improving your home stops movement and frees the
+	# mouse just like the shop and brewing menus.
+	UpgradeUI.opened.connect(_on_menu_opened)
+	UpgradeUI.closed.connect(_on_menu_closed)
 	# The skill tree overlay is another blocking UI; treat it exactly like the others so
 	# opening it stops movement and frees the mouse (and recaptures on close).
 	SkillTreeUI.opened.connect(_on_menu_opened)
@@ -179,6 +239,9 @@ func _ready():
 	_cam_base_fov = cam.fov
 	_cam_base_y = cam.position.y
 	_cam_base_x = cam.position.x
+	# Seed the stamina-warning tracker to the current pool so we don't fire a spurious cue on
+	# the very first frame.
+	_prev_stamina = PlayerStats.stamina
 
 func _unhandled_input(event):
 	# A blocking UI (dialogue / inventory) swallows all gameplay input.
@@ -243,10 +306,13 @@ func _on_hurt(info: DamageInfo) -> void:
 		var item: Item = Hotbar.get_selected_item()
 		var mod: float = item.block_modifier if item != null else 0.0
 		if mod > 0.0:
-			var max_blockable: float = PlayerStats.stamina / mod
+			# Block payoff: charge only block_stamina_cost_mult of the raw stamina, so the same
+			# stamina pool now soaks proportionally MORE damage (e.g. ~2x at the 0.5 default).
+			var cost_mult: float = maxf(block_stamina_cost_mult, 0.01)
+			var max_blockable: float = PlayerStats.stamina / (mod * cost_mult)
 			var blocked: float = min(amount, max_blockable)
 			if blocked > 0.0:
-				PlayerStats.use_stamina(blocked * mod)
+				PlayerStats.use_stamina(blocked * mod * cost_mult)
 				amount -= blocked
 				CombatFeel.play_block()
 				# A blocked blow barely budges you.
@@ -275,6 +341,7 @@ func apply_knockback(direction: Vector3, force: float) -> void:
 
 func _physics_process(delta):
 	_tick_defensive_timers(delta)
+	_check_stamina_warning()
 	# When a menu/dialogue just closed, suppress polled actions for a few frames so the
 	# closing press (B = cancel + dodge, A = accept + jump) doesn't leak into gameplay.
 	var blocking := _is_ui_blocking()
@@ -294,7 +361,12 @@ func _physics_process(delta):
 	handle_interaction()
 
 func handle_movement(delta):
-	if not is_on_floor():
+	# Coyote time: keep a small grace window after walking off a ledge during which a jump
+	# still fires. Refilled while grounded, drained in the air.
+	if is_on_floor():
+		_coyote_time_left = coyote_time
+	else:
+		_coyote_time_left = maxf(_coyote_time_left - delta, 0.0)
 		velocity.y -= gravity * delta
 	# Dodge dash overrides steering for its brief window (gravity still applies). The
 	# i-frames that make it a defence are handled in _on_hurt.
@@ -303,8 +375,9 @@ func handle_movement(delta):
 		velocity.z = _dodge_dir.z * dodge_speed
 		move_and_slide()
 		return
-	if Input.is_action_just_pressed("jump") and is_on_floor() and _suppress_action_frames == 0:
+	if Input.is_action_just_pressed("jump") and _coyote_time_left > 0.0 and _suppress_action_frames == 0:
 		velocity.y = jump_velocity
+		_coyote_time_left = 0.0  # consume the grace so one press = one jump
 	var input_dir = Input.get_vector("move_left", "move_right", "move_forward", "move_backward")
 	var direction = (transform.basis * Vector3(input_dir.x, 0, input_dir.y)).normalized()
 	# Sprinting only counts when we're actually moving, and it costs stamina.
@@ -446,8 +519,16 @@ func _update_footsteps(delta: float) -> void:
 	var on_floor: bool = is_on_floor()
 	# Landing thud: a step the instant we touch down after a real fall (not a micro-hop).
 	if on_floor and not _was_on_floor and _air_time > LAND_AIR_TIME:
-		CombatFeel.play_footstep()
+		# Scale the impact (hitstop/shake/pitch) by air-time so a long drop lands heavier than a
+		# short hop. report_landing owns the thud now; degrade to a plain step if it's missing.
+		var land_intensity: float = clampf(_air_time / LANDING_FULL_AIR_TIME, 0.0, 1.0)
+		if CombatFeel.has_method("report_landing"):
+			CombatFeel.report_landing(land_intensity)
+		else:
+			CombatFeel.play_footstep()
 		_step_accum = 0.0
+		# Camera impact dip, scaled by how long we were falling (a longer drop hits harder).
+		_landing_dip = clampf(landing_dip_amount * (_air_time / LAND_AIR_TIME), 0.05, 0.15)
 	_was_on_floor = on_floor
 	_air_time = 0.0 if on_floor else _air_time + delta
 	if not on_floor or _dodge_time_left > 0.0:
@@ -460,7 +541,57 @@ func _update_footsteps(delta: float) -> void:
 	_step_accum += hspeed * delta
 	if _step_accum >= STEP_DISTANCE:
 		_step_accum = 0.0
-		CombatFeel.play_footstep()
+		_emit_footstep()
+
+# Play a footstep, varied by the surface underfoot. Raycast straight down; if it hits a
+# collider tagged with a known surface (a "surface_type" meta or a matching group), play the
+# step with that surface's pitch/volume modifiers, otherwise the plain footstep.
+func _emit_footstep() -> void:
+	var surf := _detect_surface()
+	if surf != &"" and footstep_surface_mods.has(surf) and CombatFeel.has_method("play_footstep_modulated"):
+		var mod: Vector2 = footstep_surface_mods[surf]
+		CombatFeel.play_footstep_modulated(mod.x, mod.y)
+		return
+	CombatFeel.play_footstep()
+
+# Identify the surface under the player for footstep variation. Returns the surface key
+# (StringName) or &"" when nothing usable is underfoot. Cheap: one short downward ray, run only
+# on a step (every STEP_DISTANCE metres), never per frame.
+func _detect_surface() -> StringName:
+	var world := get_world_3d()
+	if world == null:
+		return &""
+	var space := world.direct_space_state
+	if space == null:
+		return &""
+	var from: Vector3 = global_position
+	var to: Vector3 = from + Vector3.DOWN * footstep_ray_length
+	var query := PhysicsRayQueryParameters3D.create(from, to)
+	var excludes: Array[RID] = [get_rid()]
+	query.exclude = excludes
+	var hit: Dictionary = space.intersect_ray(query)
+	if hit.is_empty():
+		return &""
+	var collider = hit.get("collider")
+	if collider == null or not (collider is Node):
+		return &""
+	# An explicit tag wins, so a designer can label a surface directly on its collider.
+	if collider.has_meta(&"surface_type"):
+		return StringName(str(collider.get_meta(&"surface_type")))
+	# Otherwise match the collider's groups against the known surface keys.
+	for key in footstep_surface_mods:
+		if collider.is_in_group(StringName(key)):
+			return StringName(key)
+	return &""
+
+# Fire a one-shot warning the moment stamina runs dry mid-use (sprint/dodge/block draining it
+# from >0 to empty). Regen back above 0 re-arms it. The cue itself is owned by CombatFeel and
+# no-ops gracefully while its sound pool is empty (assets pending).
+func _check_stamina_warning() -> void:
+	var s: float = PlayerStats.stamina
+	if _prev_stamina > 0.0 and s <= 0.0 and CombatFeel.has_method("play_stamina_warning"):
+		CombatFeel.play_stamina_warning()
+	_prev_stamina = s
 
 # First-person "dodge animation": roll the camera into the dash, kick the FOV, and dip
 # the view, all eased back to rest. Driven by the dodge timer so it self-returns; the
@@ -479,8 +610,22 @@ func _update_camera_feel(delta: float) -> void:
 	var bob_y: float = sin(_bob_phase * 2.0) * _bob_amp * BOB_CAM_VERTICAL
 	var bob_x: float = cos(_bob_phase) * _bob_amp * BOB_CAM_HORIZONTAL
 	var w: float = clampf(delta * 14.0, 0.0, 1.0)  # smoothing weight
-	cam.fov = lerpf(cam.fov, _cam_base_fov + dodge_fov_kick * f, w)
-	cam.position.y = lerpf(cam.position.y, _cam_base_y - dodge_dip * f + bob_y, w)
+	# Compose the camera-feel offsets ADDITIVELY so sprint / landing / block stack with the
+	# dodge kick instead of overwriting it; the shared lerp eases every one of them in/out.
+	# Sprint: a small FOV push while actually moving at full sprint speed on the ground.
+	var hspeed: float = Vector2(velocity.x, velocity.z).length()
+	var sprinting: bool = Input.is_action_pressed("sprint") and is_on_floor() and hspeed >= sprint_speed * 0.95 and not is_blocking
+	var sprint_fov: float = sprint_fov_kick if sprinting else 0.0
+	# Block stance: narrow the FOV and drop the view to read as a defensive crouch.
+	var block_fov: float = block_fov_shift if is_blocking else 0.0
+	var block_y: float = block_height_shift if is_blocking else 0.0
+	# Landing dip eases back up to rest over ~LANDING_DIP_TIME seconds after a hard landing.
+	if _landing_dip > 0.0:
+		_landing_dip = move_toward(_landing_dip, 0.0, (0.15 / LANDING_DIP_TIME) * delta)
+	var fov_target: float = _cam_base_fov + dodge_fov_kick * f + sprint_fov + block_fov
+	var y_target: float = _cam_base_y - dodge_dip * f + bob_y - _landing_dip - block_y
+	cam.fov = lerpf(cam.fov, fov_target, w)
+	cam.position.y = lerpf(cam.position.y, y_target, w)
 	cam.position.x = lerpf(cam.position.x, _cam_base_x + bob_x, w)
 	# Roll (lean): ease toward the target, and bleed the target back to upright.
 	_lean_target_deg = move_toward(_lean_target_deg, 0.0, dodge_lean_degrees * 5.0 * delta)

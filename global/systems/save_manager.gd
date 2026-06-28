@@ -46,6 +46,7 @@ signal load_failed(reason: String)
 	"crafting": CraftingSystem,
 	"progression": Progression,
 	"npc_moods": NPCMoods,
+	"house_upgrades": HouseUpgrades,
 }
 
 # Holds the player transform between a load's scene-change request and the new

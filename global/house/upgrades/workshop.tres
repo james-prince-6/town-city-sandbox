@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="UpgradeDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://global/house/upgrade_def.gd" id="1_upg"]
+
+[resource]
+script = ExtResource("1_upg")
+id = &"workshop"
+display_name = "Workshop Nook"
+description = "A workbench and tool rack in the back so you can craft and repair gear without going into town."
+cost_money = 550
+cost_item_id = &"wood_plank"
+cost_item_count = 6
+prerequisite = &""
+sort_order = 40

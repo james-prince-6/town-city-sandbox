@@ -53,6 +53,22 @@ const STATION_NAMES := {
 	Recipe.MachineType.COOKING: "Cooking Station",
 }
 
+## GameState flag key for the accessibility font scale (set in the pause Settings panel).
+## Every font_size override here is routed through _fs() so this menu honours the setting.
+const FONT_SCALE_FLAG: StringName = &"ui_font_scale"
+
+## Optional recipe-rarity tints. A recipe MAY define a `rarity` (int index into this list,
+## or a matching name string); when present it colours the recipe row instead of the plain
+## ready/unavailable colours. Entirely additive — recipes without a rarity are unaffected.
+## TUNABLE: reorder/recolour freely (string lookup is case-insensitive).
+const RARITY_COLORS: Array = [
+	{"name": "common", "color": Color(0.85, 0.85, 0.85)},
+	{"name": "uncommon", "color": Color(0.55, 0.9, 0.55)},
+	{"name": "rare", "color": Color(0.5, 0.7, 1.0)},
+	{"name": "epic", "color": Color(0.78, 0.55, 0.95)},
+	{"name": "legendary", "color": Color(0.98, 0.78, 0.35)},
+]
+
 # ===========================================================================
 #  A draggable inventory item (drag SOURCE).
 # ===========================================================================
@@ -102,8 +118,12 @@ func open_for(station: Node) -> void:
 	_selected = null
 	MenuManager.opening(self)  # close any other open menu first (no stacking)
 	show()
-	Inventory.item_changed.connect(_on_inventory_changed)
-	CraftingSystem.machine_changed.connect(_on_machine_changed)
+	# Guard the connects: open_for re-entered while already open would otherwise throw
+	# "signal already connected" (close() disconnects, but re-open without a close can't).
+	if not Inventory.item_changed.is_connected(_on_inventory_changed):
+		Inventory.item_changed.connect(_on_inventory_changed)
+	if not CraftingSystem.machine_changed.is_connected(_on_machine_changed):
+		CraftingSystem.machine_changed.connect(_on_machine_changed)
 	_refresh()
 	opened.emit()
 
@@ -180,7 +200,7 @@ func _build_ui() -> void:
 	_window.add_child(root)
 
 	_header = Label.new()
-	_header.add_theme_font_size_override("font_size", 24)
+	_header.add_theme_font_size_override("font_size", _fs(24))
 	_header.text = "Crafting"
 	root.add_child(_header)
 
@@ -329,10 +349,23 @@ func _rebuild_recipe_list(disabled: bool) -> void:
 	var recipes: Array[Recipe] = CraftingSystem.get_recipes_for(_machine_type)
 	for r in recipes:
 		var b := Button.new()
+		b.alignment = HORIZONTAL_ALIGNMENT_LEFT
 		var affordable := CraftingSystem.can_craft(r)
-		b.text = ("%s" % r.display_name) + ("" if affordable else "  (need mats)")
+		# Base tint: a recipe's optional `rarity` wins (so legendaries read special even
+		# when craftable); otherwise fall back to the ready/unavailable scan colours.
+		var rarity_col: Color = _rarity_color(r)
+		var have_rarity: bool = rarity_col.a > 0.0
+		if affordable:
+			# Bright + an explicit "ready" badge so the player can scan the list and
+			# instantly see what they can make right now.
+			b.text = "%s    ✓ Ready" % r.display_name
+			b.modulate = rarity_col if have_rarity else Color(0.7, 1.0, 0.7)
+		else:
+			# Opportunity, not punishment: tell them exactly what's missing instead of
+			# a flat gray-out. Rarity tint is dimmed so "can't afford yet" still reads.
+			b.text = "%s    %s" % [r.display_name, _shortfall_text(r)]
+			b.modulate = rarity_col.darkened(0.35) if have_rarity else Color(0.62, 0.62, 0.62)
 		b.disabled = disabled
-		b.modulate = Color(1, 1, 1) if affordable else Color(0.7, 0.7, 0.7)
 		b.pressed.connect(_select_recipe.bind(r))
 		_recipe_list.add_child(b)
 	if recipes.is_empty():
@@ -364,21 +397,33 @@ func _rebuild_slots() -> void:
 		slot.add_child(box)
 		var name_lbl := Label.new()
 		name_lbl.text = _item_name(ing.item_id)
-		name_lbl.add_theme_font_size_override("font_size", 11)
+		name_lbl.add_theme_font_size_override("font_size", _fs(11))
 		box.add_child(name_lbl)
+		# Colored at-a-glance stock readout replaces the old plain "have / need" line:
+		# green = enough, yellow = partial, red = none. Pure presentation off the bag.
 		var have: int = Inventory.count_of(ing.item_id)
-		var cnt := Label.new()
-		cnt.text = "%d / %d" % [have, ing.count]
-		cnt.add_theme_font_size_override("font_size", 11)
-		box.add_child(cnt)
+		var need: int = ing.count
+		var status := Label.new()
+		status.add_theme_font_size_override("font_size", _fs(11))
+		if have >= need:
+			status.text = "✓ Have %d/%d" % [have, need]
+			status.modulate = Color(0.45, 0.9, 0.45)
+		elif have > 0:
+			status.text = "~ %d/%d" % [have, need]
+			status.modulate = Color(0.9, 0.85, 0.4)
+		else:
+			status.text = "✗ 0/%d" % need
+			status.modulate = Color(0.95, 0.5, 0.5)
+		box.add_child(status)
+		# Keep the drag-staging feedback (unchanged behaviour): shows whether this slot
+		# has been filled toward the craft.
 		var state := Label.new()
-		state.text = "[filled]" if _slot_filled[i] else "[drag here]"
-		state.add_theme_font_size_override("font_size", 10)
-		state.modulate = Color(0.4, 0.9, 0.4) if _slot_filled[i] else Color(0.8, 0.8, 0.4)
+		state.text = "● staged" if _slot_filled[i] else "[drag here]"
+		state.add_theme_font_size_override("font_size", _fs(10))
+		state.modulate = Color(0.4, 0.9, 0.4) if _slot_filled[i] else Color(0.75, 0.75, 0.75)
 		box.add_child(state)
 		_slots_row.add_child(slot)
 	var out_item := _item_name(_selected.output_id)
-	var t := "Smelt" if not _selected.instant else "Make"
 	_output_label.text = "→  %s x%d   (%s)" % [out_item, _selected.output_count, ("instant" if _selected.instant else "%d min" % _selected.brew_minutes)]
 
 func _make_fill_cb(index: int) -> Callable:
@@ -450,6 +495,63 @@ func _on_collect() -> void:
 func _item_name(id: StringName) -> String:
 	var item: Item = Inventory.get_item(id)
 	return item.display_name if item != null else String(id)
+
+# The first unmet ingredient as a friendly "Need N more <item>" hint (for recipe
+# rows the player can't afford yet). Falls back to a generic note if nothing is
+# obviously short (shouldn't happen when can_craft is false, but be safe). When the
+# missing item defines an optional `item_source`, appends a " - Found: <source>" hint
+# so players learn WHERE to gather the resource.
+func _shortfall_text(r: Recipe) -> String:
+	for ing: RecipeIngredient in r.inputs:
+		var have: int = Inventory.count_of(ing.item_id)
+		if have < ing.count:
+			var line := "Need %d more %s" % [ing.count - have, _item_name(ing.item_id)]
+			var src := _item_source(ing.item_id)
+			if src != "":
+				line += " - Found: %s" % src
+			return line
+	return "Need mats"
+
+# Optional gather-source hint for an item. Items that define an `item_source` string
+# surface it here; everything else returns "" (no hint). Safe via the `in` check, so
+# this never errors on the base Item which has no such property.
+func _item_source(id: StringName) -> String:
+	var item: Item = Inventory.get_item(id)
+	if item != null and "item_source" in item:
+		return String(item.item_source).strip_edges()
+	return ""
+
+# Resolve a recipe's OPTIONAL rarity to a tint. Accepts either an int index or a name
+# string (case-insensitive). Returns a fully-transparent colour (a < 0) when the recipe
+# has no rarity / it doesn't resolve, which callers treat as "no rarity tint".
+func _rarity_color(r: Recipe) -> Color:
+	if not ("rarity" in r):
+		return Color(0, 0, 0, 0)
+	var raw = r.rarity
+	if raw is int or raw is float:
+		var idx: int = int(raw)
+		if idx >= 0 and idx < RARITY_COLORS.size():
+			return RARITY_COLORS[idx]["color"]
+	elif raw is String or raw is StringName:
+		var want := String(raw).strip_edges().to_lower()
+		for entry in RARITY_COLORS:
+			if String(entry["name"]).to_lower() == want:
+				return entry["color"]
+	return Color(0, 0, 0, 0)
+
+# --- Accessibility font scale ----------------------------------------------
+
+# Stored UI font multiplier (1.0 when unset / GameState missing), clamped to a sane band.
+func _font_scale() -> float:
+	var gs = get_node_or_null("/root/GameState")
+	if gs == null:
+		return 1.0
+	var raw = gs.get_flag(FONT_SCALE_FLAG, 1.0)
+	return clampf(float(raw), 0.7, 1.6)
+
+# Scale a base font size by the stored UI text-size setting (used on every override).
+func _fs(base: int) -> int:
+	return int(round(base * _font_scale()))
 
 func _clear(node: Node) -> void:
 	for c in node.get_children():

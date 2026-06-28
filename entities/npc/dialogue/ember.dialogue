@@ -42,12 +42,23 @@ Ember: [#gesture=angry] Buy something or move along — I haven't got all day.
 	=> insulted
 - What metals come out of the dungeon?
 	=> metals
-- Can you forge me something special? [if Reputation.get_reputation("ember") >= 20 /]
+- Can you forge me something special? [if Reputation.is_at_least("ember", "FRIENDLY") /]
 	=> commission
+- We're not on bad terms, are we? [if Reputation.is_at_most("ember", "HOSTILE") /]
+	=> cold
+- Anything off the books for me? [if Reputation.is_at_least("ember", "BELOVED") /]
+	=> beloved
 - Got any work at the forge? [if not QuestSystem.is_active("ember_commission") and not QuestSystem.is_completed("ember_commission") /]
 	do QuestSystem.start_quest("ember_commission")
 	do Reputation.add_reputation("ember", 5)
 	=> commission_work
+- Got any odd jobs at the forge? [if QuestSystem.has_task_available("ember") /]
+	do QuestSystem.request_task("ember")
+	=> odd_jobs
+- The town's power is failing — can I help with that? [if not QuestSystem.is_active("powering_the_town") and not QuestSystem.is_completed("powering_the_town") /]
+	do QuestSystem.start_quest("powering_the_town")
+	do Reputation.add_reputation("ember", 5)
+	=> powering_intro
 - Just browsing, thanks.
 	=> bye
 
@@ -71,9 +82,29 @@ Ember: [#gesture=salute] For a steady customer? Aye. Bring me obsidian and I'll 
 Ember: [#gesture=talk] None of that dungeon-junk steel, mind. Real metal, real work.
 => hub
 
+~ cold
+Ember: [#gesture=angry] Bad terms? We're barely on terms at all, the way you've behaved.
+Ember: [#gesture=angry] My hammer's for paying customers I can stomach. Mind which one you are.
+=> hub
+
+~ beloved
+Ember: [#gesture=salute] For you? Aye — I'll set my best work aside and not charge you full for it.
+Ember: [#gesture=cheer] Folk like you keep the forge worth lighting. Whatever you need, it's yours first.
+=> hub
+
 ~ commission_work
 Ember: [#gesture=talk] As it happens, aye. I'm out of copper — smelt me two ingots?
 Ember: [#gesture=talk] The smelter's by the square: copper ore in, ingots out. Do that and there's a tool in it for you.
+=> hub
+
+~ odd_jobs
+Ember: [#gesture=talk] Aye, there's always something needs hauling. It's in your log now — see to it.
+Ember: [#gesture=look] Don't dawdle. Cold iron waits for no one.
+=> hub
+
+~ powering_intro
+Ember: [#gesture=salute] You'd take that on? The old generator died years back — town runs on candlelight and stubbornness now.
+Ember: [#gesture=talk] Start me a pile of scrap and some planks. Big job, this — we'll do it in stages. It's all in your journal.
 => hub
 
 ~ bye

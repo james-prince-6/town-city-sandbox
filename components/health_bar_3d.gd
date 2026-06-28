@@ -18,10 +18,20 @@ extends Node3D
 ## Hide the bar entirely while at full health (keeps the screen clean until a fight).
 @export var hide_when_full: bool = true
 
+## How long the on-damage pulse (scale-up + brighten) takes to settle back.
+const DAMAGE_PULSE_DURATION: float = 0.25
+## Peak scale of the bar during the damage pulse.
+const DAMAGE_PULSE_SCALE: float = 1.15
+
 var _fill: MeshInstance3D
 var _fill_mat: StandardMaterial3D
 var _ratio: float = 1.0
 var _max: float = 1.0
+# Active damage-pulse tween, kept so a fresh hit can restart it cleanly.
+var _pulse_tween: Tween = null
+# Current pulse scale factor (1.0 = resting). Driven by the pulse tween and applied
+# in _process AFTER look_at, which would otherwise reset our scale every frame.
+var _pulse_scale: float = 1.0
 
 func _ready() -> void:
 	# Backdrop (slightly larger, dark) then the fill on top.
@@ -43,6 +53,9 @@ func _process(_delta: float) -> void:
 		# look_at aims -Z at the target; aim it AWAY from the camera so the quads' +Z
 		# faces the camera.
 		look_at(global_position + dir, Vector3.UP)
+	# look_at rebuilds the basis with UNIT scale, so re-apply the damage-pulse scale
+	# AFTER it (otherwise the pop would be wiped out every frame). 1.0 = no pulse.
+	scale = Vector3.ONE * _pulse_scale
 
 ## Wire to a Health component: seed the current ratio and follow its `damaged` signal.
 func setup(health_node: Node) -> void:
@@ -58,10 +71,47 @@ func setup(health_node: Node) -> void:
 func _on_damaged(_amount: float, current: float) -> void:
 	set_value(current)
 
-## Set the absolute current health; recomputes the fill ratio against max.
+## Set the absolute current health; recomputes the fill ratio against max. A DROP
+## (took damage) also fires a brief scale-up + brighten pulse for readable feedback.
 func set_value(current: float) -> void:
-	_ratio = clampf(current / _max, 0.0, 1.0)
+	var new_ratio: float = clampf(current / _max, 0.0, 1.0)
+	var took_damage := new_ratio < _ratio
+	_ratio = new_ratio
 	_refresh()
+	if took_damage:
+		_play_damage_pulse()
+
+# Briefly pops the whole bar bigger and brighter, then eases back, so a hit reads at
+# a glance. Robust: if a tween can't be created (e.g. outside the tree) we simply
+# skip the flourish — the plain value update in _refresh has already applied.
+func _play_damage_pulse() -> void:
+	if not is_inside_tree():
+		return
+	if _pulse_tween and _pulse_tween.is_valid():
+		_pulse_tween.kill()
+	var t := create_tween()
+	if t == null:
+		# No tween available (e.g. outside the tree): fall back to a plain update,
+		# which _refresh has already applied. Just make sure we aren't left scaled up.
+		_pulse_scale = 1.0
+		return
+	_pulse_tween = t
+	_pulse_scale = DAMAGE_PULSE_SCALE
+	if _fill_mat:
+		_fill_mat.emission_enabled = true
+		_fill_mat.emission = _fill_mat.albedo_color
+		_fill_mat.emission_energy_multiplier = 0.9
+	t.set_parallel(true)
+	# Drive the scale via a setter (not the "scale" property) so _process's per-frame
+	# look_at can re-apply it instead of fighting the tween.
+	t.tween_method(_set_pulse_scale, DAMAGE_PULSE_SCALE, 1.0, DAMAGE_PULSE_DURATION) \
+		.set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	if _fill_mat:
+		t.tween_property(_fill_mat, "emission_energy_multiplier", 0.0, DAMAGE_PULSE_DURATION) \
+			.set_ease(Tween.EASE_OUT)
+
+func _set_pulse_scale(v: float) -> void:
+	_pulse_scale = v
 
 func _refresh() -> void:
 	if _fill == null:

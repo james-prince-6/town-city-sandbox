@@ -19,4 +19,6 @@ turn_speed_degrees = 420.0
 default_behavior = 1
 home_location_id = &"pip_home"
 default_mood = &"cheerful"
+task_pool = Array[StringName]([&"task_pip_fruit", &"task_pip_cache"])
+gives_tasks = true
 dialogue = ExtResource("5_dlg")

@@ -54,6 +54,16 @@ extends Node3D
 ## directly with F6), hand them a basic kit so the dungeon is immediately playable. A player
 ## who enters from the overworld already armed keeps their own gear (this won't fire).
 @export var grant_starter_kit: bool = true
+## Locks this scene's biome: when non-empty and it matches a theme name (case-insensitive),
+## _pick_theme returns that theme on EVERY floor instead of the seed-random pick. Empty (default)
+## keeps the original per-seed random theme. Lets an entrance scene pin its dungeon to one biome
+## (e.g. "Cave", "Mine", "Sewer", "PowerPlant").
+@export var forced_theme_name: String = ""
+## Extra RARE harvestable/loot item ids this dungeon can yield (e.g. &"scrap_metal", &"power_core",
+## &"raw_gemstone", &"glow_crystal", &"rusted_key"). When non-empty these are (a) folded into the
+## reward/vault chest contents and (b) the menu _place_rare_nodes draws its scattered rare harvest
+## nodes from. Empty (default) reproduces the original loot exactly.
+@export var rare_loot_ids: Array[StringName] = []
 
 # --- Geometry constants (METERS, consistent with dungeon_mine.tscn) ---------
 const TILE_SIZE: float = 4.0       # one floor tile is 4m x 4m
@@ -89,17 +99,80 @@ const BOSS_EVERY: int = 3
 const DIFFICULTY_PER_FLOOR: int = 2
 ## Floors are seeded as start_seed + (depth-1)*this, so each floor is its own deterministic level.
 const FLOOR_SEED_STRIDE: int = 1013
-## The boss spawned on boss floors (defaults to the mini-boss colossus). Kept as a FALLBACK
-## for when boss_pool is left empty; otherwise the pool below is used instead.
+## The boss spawned on boss floors (defaults to the mini-boss colossus). Kept as the FINAL
+## FALLBACK for when every tier pool below (and the legacy boss_pool) is left empty.
 @export_file("*.tscn") var boss_scene_path: String = "res://entities/enemies/magma_colossus.tscn"
-## The pool of bosses a boss floor can pick from (one is chosen deterministically per floor —
-## see _spawn_boss). Defaults to the three boss-capable scenes; empty the array to fall back to
-## boss_scene_path above.
-@export var boss_pool: Array[String] = [
-	"res://entities/enemies/magma_colossus.tscn",
-	"res://entities/enemies/obsidian_brute.tscn",
-	"res://entities/enemies/iron_bruiser.tscn",
+## LEGACY un-tiered boss pool. Now only used as a fallback when the depth-tiered pools below are
+## ALL emptied (kept so any scene that set this in the inspector still behaves). New code should
+## tune the three tiered pools instead. Left empty by default — the tiered pools drive the choice.
+@export var boss_pool: Array[String] = []
+
+# --- Depth-tiered boss pools -----------------------------------------------
+# WHY: a single flat pool meant floor 3 could roll the 600hp Magma Colossus while floor 9 rolled
+# the 110hp Ravager — boss difficulty was a coin-flip, not a curve. _spawn_boss now picks the pool
+# by depth tier = clampi((_depth-1)/BOSS_EVERY,0,2), so early boss floors only field light bruisers
+# and the heavyweight colossus is reserved for the deep floors. Each pool is chosen from
+# DETERMINISTICALLY off the generation rng (same seed => same boss). Empty a pool to fall through to
+# the legacy boss_pool, then to boss_scene_path — so clearing all three reverts to the old behaviour.
+## Boss floors 1-3 (depth 1..3): light, fast bruisers (~110-160hp). The first real boss fight.
+@export var boss_pool_early: Array[String] = [
+	"res://entities/enemies/obsidian_brute.tscn",  # 120hp
+	"res://entities/enemies/ravager.tscn",         # 110hp
 ]
+## Boss floors 4-6 (depth 4..6): the tougher bruisers step up.
+@export var boss_pool_mid: Array[String] = [
+	"res://entities/enemies/iron_bruiser.tscn",    # 160hp
+	"res://entities/enemies/obsidian_brute.tscn",  # 120hp
+]
+## Boss floors 7+ (depth 7..): the heavyweight colossus becomes possible — a true wall of HP.
+@export var boss_pool_late: Array[String] = [
+	"res://entities/enemies/magma_colossus.tscn",  # 600hp
+	"res://entities/enemies/iron_bruiser.tscn",    # 160hp
+]
+## Soft cap on the per-boss-floor HP bump in _spawn_boss so deep colossus fights stay beatable
+## rather than scaling without bound. The bump is 1.0 + 0.25*(boss_number-1), clamped to this.
+@export var boss_hp_scale_max: float = 2.5
+
+# --- Depth-tiered weapon loot pools ----------------------------------------
+# WHY: loot weapon pools were FLAT — a floor-1 chest and a floor-10 chest drew from the same six
+# weapons, so descending was never mechanically rewarding. _weapon_pool_for_depth picks by tier =
+# clampi((_depth-1)/2,0,3) so early floors hand out basic gear and deep floors start dropping the
+# high-tier blades. Selecting from a different-sized pool still consumes EXACTLY ONE rng draw per
+# weapon (same as before), so enemy placement downstream is byte-identical for a given seed — only
+# WHICH weapon changes. Empty a tier to revert that tier to the original six-weapon fallback list.
+## Floors 1-2: starter melee + bow.
+@export var weapon_pool_t0: Array[StringName] = [&"bow", &"steel_sword", &"iron_sword"]
+## Floors 3-4: ranged + elemental wands enter the rotation.
+@export var weapon_pool_t1: Array[StringName] = [&"steel_sword", &"crossbow", &"flame_wand", &"frost_wand"]
+## Floors 5-6: the full wand set + a dark blade.
+@export var weapon_pool_t2: Array[StringName] = [&"crossbow", &"flame_wand", &"frost_wand", &"arcane_wand", &"obsidian_blade"]
+## Floors 7+: the top-tier blades and arcane gear — descending finally pays off.
+@export var weapon_pool_t3: Array[StringName] = [&"arcane_wand", &"obsidian_blade", &"crystal_blade", &"greatsword", &"radiant_sword"]
+
+# --- Depth-scaled atmosphere -----------------------------------------------
+# WHY: every floor looked identically lit, so there was no felt sense of a crushing descent.
+# _build_environment now thickens the fog and dims the ambient per floor (purely cosmetic — no
+# combat/nav impact). All bounds are tunable and clamped so the deepest floors stay legible.
+## Master gate for the per-floor fog/ambient ramp below. Off => the original per-theme look.
+@export var enable_depth_scaling: bool = true
+## Fractional fog-density increase per floor descended (floor N adds this * (N-1) of the base).
+@export var fog_density_per_floor: float = 0.06
+## Absolute ceiling on the scaled fog density so deep floors never become an unreadable pea-soup.
+@export var fog_density_max: float = 0.12
+## Fractional ambient-energy reduction per floor descended (deeper => darker).
+@export var ambient_energy_per_floor: float = 0.04
+## Floor under which the scaled ambient energy is never allowed to drop (keeps the floor legible).
+@export var ambient_energy_min: float = 0.18
+
+# --- Cosmetic detail scatter -----------------------------------------------
+# WHY: extra ground-level flavour (rubble, ore veins, fungus) that reads as lived-in decay, kept
+# entirely separate from the existing _scatter_clutter so it can be tuned/disabled independently.
+# Implemented in dungeon_details.gd, loaded BY PATH (no class_name in the hot path), driven off a
+# SEPARATE seed offset so toggling it never perturbs geometry/loot/enemy determinism. Collision-free.
+## Master gate for the cosmetic detail scatter. Off => no detail pass at all (a true no-op).
+@export var enable_details: bool = true
+## Rough detail count per room tile (a 4-tile room ~= this * 4 details). Clamped per-room internally.
+@export var details_density: float = 0.6
 
 # Current floor (1-based). Bumped by descend(); resets to 1 whenever the scene reloads.
 var _depth: int = 1
@@ -183,6 +256,9 @@ func build(seed: int, difficulty_level: int = 1) -> void:
 	# Decorative themed clutter (rocks, barrels, dead trees, mushrooms...). Own rng seeded from
 	# `seed` so it's stable per floor yet never perturbs the main rng (loot/enemies stay identical).
 	_scatter_clutter(rooms, seed)
+	# Cosmetic, collision-free detail scatter (rubble/veins/fungus). Loaded by PATH and given its
+	# own seed offset inside the helper, so toggling enable_details never disturbs the main rng.
+	_scatter_details(rooms, seed)
 
 	# Atmosphere + navigation aids + progression furniture.
 	_build_lights(rooms, rng)
@@ -192,6 +268,9 @@ func build(seed: int, difficulty_level: int = 1) -> void:
 	_place_town_exit(rooms)
 	_place_loot(rooms, rng, seed, boss)
 	_place_vault_contents(rng, seed)
+	# Scatter rare harvestable nodes (own rng seeded from `seed`, so it never perturbs the main
+	# rng — enemies/geometry stay byte-identical). No-op when rare_loot_ids is empty.
+	_place_rare_nodes(rooms, rng, seed)
 
 	# Populate the generated spawn markers with a seeded, budgeted army (scaled by depth).
 	var spawner := EnemySpawner.new()
@@ -264,6 +343,46 @@ func _themes() -> Array:
 			"light_cool": Color(0.6, 0.9, 0.7),
 			"light_warm": Color(0.85, 0.95, 0.45),
 		},
+		{
+			"name": "Cave",
+			"floor_albedo": Color(0.15, 0.12, 0.09),
+			"wall_albedo": Color(0.2, 0.16, 0.12),
+			"ambient_color": Color(0.24, 0.2, 0.16),
+			"fog_color": Color(0.09, 0.07, 0.05),
+			"fog_density": 0.035,
+			"light_cool": Color(0.7, 0.75, 0.85),
+			"light_warm": Color(0.95, 0.7, 0.45),
+		},
+		{
+			"name": "Mine",
+			"floor_albedo": Color(0.16, 0.13, 0.1),
+			"wall_albedo": Color(0.21, 0.17, 0.12),
+			"ambient_color": Color(0.26, 0.22, 0.15),
+			"fog_color": Color(0.1, 0.08, 0.05),
+			"fog_density": 0.03,
+			"light_cool": Color(0.8, 0.78, 0.7),
+			"light_warm": Color(1.0, 0.72, 0.32),
+		},
+		{
+			"name": "Sewer",
+			"floor_albedo": Color(0.12, 0.15, 0.12),
+			"wall_albedo": Color(0.14, 0.18, 0.15),
+			"ambient_color": Color(0.18, 0.26, 0.2),
+			"fog_color": Color(0.07, 0.12, 0.08),
+			"fog_density": 0.06,
+			"light_cool": Color(0.55, 0.85, 0.65),
+			"light_warm": Color(0.7, 0.9, 0.5),
+		},
+		{
+			"name": "PowerPlant",
+			"floor_albedo": Color(0.16, 0.18, 0.21),
+			"wall_albedo": Color(0.19, 0.22, 0.27),
+			"ambient_color": Color(0.2, 0.24, 0.32),
+			"fog_color": Color(0.08, 0.1, 0.14),
+			"fog_density": 0.028,
+			"light_cool": Color(0.6, 0.78, 1.0),
+			"light_warm": Color(1.0, 0.75, 0.2),
+		},
 	]
 
 
@@ -272,6 +391,15 @@ func _themes() -> Array:
 # so geometry/markers/vault/loot reproduce exactly while the theme stays stable for the seed.
 func _pick_theme(seed: int) -> Dictionary:
 	var themes: Array = _themes()
+	# Biome lock: if an entrance scene set forced_theme_name and it matches a theme (case-
+	# insensitive), use that theme on every floor instead of the random draw. Falls through to the
+	# seed-random pick when empty or unmatched, so the default behaviour is untouched.
+	if forced_theme_name != "":
+		var want: String = forced_theme_name.to_lower()
+		for t in themes:
+			var row: Dictionary = t
+			if String(row.get("name", "")).to_lower() == want:
+				return row
 	var theme_rng := RandomNumberGenerator.new()
 	theme_rng.seed = seed
 	var idx: int = theme_rng.randi_range(0, themes.size() - 1)
@@ -300,6 +428,15 @@ func _build_environment() -> void:
 	var ambient_color: Color = _theme["ambient_color"]
 	var fog_color: Color = _theme["fog_color"]
 	var fog_density: float = _theme["fog_density"]
+	var ambient_energy: float = 0.5
+
+	# Depth ramp: each floor descended thickens the fog and dims the ambient a little, so a deep
+	# floor reads as a crushing, suffocating descent. Bounds-clamped so the deepest floors stay
+	# legible. Purely cosmetic — fog/ambient touch neither collision nor the baked navmesh.
+	if enable_depth_scaling:
+		var floors_down: int = maxi(_depth - 1, 0)
+		fog_density = minf(fog_density * (1.0 + fog_density_per_floor * float(floors_down)), fog_density_max)
+		ambient_energy = maxf(0.5 * (1.0 - ambient_energy_per_floor * float(floors_down)), ambient_energy_min)
 
 	var sky_mat := ProceduralSkyMaterial.new()
 	sky_mat.sky_horizon_color = Color(0.1, 0.09, 0.12)
@@ -313,7 +450,7 @@ func _build_environment() -> void:
 	env.sky = sky
 	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	env.ambient_light_color = ambient_color
-	env.ambient_light_energy = 0.5
+	env.ambient_light_energy = ambient_energy
 	env.tonemap_mode = Environment.TONE_MAPPER_FILMIC
 	env.fog_enabled = true
 	env.fog_light_color = fog_color
@@ -459,6 +596,7 @@ func _add_floor_tile(parent: Node3D, tile: Vector2i) -> void:
 	var art: Node3D = KIT_FLOOR.instantiate()
 	art.position = Vector3(0.0, FLOOR_THICKNESS * 0.5, 0.0)
 	body.add_child(art)
+	_tint_art(art, _floor_mat)
 	parent.add_child(body)
 
 
@@ -494,6 +632,7 @@ func _add_wall_edge(parent: Node3D, tile: Vector2i, dir: Vector2i) -> void:
 	var art: Node3D = KIT_WALL.instantiate()
 	art.rotation.y = rot_y
 	body.add_child(art)
+	_tint_art(art, _wall_mat)
 	parent.add_child(body)
 
 
@@ -519,6 +658,17 @@ func _place_pillars(rooms: Array) -> void:
 				var p: Node3D = KIT_PILLAR.instantiate()
 				p.position = Vector3(cx, 0.0, cz)
 				holder.add_child(p)
+				_tint_art(p, _wall_mat)
+
+
+# Recursively push a material onto every MeshInstance3D under an instanced art node, so the
+# theme's floor/wall albedo actually paints the KayKit geometry (which otherwise keeps its own
+# baked stone texture in every theme).
+func _tint_art(node: Node, mat: Material) -> void:
+	if node is MeshInstance3D:
+		(node as MeshInstance3D).material_override = mat
+	for child in node.get_children():
+		_tint_art(child, mat)
 
 
 # --- Decorative clutter ----------------------------------------------------
@@ -567,6 +717,16 @@ func _clutter_pool(theme_name: String) -> Array:
 		"Frost":
 			pool += _load_clutter(nat, ["DeadTree_2.gltf", "DeadTree_3.gltf"])
 			pool += _load_clutter(res, ["Iron_Nugget_Large.gltf", "Copper_Nugget_Large.gltf"])
+		"Sewer":
+			pool += _load_clutter(nat, ["Mushroom_Common.gltf", "Mushroom_Laetiporus.gltf"])
+			pool += _load_clutter(res, ["Fuel_A_Barrel.gltf", "Fuel_A_Barrels.gltf", "Fuel_B_Barrel.gltf"])
+		"Mine":
+			pool += _load_clutter(res, ["Iron_Nugget_Large.gltf", "Iron_Nugget_Medium.gltf", "Stone_Bricks_Stack_Medium.gltf", "Pallet_Wood.gltf"])
+		"PowerPlant":
+			pool += _load_clutter(res, ["Fuel_A_Barrel.gltf", "Fuel_B_Barrel.gltf", "Iron_Nugget_Large.gltf"])
+		"Cave":
+			pool += _load_clutter(nat, ["Rock_Medium_1.gltf", "Rock_Medium_2.gltf", "Rock_Medium_3.gltf"])
+			pool += _load_clutter(res, ["Iron_Nugget_Large.gltf", "Copper_Nugget_Large.gltf"])
 		_:
 			pool += _load_clutter(res, ["Iron_Nugget_Large.gltf", "Iron_Nugget_Medium.gltf", "Copper_Nugget_Large.gltf"])
 			pool += _load_clutter(nat, ["DeadTree_4.gltf"])
@@ -579,6 +739,20 @@ func _load_clutter(dir: String, names: Array) -> Array:
 		if r is PackedScene:
 			out.append(r)
 	return out
+
+
+# Cosmetic detail scatter. Delegates to dungeon_details.gd, loaded BY PATH (no class_name in this
+# hot path) so the generator never hard-depends on a brand-new type. The helper runs off its own
+# seed offset and adds collision-free meshes only, so it can never disturb geometry/loot/enemy
+# determinism or the baked navmesh. A true no-op when enable_details is off or the script is missing.
+func _scatter_details(rooms: Array, seed: int) -> void:
+	if not enable_details:
+		return
+	var details: GDScript = load("res://stages/dungeons/procedural/dungeon_details.gd") as GDScript
+	if details == null:
+		return
+	# Static entry point; passes everything it needs (no instance state) so it stays a pure helper.
+	details.scatter(self, rooms, seed, details_density, String(_theme.get("name", "Stone")), TILE_SIZE)
 
 
 # --- Lights ----------------------------------------------------------------
@@ -756,10 +930,11 @@ func _place_loot(rooms: Array, rng: RandomNumberGenerator, level_seed: int, boss
 	holder.name = "Loot"
 	add_child(holder)
 
-	# Weapons the dungeon can reward. One is guaranteed in the end-room chest.
-	var weapon_pool: Array[StringName] = [
-		&"crossbow", &"flame_wand", &"frost_wand", &"arcane_wand", &"bow", &"steel_sword"
-	]
+	# Weapons the dungeon can reward, DEPTH-TIERED (see _weapon_pool_for_depth): early floors hand
+	# out basic gear, deep floors drop the high-tier blades. One is guaranteed in the end-room
+	# chest. Selecting from this pool consumes the same number of rng draws as the old flat list, so
+	# enemy placement (drawn from the same rng AFTER loot) stays byte-identical for a given seed.
+	var weapon_pool: Array[StringName] = _weapon_pool_for_depth()
 
 	# The vault needs a key SOMEWHERE on the floor: pick a guaranteed "key room" (a middle
 	# journey room) so the player can always reach the locked vault.
@@ -804,6 +979,8 @@ func _place_loot(rooms: Array, rng: RandomNumberGenerator, level_seed: int, boss
 		rentries.append(_loot_entry(weapon_id2, 1, 1))
 		rentries.append(_loot_entry(&"health_potion", 2, 3))
 		rentries.append(_loot_entry(&"smoke_grenade", 1, 2))
+	# Fold this floor's rare ids into the guaranteed reward (no-op when none configured).
+	_append_rare_loot(rentries)
 	reward.entries = rentries
 	_make_chest(holder, end_corner, StringName("proc_%d_reward" % level_seed), reward)
 
@@ -853,6 +1030,89 @@ func _loot_entry(id: StringName, lo: int, hi: int) -> LootEntry:
 func _minor_pickup_id(rng: RandomNumberGenerator) -> StringName:
 	var pool: Array[StringName] = [&"health_potion", &"sulfur_crystal", &"lava_ash", &"throwing_knife"]
 	return pool[rng.randi_range(0, pool.size() - 1)]
+
+
+# The weapon-reward pool for the CURRENT floor, tiered by depth so descending is rewarding. Tier =
+# clampi((_depth-1)/2,0,3) -> two floors per tier, capped at the top tier. Any tier left empty in
+# the inspector reverts to the original flat six-weapon list (a safe rollback that also reproduces
+# the pre-tiering loot exactly). The returned array's SIZE is the only thing depth changes here;
+# callers still make the same number of rng draws, so downstream enemy placement is unaffected.
+func _weapon_pool_for_depth() -> Array[StringName]:
+	var tier: int = clampi((_depth - 1) / 2, 0, 3)
+	var pool: Array[StringName]
+	match tier:
+		0:
+			pool = weapon_pool_t0
+		1:
+			pool = weapon_pool_t1
+		2:
+			pool = weapon_pool_t2
+		_:
+			pool = weapon_pool_t3
+	if pool.is_empty():
+		# Safe rollback: the original flat pool, identical to the pre-tiering behaviour.
+		var fallback: Array[StringName] = [&"crossbow", &"flame_wand", &"frost_wand", &"arcane_wand", &"bow", &"steel_sword"]
+		return fallback
+	return pool
+
+
+# --- Rare nodes ------------------------------------------------------------
+
+# Map a rare item id to the harvestable node scene that yields it. Only ids that have a mineable
+# node appear here (power_core / rusted_key arrive via chests, not nodes), so an entrance can list
+# all five rare ids and we simply scatter the ones that have a node.
+const RARE_NODE_FOR_ID: Dictionary = {
+	&"scrap_metal": "res://entities/harvestables/scrap_pile.tscn",
+	&"raw_gemstone": "res://entities/harvestables/gem_node.tscn",
+	&"glow_crystal": "res://entities/harvestables/glow_crystal_node.tscn",
+}
+
+# Scatter 2-4 rare harvestable nodes into non-start rooms, drawn from whichever rare_loot_ids map
+# to a node scene. Loaded by PATH (cold-cache safe). Uses its OWN rng seeded from `seed` so it's
+# deterministic per floor yet never disturbs the main generation rng — the `rng` param is accepted
+# for interface symmetry but intentionally NOT drawn from. No-op when nothing matches (the empty
+# default reproduces the original dungeon exactly).
+func _place_rare_nodes(rooms: Array, _rng: RandomNumberGenerator, seed: int) -> void:
+	if rooms.size() < 2 or rare_loot_ids.is_empty():
+		return
+	# Build the pool of node scene PATHS this floor can scatter.
+	var paths: Array[String] = []
+	for id in rare_loot_ids:
+		if RARE_NODE_FOR_ID.has(id):
+			var p: String = RARE_NODE_FOR_ID[id]
+			if not paths.has(p):
+				paths.append(p)
+	if paths.is_empty():
+		return
+
+	var node_rng := RandomNumberGenerator.new()
+	node_rng.seed = seed * 53 + 91
+	var holder := Node3D.new()
+	holder.name = "RareNodes"
+	add_child(holder)
+
+	var count: int = node_rng.randi_range(2, 4)
+	for n in range(count):
+		# Any non-start room (index 1..last). The end room is allowed — a rare node by the climax
+		# reads fine and small dungeons may have few rooms.
+		var ri: int = node_rng.randi_range(1, rooms.size() - 1)
+		var rect: Rect2i = rooms[ri]
+		var pos: Vector3 = _random_point_in_room(rect, node_rng)
+		var scene_path: String = paths[node_rng.randi() % paths.size()]
+		var scene: PackedScene = load(scene_path) as PackedScene
+		if scene == null:
+			continue
+		var node: Node = scene.instantiate()
+		holder.add_child(node)
+		(node as Node3D).global_position = Vector3(pos.x, 0.0, pos.z)
+
+
+# Append one 1-count LootEntry per rare_loot_id onto an existing entries array (in place). Used to
+# fold the floor's rare ids into the guaranteed reward + vault chests. No rng draw, so turning rare
+# loot on never perturbs enemy placement. No-op when rare_loot_ids is empty.
+func _append_rare_loot(entries: Array[LootEntry]) -> void:
+	for id in rare_loot_ids:
+		entries.append(_loot_entry(id, 1, 1))
 
 
 # --- Locked vault ----------------------------------------------------------
@@ -923,6 +1183,8 @@ func _place_vault_contents(rng: RandomNumberGenerator, level_seed: int) -> void:
 	e.append(_loot_entry(&"crossbow", 1, 1))
 	e.append(_loot_entry(&"health_potion", 3, 5))
 	e.append(_loot_entry(&"fire_bomb", 2, 3))
+	# The premium vault also carries this floor's rare ids (no-op when none configured).
+	_append_rare_loot(e)
 	table.entries = e
 	_make_chest(holder, center, StringName("proc_%d_vault" % level_seed), table)
 
@@ -979,19 +1241,38 @@ func _make_vault_door(parent: Node3D, inside_tile: Vector2i, dir: Vector2i, key_
 
 # --- Boss ------------------------------------------------------------------
 
+# The boss pool for a given depth tier (0=early, 1=mid, 2=late). Falls back to the legacy un-tiered
+# boss_pool when the requested tier pool is empty, so clearing the tiered pools reverts cleanly.
+func _boss_pool_for_tier(tier: int) -> Array:
+	var pool: Array
+	match tier:
+		0:
+			pool = boss_pool_early
+		1:
+			pool = boss_pool_mid
+		_:
+			pool = boss_pool_late
+	if pool.is_empty():
+		pool = boss_pool  # legacy un-tiered fallback (empty by default; then boss_scene_path is used)
+	return pool
+
+
 # Drop the boss in the reserved end room and, on a boss floor, gate the descend portal on its
-# death so the player can't skip the fight. The boss is drawn from boss_pool (deterministically,
-# off the passed rng) and gets a small health bump on deeper boss floors.
+# death so the player can't skip the fight. The boss is drawn from the DEPTH-TIERED boss pool
+# (deterministically, off the passed rng) and gets a soft-capped health bump on deeper boss floors.
 func _spawn_boss(rooms: Array, portal: DescendPortal, rng: RandomNumberGenerator) -> void:
 	if rooms.is_empty():
 		return
 
-	# Pick which boss to fight: a deterministic draw from boss_pool, falling back to the single
-	# boss_scene_path when the pool is empty (so old setups keep their one configured boss).
+	# Pick which boss to fight: a deterministic draw from the DEPTH-TIERED pool for this floor, so an
+	# early boss floor can't roll a late-game heavyweight. Falls back to the legacy boss_pool, then
+	# to the single boss_scene_path, when a pool is empty (so old setups keep their one boss).
+	var tier: int = clampi((_depth - 1) / BOSS_EVERY, 0, 2)
+	var pool: Array = _boss_pool_for_tier(tier)
 	var chosen_path: String = boss_scene_path
-	if not boss_pool.is_empty():
-		var bi: int = rng.randi_range(0, boss_pool.size() - 1)
-		chosen_path = boss_pool[bi]
+	if not pool.is_empty():
+		var bi: int = rng.randi_range(0, pool.size() - 1)
+		chosen_path = pool[bi]
 
 	var boss_scene: PackedScene = load(chosen_path)
 	if boss_scene == null:
@@ -1012,7 +1293,9 @@ func _spawn_boss(rooms: Array, portal: DescendPortal, rng: RandomNumberGenerator
 	var health: Node = boss.get_node_or_null("Health")
 	var boss_number: int = _depth / BOSS_EVERY
 	if health != null and boss_number > 1:
-		var hp_scale: float = 1.0 + 0.25 * float(boss_number - 1)
+		# Soft-capped so deep boss HP scales as a curve that flattens, not without bound — a
+		# 600hp colossus at x2.5 is already a wall; beyond that fights just become tedious.
+		var hp_scale: float = minf(1.0 + 0.25 * float(boss_number - 1), boss_hp_scale_max)
 		var base_max: float = health.max_health
 		health.max_health = base_max * hp_scale
 		health.current = health.max_health
@@ -1035,26 +1318,33 @@ func _spawn_boss(rooms: Array, portal: DescendPortal, rng: RandomNumberGenerator
 func _grant_starter_kit_if_unarmed() -> void:
 	if not grant_starter_kit:
 		return
+	# Direct-play convenience only: entry from the overworld goes through SceneManager (the dungeon
+	# is parented under the world SubViewport, so it is NOT the tree's current_scene). F6 direct play
+	# loads this scene under the tree root, where current_scene == self. Skip otherwise so a real
+	# session never gets the convenience kit (and never has its hotbar disturbed).
+	if get_tree().current_scene != self:
+		return
 	if not _player_has_no_weapon():
 		return
+	# One-time only: re-entering/descending dungeons must not re-farm a fresh free kit. A
+	# GameState flag latches the first grant so subsequent unarmed checks are skipped entirely.
+	if GameState.get_flag(&"starter_kit_granted"):
+		return
+	GameState.set_flag(&"starter_kit_granted", true)
+	# Add to the bag only — never touch the hotbar, so the player's own tools/layout always survive.
+	# A genuinely empty F6 save still gains weapons it can manually drag onto the hotbar.
 	Inventory.add(&"steel_sword", 1)
 	Inventory.add(&"bow", 1)
 	Inventory.add(&"flame_wand", 1)
 	Inventory.add(&"throwing_knife", 12)
 	Inventory.add(&"health_potion", 3)
-	Hotbar.set_slot(0, &"steel_sword")
-	Hotbar.set_slot(1, &"bow")
-	Hotbar.set_slot(2, &"flame_wand")
-	Hotbar.set_slot(3, &"throwing_knife")
-	Hotbar.set_slot(4, &"health_potion")
-	Hotbar.select(0)
 
 
 # True when the player carries none of the core weapons — used to decide whether the
 # direct-play starter kit should fire.
 func _player_has_no_weapon() -> bool:
 	var weapons: Array[StringName] = [
-		&"steel_sword", &"obsidian_blade", &"bow", &"crossbow",
+		&"driftwood_club", &"steel_sword", &"obsidian_blade", &"bow", &"crossbow",
 		&"flame_wand", &"frost_wand", &"arcane_wand"
 	]
 	for w in weapons:

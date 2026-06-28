@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="Quest" load_steps=6 format=3]
+
+[ext_resource type="Script" path="res://global/quests/quest.gd" id="1_quest"]
+[ext_resource type="Script" path="res://global/quests/quest_objective.gd" id="2_objective"]
+[ext_resource type="Script" path="res://global/quests/game_effect.gd" id="3_effect"]
+
+[sub_resource type="Resource" id="Resource_objective_met"]
+script = ExtResource("2_objective")
+description = "Talk to Marlo at the brewery"
+kind = 1
+target = &"met_marlo"
+required_count = 1
+
+[sub_resource type="Resource" id="Resource_reward_money"]
+script = ExtResource("3_effect")
+type = 5
+target = &""
+amount = 25
+
+[resource]
+script = ExtResource("1_quest")
+id = &"getting_started"
+title = "Getting Started"
+tier = 0
+description = "New in town? Find Marlo at the brewery just west of the square and see what he needs."
+objectives = Array[ExtResource("2_objective")]([SubResource("Resource_objective_met")])
+rewards = Array[ExtResource("3_effect")]([SubResource("Resource_reward_money")])

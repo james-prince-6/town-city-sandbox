@@ -53,6 +53,21 @@ const SCENE_BOG: PackedScene = preload("res://entities/enemies/bog_lurker.tscn")
 ## Height (m) above a marker that an enemy is dropped, so it doesn't spawn inside the floor.
 @export var spawn_lift: float = 0.6
 
+# --- Late-game scaling soft-cap --------------------------------------------
+# Player power hard-caps (~+60% from skills) while a naive linear budget grows forever, so deep
+# floors eventually become sheer walls. These knobs shape that curve and let an end-game perk
+# (veteran) buy a real ceiling. Defaults are NEUTRAL — they reproduce the old linear behaviour
+# exactly — so existing dungeons are unchanged until the integrator dials them.
+## Budget grows as base + pow(difficulty, difficulty_curve_exp) * budget_per_difficulty. At 1.0 this
+## is the original linear ramp (existing behaviour preserved). BELOW 1.0 each deeper step adds LESS
+## (a diminishing-returns soft-cap so deep floors stop spiking); ABOVE 1.0 it accelerates. The
+## suggested late-game value is ~1.15 if you want descent to bite harder rather than softer.
+@export var difficulty_curve_exp: float = 1.0
+## Optional hard ceiling on the difficulty fed into the budget/elite math. 0 disables it. Only
+## honoured when the player owns the 'veteran' Survival perk — turning it into a player-EARNED cap so
+## the very deepest dungeons stop ramping horde size / elite density against a capped character.
+@export var max_difficulty: int = 8
+
 # --- Elites ----------------------------------------------------------------
 # A small slice of spawns are promoted to ELITES: tougher, richer, and visually glowing gold so
 # the player can pick them out of a mob. The chance scales with difficulty (deeper => more
@@ -68,6 +83,11 @@ const SCENE_BOG: PackedScene = preload("res://entities/enemies/bog_lurker.tscn")
 @export var elite_health_mult: float = 2.2
 ## Attack-damage multiplier applied to an elite's duplicated stats.
 @export var elite_damage_mult: float = 1.6
+## Absolute ceiling on an elite's boosted attack damage, as a multiple of the enemy's BASE damage.
+## elite_damage_mult is applied first, then clamped to base * this — a guard so stacked or future
+## elite scaling can't make an elite a one-shot wall while player power is capped. Keep this >=
+## elite_damage_mult (default does) to leave the standard elite untouched.
+@export var elite_damage_mult_cap: float = 2.5
 ## XP-reward multiplier applied to an elite's duplicated stats.
 @export var elite_xp_mult: float = 3.0
 ## Emissive glow energy stamped on an elite's Animator (0 would leave it unlit).
@@ -126,12 +146,15 @@ func populate(world: Node3D, difficulty: int, rng: RandomNumberGenerator) -> voi
 	# the order the generator happened to create them in.
 	_shuffle(markers, rng)
 
+	# Soft-cap the difficulty used for ALL budget/elite math first (only bites with the veteran perk
+	# + a ceiling set), then spend a curve-shaped budget rather than a pure-linear one.
+	var eff_difficulty: int = _effective_difficulty(difficulty)
 	var table: Array = _spawn_table()
-	var budget: int = base_budget + max(difficulty, 0) * budget_per_difficulty
+	var budget: int = base_budget + _difficulty_budget(eff_difficulty)
 	var spawned: int = 0
 	var marker_index: int = 0
 	# The per-enemy elite chance for this difficulty, computed once up front.
-	var elite_chance: float = _elite_chance(difficulty)
+	var elite_chance: float = _elite_chance(eff_difficulty)
 
 	# Spend the budget: each loop picks an AFFORDABLE enemy (one whose cost fits the
 	# remaining budget), drops it on the next marker (wrapping round-robin), and subtracts
@@ -197,6 +220,32 @@ func _spawn_one(scene: PackedScene, world: Node3D, pos: Vector3, elite: bool = f
 	return enemy
 
 
+# The difficulty actually used for budget/elite math. When the player owns the 'veteran' Survival
+# perk AND a ceiling is set (max_difficulty > 0), clamp difficulty to it so the deepest floors stop
+# scaling — a player-EARNED soft-cap on enemy growth. Without the perk (or with the ceiling off),
+# difficulty passes through untouched, so every existing/un-perked run behaves exactly as before.
+func _effective_difficulty(difficulty: int) -> int:
+	if max_difficulty > 0 and _veteran_owned():
+		return mini(difficulty, max_difficulty)
+	return difficulty
+
+
+# Budget contributed by difficulty: pow(difficulty, difficulty_curve_exp) * budget_per_difficulty,
+# rounded to a whole point. At difficulty_curve_exp == 1.0 this equals the old linear term exactly
+# (pow(n, 1.0) == n), so the default curve is byte-for-byte the previous behaviour.
+func _difficulty_budget(difficulty: int) -> int:
+	var steps: float = float(max(difficulty, 0))
+	return int(round(pow(steps, difficulty_curve_exp) * float(budget_per_difficulty)))
+
+
+# True when the player owns the 'veteran' perk. Progression is reached defensively via
+# get_node_or_null so a spawner instanced in isolation (or a unit test without the autoload) simply
+# reports false and the ceiling stays disabled.
+func _veteran_owned() -> bool:
+	var prog: Node = get_node_or_null("/root/Progression")
+	return prog != null and prog.has_perk(&"veteran")
+
+
 # The per-enemy chance (0..1) of becoming an elite at the given difficulty: a base chance plus a
 # per-step ramp, clamped to elite_max_chance so even a very deep floor keeps some normal chaff.
 func _elite_chance(difficulty: int) -> float:
@@ -215,7 +264,8 @@ func _make_elite(enemy: Node) -> void:
 	if base_stats != null:
 		var boosted: EnemyStats = base_stats.duplicate() as EnemyStats
 		boosted.max_health = base_stats.max_health * elite_health_mult
-		boosted.damage = base_stats.damage * elite_damage_mult
+		# Apply the elite damage boost, then clamp it to base * cap so it can't become a one-shot.
+		boosted.damage = minf(base_stats.damage * elite_damage_mult, base_stats.damage * elite_damage_mult_cap)
 		boosted.xp = int(round(float(base_stats.xp) * elite_xp_mult))
 		boosted.loot_amount = base_stats.loot_amount + 1
 		enemy.set("stats", boosted)

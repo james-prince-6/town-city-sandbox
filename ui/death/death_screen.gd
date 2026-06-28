@@ -27,10 +27,32 @@ const Glass = preload("res://ui/glass_style.gd")
 const DUNGEON_DEATH_SCENE: String = "res://stages/overworld/town_template.tscn"
 const DUNGEON_DEATH_SPAWN: StringName = &"from_dungeon"
 
+# --- Soft death penalty ----------------------------------------------------
+# Death used to be consequence-free (full heal, all loot + XP kept), so dying never stung. These
+# two fractions add a small, tunable cost: on respawn the player drops a slice of EACH consumable
+# stack they carry as pickups at the spot they fell, and loses a slice of the CURRENT level's XP.
+# Set either to 0.0 to restore the old free death. Kept here as named consts so the integrator can
+# retune the stakes without touching the flow code.
+## Fraction (rounded DOWN) of every consumable stack dropped on death.
+const DEATH_CONSUMABLE_DROP_FRACTION: float = 0.30
+## Fraction (rounded DOWN) of the current level's in-progress XP lost on death (never de-levels).
+const DEATH_XP_LOSS_FRACTION: float = 0.10
+
 var is_open: bool = false
 
 var _root: Control
 var _respawn_btn: Button
+
+## A dimmed line under "You Died" reporting what the death cost (set when the screen appears).
+var _summary_label: Label
+
+## Where the player fell — captured the instant death fires, so loot scatters at the body even
+## though it isn't moved/teleported until respawn.
+var _death_position: Vector3 = Vector3.ZERO
+
+## The penalty worked out for THIS death: { "drops": { item_id -> count }, "xp": int }. Computed
+## when the screen appears (so the summary is exact) and applied verbatim on respawn.
+var _pending_penalty: Dictionary = {}
 
 func _ready() -> void:
 	# Above the pause menu (20) so a death that lands while paused still wins, and
@@ -49,6 +71,11 @@ func _on_player_died() -> void:
 	if is_open:
 		return
 	is_open = true
+	# Remember where we fell and work out the penalty NOW (while the bag/XP are untouched and the
+	# body is still at the death spot) so the on-screen summary is accurate. Nothing is committed
+	# until respawn — see _apply_penalty().
+	_death_position = _player_position()
+	_compute_penalty()
 	show()
 	get_tree().paused = true
 	# Clock runs with PROCESS_MODE_ALWAYS, so the tree pause won't stop it — do it explicitly.
@@ -62,6 +89,10 @@ func _on_player_died() -> void:
 func _on_respawn_pressed() -> void:
 	if not is_open:
 		return
+	# Pay the death penalty FIRST — drop the planned consumables at the body and shave XP — while the
+	# player is still "dead" and (for a dungeon death) still in the scene they fell in. Then the
+	# full-heal reset and the teleport/scene-change below proceed exactly as before.
+	_apply_penalty()
 	# Bring the player back to full health/stamina and clear the death guard.
 	PlayerStats.reset()
 	# Dying in a dungeon sends you back to the overworld; otherwise respawn locally. The scene
@@ -138,6 +169,79 @@ func _nearest_respawn_transform(from: Vector3) -> Variant:
 		return null
 	return best.global_transform
 
+# --- Soft death penalty ----------------------------------------------------
+
+# Global position of the player (group "player") right now, or ZERO if there isn't one (a menu
+# scene). Used to scatter dropped loot at the body.
+func _player_position() -> Vector3:
+	var player := get_tree().get_first_node_in_group("player")
+	if player is Node3D:
+		return (player as Node3D).global_position
+	return Vector3.ZERO
+
+# Work out — but DON'T yet apply — what this death will cost: floor(fraction) of every CONSUMABLE
+# stack carried, plus floor(fraction) of the current level's XP. Stash it in _pending_penalty and
+# update the summary label so the screen reports the stakes; _apply_penalty() commits it on respawn.
+# Fully graceful when the optional Inventory / Progression autoloads are missing or nothing is held.
+func _compute_penalty() -> void:
+	var drops: Dictionary = {}
+	var dropped_total: int = 0
+	var inv: Node = get_node_or_null("/root/Inventory")
+	if inv != null:
+		var all: Dictionary = inv.get_all()
+		for id in all:
+			var item: Item = inv.get_item(id)
+			if item == null or item.category != Item.Category.CONSUMABLE:
+				continue
+			var count: int = int(all[id])
+			var lose: int = int(floor(float(count) * DEATH_CONSUMABLE_DROP_FRACTION))
+			if lose > 0:
+				drops[id] = lose
+				dropped_total += lose
+	var xp_loss: int = 0
+	var prog: Node = get_node_or_null("/root/Progression")
+	if prog != null:
+		xp_loss = int(floor(float(prog.get_xp()) * DEATH_XP_LOSS_FRACTION))
+	_pending_penalty = {"drops": drops, "xp": xp_loss}
+	_update_summary(dropped_total, xp_loss)
+
+# Commit the penalty computed when the screen appeared: pull the planned consumables out of the bag,
+# scatter them as WorldItems at the death spot, and shave the XP. Called before PlayerStats.reset()
+# so the loot leaves the bag while the player is still down. No-ops safely if autoloads/world/loot
+# are missing, and clears the pending penalty so a second respawn press can't double-charge.
+func _apply_penalty() -> void:
+	if _pending_penalty.is_empty():
+		return
+	var inv: Node = get_node_or_null("/root/Inventory")
+	var drops: Dictionary = _pending_penalty.get("drops", {})
+	if inv != null and not drops.is_empty():
+		var world: Node = SceneManager.current_world()
+		var drop_index: int = 0
+		for id in drops:
+			var count: int = int(drops[id])
+			# remove() returns false (and changes nothing) if the stack somehow shrank; skip those.
+			if not inv.remove(id, count):
+				continue
+			if world != null:
+				WorldItem.spawn(id, count, world, _death_position, drop_index)
+				drop_index += 1
+	var xp_loss: int = int(_pending_penalty.get("xp", 0))
+	if xp_loss > 0:
+		var prog: Node = get_node_or_null("/root/Progression")
+		if prog != null:
+			prog.lose_xp(xp_loss)
+	_pending_penalty = {}
+
+# Set the summary line to what was lost, or "No penalty" when nothing was. Guarded so it's safe to
+# call before _build_ui has created the label.
+func _update_summary(dropped_total: int, xp_loss: int) -> void:
+	if _summary_label == null:
+		return
+	if dropped_total <= 0 and xp_loss <= 0:
+		_summary_label.text = "No penalty"
+	else:
+		_summary_label.text = "Dropped %d consumables - lost %d XP" % [dropped_total, xp_loss]
+
 # --- UI construction (all in code) -----------------------------------------
 
 func _build_ui() -> void:
@@ -168,6 +272,15 @@ func _build_ui() -> void:
 	title.add_theme_font_size_override("font_size", 64)
 	title.add_theme_color_override("font_color", Color(0.85, 0.1, 0.1))
 	vbox.add_child(title)
+
+	# Dimmed line surfacing the death penalty (filled in by _compute_penalty when the screen opens),
+	# so the new stakes are visible rather than silent. Starts blank for the very first frame.
+	var summary := Label.new()
+	summary.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	summary.add_theme_font_size_override("font_size", 14)
+	summary.modulate = Color(1.0, 1.0, 1.0, 0.7)
+	vbox.add_child(summary)
+	_summary_label = summary
 
 	var respawn_btn := Button.new()
 	respawn_btn.text = "Respawn"

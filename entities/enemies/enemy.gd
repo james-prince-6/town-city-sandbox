@@ -396,6 +396,12 @@ func _can_attack() -> bool:
 
 
 # Launch the monster's offence according to its style, and start the cooldown.
+#
+# Optional NORMAL-attack telegraph: when the data sheet authors a positive `attack_windup`
+# (read defensively so sheets without the field stay valid), the enemy first plays a brief
+# amber glow pulse + a quiet "tell" click, waits out the wind-up, then strikes — giving the
+# player a readable beat to dodge. With the default windup of 0 this branch is skipped entirely
+# and the attack fires on exactly the old timing, so existing enemies are unchanged.
 func _perform_attack() -> void:
 	_last_attack_ms = Time.get_ticks_msec()
 	# Visible swing — melee enemies alternate between two swings so attacks don't look canned;
@@ -405,11 +411,59 @@ func _perform_attack() -> void:
 			_animator.play_oneshot(&"attack" if randf() < 0.5 else &"attack2")
 		else:
 			_animator.play_oneshot(&"attack")
+	var windup: float = _attack_windup()
+	if windup > 0.0:
+		_pulse_attack_tell(windup)
+		var feel = get_node_or_null("/root/CombatFeel")
+		if feel != null and feel.has_method("play_attack_tell"):
+			feel.play_attack_tell()
+		await get_tree().create_timer(windup).timeout
+		# Bail if we died, were freed, or got staggered out of it during the tell — a player
+		# who interrupts the wind-up shouldn't still eat the blow.
+		if _dead or not is_instance_valid(self) or stats == null:
+			return
+		if _state == State.STAGGER:
+			return
 	match stats.attack_style:
 		EnemyStats.AttackStyle.MELEE:
 			_spawn_melee_hitbox()
 		EnemyStats.AttackStyle.RANGED:
 			_spawn_projectile()
+
+
+# The authored normal-attack wind-up (seconds), read defensively: EnemyStats sheets that
+# predate the field simply return 0 (no telegraph). Negative values clamp to 0.
+func _attack_windup() -> float:
+	if stats == null:
+		return 0.0
+	var w = stats.get(&"attack_windup")
+	if w == null:
+		return 0.0
+	return maxf(float(w), 0.0)
+
+
+# A one-shot amber emission flare on the body that ramps up across the wind-up, then snaps
+# back as the blow lands. Self-cleaning (each mesh restores its own material via the tween),
+# and a no-op without a rigged model — distinct from the looping red SPECIAL tell.
+func _pulse_attack_tell(duration: float) -> void:
+	if _dead or _animator == null or not _animator.has_model():
+		return
+	var meshes := _animator.find_children("", "MeshInstance3D", true, false)
+	for m in meshes:
+		var mesh := m as MeshInstance3D
+		if mesh == null:
+			continue
+		var base_mat := mesh.material_override
+		var tell_mat := StandardMaterial3D.new()
+		if base_mat is StandardMaterial3D:
+			tell_mat = (base_mat as StandardMaterial3D).duplicate() as StandardMaterial3D
+		tell_mat.emission_enabled = true
+		tell_mat.emission = Color(1.0, 0.85, 0.2)  # warning amber (lighter than the special's red)
+		tell_mat.emission_energy_multiplier = 0.0
+		mesh.material_override = tell_mat
+		var tw := create_tween()
+		tw.tween_property(tell_mat, "emission_energy_multiplier", 2.5, maxf(duration * 0.8, 0.05))
+		tw.tween_callback(_restore_material.bind(mesh, base_mat))
 
 
 # --- Telegraphed special ---------------------------------------------------
@@ -701,10 +755,16 @@ func _on_hurt(info: DamageInfo) -> void:
 	# Don't bother reacting if the hit just killed us — _on_died takes over.
 	if _dead or (health and health.is_dead()):
 		return
-	# Flinch/stagger (poise-gated; crits always interrupt) and get shoved.
+	# Flinch/stagger (poise-gated; crits always interrupt) and get shoved. The shove force is
+	# scaled by the attacking weapon's class (heavy/crossbow shove harder than a light sword)
+	# via CombatFeel; damage is untouched. An unrecognized attacker yields 1.0 (unchanged).
 	_maybe_stagger(info, dealt)
 	if info != null:
-		apply_knockback(info.hit_direction, info.knockback)
+		var kb: float = info.knockback
+		var feel = get_node_or_null("/root/CombatFeel")
+		if feel != null and feel.has_method("weapon_knockback_mult_for_source"):
+			kb *= float(feel.weapon_knockback_mult_for_source(info.source))
+		apply_knockback(info.hit_direction, kb)
 
 
 # Health hit 0: scatter loot into the world, play the death clip, then remove ourselves

@@ -43,3 +43,12 @@ extends Resource
 ## Optional npc_id whose reputation tweaks this shop's prices. Higher rep makes
 ## buying cheaper and selling more profitable. Leave empty for fixed prices.
 @export var reputation_npc: StringName = &""
+
+## Reputation-gated stock: extra item ids that only appear for sale once the player
+## has earned the shopkeeper's trust. Keys are Reputation.Tier ints (3 = Friendly,
+## 4 = Beloved); values are Array[StringName] of item ids unlocked AT or ABOVE that
+## tier. Items here should NOT also be in `stock` (those are always available).
+## Requires `reputation_npc` to be set — with no npc there's no tier to gate on, so
+## gated items stay locked. Leave EMPTY ({}) for a shop whose stock never changes.
+## Example: { 4: [&"radiant_sword"] } sells a radiant sword only to Beloved customers.
+@export var tier_gated_stock: Dictionary = {}

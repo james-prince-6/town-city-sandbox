@@ -26,6 +26,11 @@ signal hit(info: DamageInfo)
 ## This hurtbox's side.
 @export var team: Team = Team.ENEMY
 
+## Block payoff: when the OWNER of this hurtbox is actively blocking and takes a hit, shove the
+## attacker back by this much (m/s). Turns a raised guard into an active counter rather than a
+## pure damage soak. 0 disables the shove. Only meaningful on the player's hurtbox.
+@export var block_shove_force: float = 4.0
+
 ## Called by a HitBox when it overlaps and the teams match. Just forwards the info;
 ## what the damage actually does is up to whatever the owner connected to `hit`.
 func take_hit(info: DamageInfo) -> void:
@@ -36,3 +41,25 @@ func take_hit(info: DamageInfo) -> void:
 	var feel = get_node_or_null("/root/CombatFeel")
 	if feel != null:
 		feel.report_hit(info, team)
+	# If the owner was guarding when this landed, push the attacker back (block payoff).
+	_maybe_shove_attacker(info)
+
+# Shove the attacker away when the owner is blocking this hit. Reads a duck-typed `is_blocking`
+# flag off the owner (the player sets it while guarding) and the attacker's apply_knockback(),
+# both fully guarded so a non-blocking owner or a sourceless hit is simply a no-op.
+func _maybe_shove_attacker(info: DamageInfo) -> void:
+	if info == null or block_shove_force <= 0.0:
+		return
+	var owner_node := get_parent()
+	if owner_node == null:
+		return
+	# Only a guarding owner counters. get() returns null when there's no such property.
+	if owner_node.get(&"is_blocking") != true:
+		return
+	var attacker = info.source
+	if attacker == null or not is_instance_valid(attacker):
+		return
+	if not (attacker is Node) or not attacker.has_method("apply_knockback"):
+		return
+	# Push the attacker back along the line from us toward them (opposite the incoming hit).
+	attacker.apply_knockback(-info.hit_direction, block_shove_force)

@@ -6,9 +6,10 @@
 script = ExtResource("1_shop")
 shop_id = &"general_store"
 display_name = "General Store"
-stock = Array[StringName]([&"lava_ash", &"lava_vial", &"sulfur_crystal", &"throwing_knife", &"flame_wand", &"frost_wand", &"arcane_wand", &"bow", &"crossbow", &"dagger", &"iron_sword", &"steel_sword", &"greatsword", &"hand_axe", &"hatchet", &"battle_axe", &"war_hammer", &"quarterstaff", &"round_shield", &"crystal_blade", &"obsidian_blade", &"knife", &"shovel", &"saw", &"torch", &"lantern"])
+stock = Array[StringName]([&"lava_ash", &"lava_vial", &"sulfur_crystal", &"throwing_knife", &"flame_wand", &"frost_wand", &"arcane_wand", &"bow", &"crossbow", &"dagger", &"iron_sword", &"steel_sword", &"greatsword", &"hand_axe", &"hatchet", &"battle_axe", &"war_hammer", &"quarterstaff", &"round_shield", &"crystal_blade", &"obsidian_blade", &"knife", &"shovel", &"saw", &"torch", &"lantern", &"reinforced_pickaxe", &"glow_lamp", &"radiant_sword", &"glow_staff", &"health_potion"])
 buy_markup = 1.25
 sell_markup = 0.4
 buys_all = false
-buy_categories = Array[int]([0, 3])
-reputation_npc = &""
+buy_categories = Array[int]([0, 3, 5])
+reputation_npc = &"gus"
+tier_gated_stock = {}

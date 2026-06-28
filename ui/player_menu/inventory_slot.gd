@@ -26,7 +26,11 @@ func setup(id: StringName, count: int) -> void:
 	focus_mode = Control.FOCUS_ALL             # so a gamepad/keyboard can select it
 	var item: Item = Inventory.get_item(id)
 	if item != null:
-		tooltip_text = "%s\n%s\n\n[1-8] assign to hotbar   •   A: first free slot" % [item.display_name, item.description]
+		var tip := "%s\n%s\n\n[1-8] assign to hotbar   •   A: first free slot" % [item.display_name, item.description]
+		# Surface the item's worth so players can reason about what to keep vs sell.
+		if item.base_value > 0:
+			tip += "\n\nBase value: $%d" % item.base_value
+		tooltip_text = tip
 	if not focus_entered.is_connected(_on_focus_changed):
 		focus_entered.connect(_on_focus_changed)
 		focus_exited.connect(_on_focus_changed)

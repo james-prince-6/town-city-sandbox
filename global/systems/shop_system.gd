@@ -17,9 +17,16 @@
 
 extends Node
 
-## How far reputation can move prices, as a fraction. 0.2 means a maxed-out
-## reputation shifts prices by up to 20% in the player's favour (and a maxed-out
-## NEGATIVE reputation shifts them 20% against the player).
+## Buy-price multiplier per reputation Tier, indexed by Reputation.Tier
+## (0 HOSTILE .. 4 BELOVED). HOSTILE pays a 20% surcharge; BELOVED gets 20% off;
+## NEUTRAL is exactly the shop's listed price (1.0) so behaviour at zero reputation
+## is unchanged. The sell side is MIRRORED (sell multiplier = 2.0 - buy multiplier),
+## so a Beloved customer both pays less and is paid more. Tunable — edit this ladder
+## to retune the whole reputation economy. Order matches the Tier enum (append-only).
+const TIER_BUY_MULT := [1.2, 1.1, 1.0, 0.9, 0.8]
+
+## Legacy continuous-swing constant, kept for any external reference. No longer used
+## by pricing (superseded by the TIER_BUY_MULT ladder above).
 const REP_PRICE_SWING := 0.2
 
 ## Emitted after every successful buy or sell. UIs and quests can listen to react
@@ -31,16 +38,25 @@ signal transaction(shop_id: StringName, item_id: StringName, is_buy: bool, qty: 
 
 ## Returns the buy/sell price multipliers for a shop's reputation npc as
 ## { "buy": float, "sell": float }. With no npc (empty), prices are unchanged
-## (both 1.0). Otherwise reputation is normalised to -1..1 and applied so that
-## HIGHER reputation makes buying cheaper and selling more profitable.
+## (both 1.0). Otherwise the NPC's reputation Tier picks a step off TIER_BUY_MULT,
+## and the sell factor is its mirror (2.0 - buy) so higher reputation makes buying
+## cheaper AND selling more profitable.
 func _rep_factor(reputation_npc: StringName) -> Dictionary:
 	if reputation_npc == &"":
 		return {"buy": 1.0, "sell": 1.0}
-	var rep_norm := clampf(Reputation.get_reputation(reputation_npc) / 100.0, -1.0, 1.0)
-	# Higher rep -> buy factor below 1.0 (cheaper); sell factor above 1.0 (more).
-	var buy := 1.0 - rep_norm * REP_PRICE_SWING
-	var sell := 1.0 + rep_norm * REP_PRICE_SWING
-	return {"buy": buy, "sell": sell}
+	var tier := int(Reputation.get_tier(reputation_npc))
+	var buy := 1.0
+	if tier >= 0 and tier < TIER_BUY_MULT.size():
+		buy = TIER_BUY_MULT[tier]
+	return {"buy": buy, "sell": 2.0 - buy}
+
+## The buy discount the player currently enjoys at `shop`, as a whole-number percent
+## off the listed price: positive = cheaper (Friendly/Beloved), negative = surcharge
+## (Disliked/Hostile), 0 at Neutral or for a shop with no reputation npc. Drives the
+## shop header readout.
+func get_buy_discount_percent(shop: ShopInventory) -> int:
+	var factor: float = _rep_factor(shop.reputation_npc)["buy"]
+	return int(round((1.0 - factor) * 100.0))
 
 ## What the player pays to BUY one unit of `item_id` from `shop`. Returns 0 if
 ## the item is unknown to the database; otherwise at least 1 (never free).
@@ -60,11 +76,59 @@ func get_sell_price(shop: ShopInventory, item_id: StringName) -> int:
 	var factor: float = _rep_factor(shop.reputation_npc)["sell"]
 	return max(int(round(item.base_value * shop.sell_markup * factor)), 1)
 
+# --- Reputation-gated stock -----------------------------------------------
+
+## The item ids `shop` currently offers: its always-on `stock` plus any
+## tier_gated_stock entries the player has unlocked by reaching the gate tier.
+## Order is base stock first, then unlocked gated items (deduplicated).
+func get_unlocked_stock(shop: ShopInventory) -> Array[StringName]:
+	var result: Array[StringName] = []
+	for id in shop.stock:
+		if id not in result:
+			result.append(id)
+	if shop.tier_gated_stock.is_empty() or shop.reputation_npc == &"":
+		return result
+	var tier := int(Reputation.get_tier(shop.reputation_npc))
+	for gate_tier in shop.tier_gated_stock:
+		if int(gate_tier) <= tier:
+			for id in shop.tier_gated_stock[gate_tier]:
+				if id not in result:
+					result.append(id)
+	return result
+
+## The gated items the player has NOT yet unlocked, as an array of
+## { "id": StringName, "tier": int } so the UI can show a teaser placeholder with
+## the tier still required. Excludes anything already in base stock.
+func get_locked_stock(shop: ShopInventory) -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	if shop.tier_gated_stock.is_empty():
+		return result
+	var tier := -1
+	if shop.reputation_npc != &"":
+		tier = int(Reputation.get_tier(shop.reputation_npc))
+	for gate_tier in shop.tier_gated_stock:
+		if int(gate_tier) <= tier:
+			continue
+		for id in shop.tier_gated_stock[gate_tier]:
+			if id in shop.stock:
+				continue
+			result.append({"id": id, "tier": int(gate_tier)})
+	return result
+
 # --- What a shop will trade -----------------------------------------------
 
-## True if this shop offers `item_id` for sale to the player.
+## True if this shop offers `item_id` for sale to the player right now — either it's
+## in the always-on stock, or it's a tier-gated item the player has unlocked.
 func shop_sells(shop: ShopInventory, item_id: StringName) -> bool:
-	return item_id in shop.stock
+	if item_id in shop.stock:
+		return true
+	if shop.tier_gated_stock.is_empty() or shop.reputation_npc == &"":
+		return false
+	var tier := int(Reputation.get_tier(shop.reputation_npc))
+	for gate_tier in shop.tier_gated_stock:
+		if int(gate_tier) <= tier and item_id in shop.tier_gated_stock[gate_tier]:
+			return true
+	return false
 
 ## True if this shop is willing to buy `item_id` from the player. A `buys_all`
 ## shop takes anything worth more than nothing; otherwise the item's category

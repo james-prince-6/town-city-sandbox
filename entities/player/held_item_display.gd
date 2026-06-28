@@ -186,8 +186,9 @@ func apply_walk_bob(phase: float, amp: float) -> void:
 func _on_item_used(item) -> void:
 	if not is_instance_valid(_current):
 		return
-	# Melee = a MeleeWeaponItem OR a ToolItem whose job is WEAPON (swords/axes/clubs are tools).
-	var is_melee: bool = item is MeleeWeaponItem or (item is ToolItem and (item as ToolItem).tool_type == ToolItem.ToolType.WEAPON)
+	# Melee swing = a MeleeWeaponItem OR any ToolItem (swords/axes/clubs AND pickaxes/hatchets/
+	# ladles all swing in-hand — a mining strike reads as the same arc as a sword slash).
+	var is_melee: bool = item is MeleeWeaponItem or item is ToolItem
 	var is_ranged: bool = item is RangedWeaponItem
 	if not (is_melee or is_ranged):
 		return

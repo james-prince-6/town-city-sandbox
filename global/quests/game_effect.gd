@@ -32,6 +32,7 @@ enum EffectType {
 	# --- Appended (keep at END so existing serialized int values stay valid) ---
 	SET_MOOD,            # NPCMoods.set_mood(target, text_value)
 	ADVANCE_TIME,        # Clock.advance_minutes(amount)  (skip `amount` in-game minutes)
+	ADD_XP,              # Progression.add_xp(amount)  (grant `amount` progression XP)
 }
 
 ## Which change to perform.
@@ -75,5 +76,13 @@ func apply() -> void:
 			NPCMoods.set_mood(target, text_value)
 		EffectType.ADVANCE_TIME:
 			Clock.advance_minutes(amount)
+		EffectType.ADD_XP:
+			# Progression is an optional autoload; reach it defensively so quests
+			# still apply their other effects if it isn't present.
+			var tree := Engine.get_main_loop() as SceneTree
+			if tree != null:
+				var progression := tree.root.get_node_or_null("/root/Progression")
+				if progression != null and progression.has_method("add_xp"):
+					progression.add_xp(amount)
 		_:
 			push_warning("GameEffect.apply: unknown effect type '%s'" % type)

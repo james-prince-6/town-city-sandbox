@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3]
+
+; Peaceful pig. Drops raw_meat x2.
+
+[ext_resource type="PackedScene" path="res://entities/animals/animal.tscn" id="1_base"]
+[ext_resource type="PackedScene" path="res://assets/models/critters/cube-pets/animal-pig.fbx" id="2_model"]
+
+[node name="Pig" instance=ExtResource("1_base")]
+model_scene = ExtResource("2_model")
+display_name = "Pig"
+target_height = 1.0
+max_health = 45.0
+move_speed = 3.5
+hostile = false
+loot_item_id = &"raw_meat"
+loot_amount = 2

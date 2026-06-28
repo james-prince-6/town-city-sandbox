@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Item" load_steps=2 format=3]
+
+; Rusted Key: a corroded old key found in the depths. A quest key — some lock somewhere
+; still remembers it. A plain Item with no use() behaviour.
+[ext_resource type="Script" path="res://global/items/item.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"rusted_key"
+display_name = "Rusted Key"
+description = "A corroded iron key, pitted with age. It must open something, somewhere."
+category = 4
+max_stack = 16
+base_value = 1

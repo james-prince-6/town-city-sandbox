@@ -1,0 +1,17 @@
+[gd_scene load_steps=3 format=3]
+
+; Hostile ash bear (polar model). The toughest, hardest-hitting wild animal. Drops raw_meat x2.
+
+[ext_resource type="PackedScene" path="res://entities/animals/animal.tscn" id="1_base"]
+[ext_resource type="PackedScene" path="res://assets/models/critters/cube-pets/animal-polar.fbx" id="2_model"]
+
+[node name="AshBear" instance=ExtResource("1_base")]
+model_scene = ExtResource("2_model")
+display_name = "Ash Bear"
+target_height = 1.4
+max_health = 90.0
+move_speed = 4.0
+hostile = true
+contact_damage = 16.0
+loot_item_id = &"raw_meat"
+loot_amount = 2

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Item" load_steps=3 format=3]
+
+; Power Cell: a power core stabilised in a refined-metal casing. A safe, dense battery for advanced gear.
+[ext_resource type="Script" path="res://global/items/item.gd" id="1_item"]
+[ext_resource type="PackedScene" uid="uid://bxcumkr00cuu6" path="res://assets/models/props/kaykit_resources/Fuel_B_Barrel.gltf" id="2_model"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"power_cell"
+display_name = "Power Cell"
+description = "A power core stabilised in a refined-metal casing. A safe, dense battery for advanced gear."
+category = 3
+max_stack = 99
+base_value = 90
+world_model = ExtResource("2_model")

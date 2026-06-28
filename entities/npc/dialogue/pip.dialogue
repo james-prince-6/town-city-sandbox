@@ -35,6 +35,17 @@ Pip: [#gesture=talk] I'll be heading home soon, before the night critters come o
 	=> rumor
 - Shouldn't you be heading home? [if Clock.hour >= 18 /]
 	=> night
+- Got any odd jobs? [if QuestSystem.has_task_available("pip") /]
+	do QuestSystem.request_task("pip")
+	=> odd_jobs
+- Fancy a treasure hunt? [if not QuestSystem.is_active("pip_treasure") and not QuestSystem.is_completed("pip_treasure") /]
+	do QuestSystem.start_quest("pip_treasure")
+	do Reputation.add_reputation("pip", 5)
+	=> treasure_intro
+- Why the cold shoulder, Pip? [if Reputation.is_at_most("pip", "HOSTILE") /]
+	=> cold
+- Walk with me a while, old friend? [if Reputation.is_at_least("pip", "BELOVED") /]
+	=> beloved
 - See you around, Pip.
 	=> bye
 
@@ -63,6 +74,26 @@ Pip: [#gesture=look] Don't dawdle in the caves, mind. A gnasher took up residenc
 ~ night
 Pip: [#gesture=talk] Aye, soon. The ravager only prowls after dark, and I'd rather not meet it.
 Pip: [#gesture=wave] You should get in too. Walls are friendlier than the dark out here.
+=> hub
+
+~ odd_jobs
+Pip: [#gesture=cheer] Ooh, as a matter of fact! Here — I've scribbled it in your log.
+Pip: [#gesture=talk] No mad rush, but don't let it slip your mind, eh?
+=> hub
+
+~ treasure_intro
+Pip: [#gesture=cheer] Ooh, now you're speaking my language! There's a locked vault below — wants a rusted key, and a gem or two never goes amiss.
+Pip: [#gesture=talk] Find them and we split the glory! It's scribbled in your log.
+=> hub
+
+~ cold
+Pip: [#gesture=talk] Cold? After what I've heard about you, friend, cold's the warmest you'll get.
+Pip: [#gesture=look] I wander a lot. Best you and I wander different ways for a while.
+=> hub
+
+~ beloved
+Pip: [#gesture=cheer] Always! There's no one I'd rather share a road with, and that's the truth.
+Pip: [#gesture=talk] Here — found a little something on my travels with your name on it. Don't argue, just take it.
 => hub
 
 ~ bye

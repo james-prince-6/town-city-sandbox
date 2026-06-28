@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="MeleeWeaponItem" load_steps=3 format=3]
+
+; Radiant Sword: a gem-inlaid blade of refined steel and gold. The finest sword a crafter can forge.
+[ext_resource type="Script" uid="uid://fs1ofjantoqnr" path="res://entities/items/weapons/melee_weapon_item.gd" id="1_melee"]
+[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/kaykit_weapons/sword_1handed.gltf" id="2_model"]
+
+[resource]
+script = ExtResource("1_melee")
+id = &"radiant_sword"
+display_name = "Radiant Sword"
+description = "A gem-inlaid blade of refined steel and gold. The finest sword a crafter can forge."
+category = 6
+max_stack = 1
+base_value = 240
+damage = 30.0
+damage_type = 0
+range = 2.1
+stamina_cost = 13.0
+cooldown = 0.5
+swing_lifetime = 0.15
+knockback = 6.5
+world_model = ExtResource("2_model")
+held_scale = 1.0

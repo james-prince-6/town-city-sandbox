@@ -16,6 +16,12 @@
 class_name ConsumableItem
 extends Item
 
+## Fired AFTER a use actually succeeded and exactly one item was spent. Carries the
+## item id so listeners can react (audio cue, analytics, etc.). Emitted on the
+## shared resource instance; it does NOT fire when a use is rejected (no stock or
+## the effect reported failure), so it cleanly means "a consumable was consumed".
+signal item_used_with_effect(id: StringName)
+
 ## Called by the player on left-click (see Item.use). We guard on having at least
 ## one in the Inventory, run the effect, and consume exactly one on success. If the
 ## effect reports failure (returned false) we leave the stack untouched so the
@@ -32,6 +38,22 @@ func use(player: Node) -> void:
 
 	# Success: spend one from the stack.
 	Inventory.remove(id, 1)
+
+	# Announce the successful use. The signal is for any local listener; the direct
+	# UISound notify covers the audio cue, because UISound can't connect a signal to
+	# every shared consumable Resource — they reach it by autoload path instead.
+	item_used_with_effect.emit(id)
+	_notify_use_cue()
+
+## Guarded, fire-and-forget audio nudge. Resources have no get_tree(), so we reach
+## the live SceneTree via the main loop and only call UISound when it (and the
+## method) are present — missing autoload simply means no cue.
+func _notify_use_cue() -> void:
+	var loop := Engine.get_main_loop()
+	if loop is SceneTree:
+		var us := (loop as SceneTree).root.get_node_or_null("UISound")
+		if us != null and us.has_method("play_consumable_use_cue"):
+			us.call("play_consumable_use_cue")
 
 ## Override in subclasses to do the consumable's thing (heal, throw a bomb, etc.).
 ## Return true if the use should be counted (and one item removed), false to skip

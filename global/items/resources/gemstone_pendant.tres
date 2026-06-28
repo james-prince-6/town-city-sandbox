@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Item" load_steps=3 format=3]
+
+; Gemstone Pendant: an ornate gold pendant set with a cut gem. A pure luxury good, made to be sold.
+[ext_resource type="Script" path="res://global/items/item.gd" id="1_item"]
+[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/survival-kit/rock-a.fbx" id="2_model"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"gemstone_pendant"
+display_name = "Gemstone Pendant"
+description = "An ornate gold pendant set with a cut gem. A pure luxury good — made to be sold for a fortune."
+category = 3
+max_stack = 99
+base_value = 160
+world_model = ExtResource("2_model")

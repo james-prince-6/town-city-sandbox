@@ -1,0 +1,21 @@
+; cabin_cellar.tscn
+; A themed procedural-dungeon ENTRANCE scene. The root Node3D runs dungeon_generator.gd, which
+; builds the whole level in code on _ready() from start_seed, pinned to the "Cave" biome. A Player
+; instance is included so the scene is directly playable (F6). Everything else is generated, so
+; this .tscn stays minimal on purpose (it just sets the generator's exports).
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://stages/dungeons/procedural/dungeon_generator.gd" id="1_gen"]
+[ext_resource type="PackedScene" uid="uid://cppmnlasls1hp" path="res://entities/player/player.tscn" id="2_player"]
+
+[node name="CabinCellar" type="Node3D"]
+script = ExtResource("1_gen")
+start_seed = 29774
+difficulty = 2
+exit_scene_path = "res://stages/interiors/abandoned_cabin.tscn"
+exit_spawn_point = &"from_cellar"
+forced_theme_name = "Cave"
+rare_loot_ids = Array[StringName]([&"raw_gemstone", &"glow_crystal"])
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

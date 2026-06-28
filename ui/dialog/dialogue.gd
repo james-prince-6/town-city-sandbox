@@ -107,12 +107,37 @@ func _finish() -> void:
 func _on_addon_got_dialogue(line: DialogueLine) -> void:
 	if not is_active:
 		return
+	# Tint the balloon's speaker name by how this NPC feels about the player, so the
+	# relationship reads at a glance (green = friends, grey = neutral, red = on the
+	# outs). Runs before gesture early-outs so sign/machine speakers (no play_anim)
+	# still get a sensible name colour.
+	_tint_speaker_name()
 	if _speaker == null or not is_instance_valid(_speaker):
 		return
 	if not _speaker.has_method("play_anim"):
 		return
 	var cue: String = line.get_tag_value("gesture")
 	_speaker.play_anim(StringName(cue) if cue != "" else DEFAULT_TALK_ANIM)
+
+
+# Paints the balloon's speaker-name label with the speaker's reputation-tier colour.
+# Reaches the balloon's name label (a code-built private node) defensively via get()
+# so this stays a no-op for speakers without an npc_id (signs, machines) or if the
+# balloon's internals ever change.
+func _tint_speaker_name() -> void:
+	if _speaker == null or not is_instance_valid(_speaker):
+		return
+	if _balloon == null or not is_instance_valid(_balloon):
+		return
+	var npc_id = _speaker.get("npc_id")
+	if npc_id == null or String(npc_id) == "":
+		return
+	var rep := get_node_or_null("/root/Reputation")
+	if rep == null or not rep.has_method("get_tier_color"):
+		return
+	var label = _balloon.get("_name_label")
+	if label is Label:
+		(label as Label).add_theme_color_override("font_color", rep.get_tier_color(npc_id))
 
 
 # --- Cinematic-lite camera -------------------------------------------------

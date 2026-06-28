@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="UpgradeDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://global/house/upgrade_def.gd" id="1_upg"]
+
+[resource]
+script = ExtResource("1_upg")
+id = &"storage_chest"
+display_name = "Storage Chest"
+description = "A sturdy chest by the door so you can stash spare items at home instead of lugging everything around."
+cost_money = 150
+cost_item_id = &""
+cost_item_count = 0
+prerequisite = &""
+sort_order = 10

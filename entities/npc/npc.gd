@@ -87,6 +87,9 @@ var _has_target_yaw: bool = false
 var _active_entry: ScheduleEntry
 # True while a conversation with the player is open (suspends schedule reactions).
 var _talking: bool = false
+# Optional floating quest marker ("!"/"?"/"T") above the head, built in _ready for
+# NPCs that have a real id. Null for anonymous NPCs (and in scenes without one).
+var _quest_marker: Node3D = null
 
 func _ready() -> void:
 	add_to_group("npc")
@@ -113,6 +116,25 @@ func _ready() -> void:
 	# Follow the in-game clock for schedule changes.
 	if schedule and Clock:
 		Clock.time_changed.connect(_on_time_changed)
+
+	# Float a quest marker over identified NPCs (anonymous "Villager" NPCs get none).
+	_spawn_quest_marker()
+
+# Build the floating "!"/"?"/"T" quest marker above the head for NPCs with a real id.
+# The script is loaded BY PATH (not by symbol) so a cold class-cache never trips us up.
+func _spawn_quest_marker() -> void:
+	if npc_id == &"":
+		return
+	var marker_script: Script = load("res://entities/npc/quest_marker.gd")
+	if marker_script == null:
+		return
+	var marker = marker_script.new()
+	# Position BEFORE add_child so the marker captures the right resting height in
+	# its _ready (the bob oscillates around it). Height scales with the body.
+	var head_height: float = definition.target_height if definition != null else 1.8
+	marker.position = Vector3(0.0, head_height + 0.45, 0.0)
+	add_child(marker)
+	_quest_marker = marker
 
 ## Configure this NPC from its NPCDefinition. Only fills in things the definition
 ## specifies; runs before the state machine is built so schedule/behaviour are set.
@@ -152,6 +174,15 @@ func _apply_definition() -> void:
 	# Seed this NPC's starting mood (without clobbering a saved/in-progress one).
 	if definition.id != &"":
 		NPCMoods.ensure_default(definition.id, definition.default_mood)
+
+	# Register any TASK-tier quests this NPC offers so QuestSystem.has_task_available /
+	# request_task know its pool. The OFFER itself is authored in the .dialogue via
+	# `do QuestSystem.request_task("<id>")`; here we only declare what's available.
+	# Reached defensively via the autoload so NPCs work in scenes/tests without it.
+	if definition.id != &"" and not definition.task_pool.is_empty():
+		var quests := get_node_or_null("/root/QuestSystem")
+		if quests != null and quests.has_method("register_task_giver"):
+			quests.register_task_giver(definition.id, definition.task_pool)
 
 ## Register the standard behaviour states. Override in a subclass to add more
 ## (call super() first to keep the defaults).
@@ -294,7 +325,14 @@ func resolve_location(location_id: StringName):
 # --- Interaction (duck-typed by the player's RayCast3D) --------------------
 
 func get_interaction_prompt() -> String:
-	return "Talk to %s" % npc_name
+	var base := "Talk to %s" % npc_name
+	# Append a hand-in hint when an active quest tied to this NPC is fully satisfied.
+	# Heuristic + fully guarded: a miss simply leaves the plain "Talk to X" (never a
+	# false positive).
+	var quests: Node = get_node_or_null("/root/QuestSystem")
+	if quests != null and _has_turn_in_quest(quests):
+		return base + " (ready to turn in)"
+	return base
 
 func interact(player) -> void:
 	if turn_to_face_player and player is Node3D:
@@ -312,6 +350,9 @@ func interact(player) -> void:
 		push_warning("NPC '%s' has no dialogue assigned." % npc_name)
 		return
 	_talking = true
+	# Tuck the floating marker away while we're mid-conversation.
+	if _quest_marker != null and _quest_marker.has_method("set_dialogue_active"):
+		_quest_marker.set_dialogue_active(true)
 	if _machine:
 		_machine.transition_to(&"Talk")
 	# Pass ourselves as the speaker so the dialogue system can frame the camera on us and play
@@ -322,7 +363,105 @@ func interact(player) -> void:
 
 func _on_dialogue_ended() -> void:
 	_talking = false
+	# Re-show + re-evaluate the marker — the chat may have started/finished a quest.
+	if _quest_marker != null and _quest_marker.has_method("set_dialogue_active"):
+		_quest_marker.set_dialogue_active(false)
 	_reevaluate(true)
+
+# --- Quest discoverability helpers -----------------------------------------
+# These power the floating quest marker (quest_marker.gd) and the "ready to turn in"
+# suffix on the talk prompt. All are HEURISTIC and defensively guarded: with no
+# QuestSystem, or when a link to this NPC can't be proven, they return false/"" so
+# we show nothing rather than a wrong marker.
+
+# Reputation effect index in GameEffect.EffectType. The enums in this project are
+# append-only, so this int is stable; we compare against it without importing the
+# symbol (keeps this hot-path file free of an extra class dependency).
+const _ADD_REPUTATION_EFFECT: int = 4
+
+## Best-guess glyph to float over this NPC: "?" ready to turn in, "!" a new quest to
+## pick up, "T" a repeatable task is available, "" nothing. Called by quest_marker.gd.
+func get_quest_marker_glyph() -> String:
+	if npc_id == &"":
+		return ""
+	var quests: Node = get_node_or_null("/root/QuestSystem")
+	if quests == null:
+		return ""
+	# Priority: finishing work you have > picking up a new quest > a repeatable task.
+	if _has_turn_in_quest(quests):
+		return "?"
+	if _has_available_quest(quests):
+		return "!"
+	if quests.has_method("has_task_available") and quests.has_task_available(npc_id):
+		return "T"
+	return ""
+
+# True if some ACTIVE quest tied to this NPC has every current-stage objective met
+# (so it's waiting to be handed in here).
+func _has_turn_in_quest(quests: Node) -> bool:
+	if not quests.has_method("get_active_quests"):
+		return false
+	for quest in quests.get_active_quests():
+		if quest == null or not _quest_tied_to_me(quest):
+			continue
+		if _quest_objectives_satisfied(quests, quest.id):
+			return true
+	return false
+
+# True if a not-yet-started, non-task quest tied to this NPC exists (a "!" to offer).
+# Conservative: tasks are reported via has_task_available ("T"); active/completed
+# quests never count. This is the fuzzy signal — it may light up slightly early for a
+# gated follow-up quest, but it never overrides the precise "?"/"T" states above.
+func _has_available_quest(quests: Node) -> bool:
+	if not quests.has_method("get_state") or not ("database" in quests):
+		return false
+	for id in quests.database.keys():
+		var quest = quests.database[id]
+		if quest == null:
+			continue
+		if int(quest.tier) == 2:  # Quest.Tier.TASK -> handled by has_task_available
+			continue
+		if not _quest_tied_to_me(quest):
+			continue
+		if quests.get_state(quest.id) == 0:  # QuestSystem.State.NOT_STARTED
+			return true
+	return false
+
+# Heuristic link between a quest and this NPC: an explicit giver, an id naming
+# convention ("<npc>_..." / "task_<npc>_..."), or a reputation reward aimed at us.
+func _quest_tied_to_me(quest) -> bool:
+	var key := String(npc_id)
+	if key == "":
+		return false
+	if "giver_npc_id" in quest and quest.giver_npc_id == npc_id:
+		return true
+	var qid := String(quest.id)
+	if qid.begins_with(key + "_") or qid.begins_with("task_" + key + "_"):
+		return true
+	if "rewards" in quest and quest.rewards != null:
+		for reward in quest.rewards:
+			if reward == null:
+				continue
+			if ("type" in reward) and ("target" in reward):
+				if int(reward.type) == _ADD_REPUTATION_EFFECT and reward.target == npc_id:
+					return true
+	return false
+
+# True if every current-stage objective of an active quest is satisfied. Empty/unknown
+# objective lists return false (so we never claim an objective-less quest is "done").
+func _quest_objectives_satisfied(quests: Node, id) -> bool:
+	if not quests.has_method("get_current_objectives"):
+		return false
+	var objectives = quests.get_current_objectives(id)
+	if objectives == null or objectives.is_empty():
+		return false
+	var progress = quests.get_objective_progress(id)
+	for i in objectives.size():
+		var required: int = maxi(int(objectives[i].required_count), 1)
+		var current: int = int(progress[i]) if i < progress.size() else 0
+		if current < required:
+			return false
+	return true
 
 # --- Facing ----------------------------------------------------------------
 

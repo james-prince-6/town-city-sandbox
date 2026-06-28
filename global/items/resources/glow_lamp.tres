@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="ToolItem" load_steps=3 format=3]
+
+; Glow Lamp: a lamp fed by glow crystals that never gutters. A steady light for the deepest dark.
+[ext_resource type="Script" path="res://entities/items/tool_item.gd" id="1_tool"]
+[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/kaykit_tools/lantern.gltf" id="2_model"]
+
+[resource]
+script = ExtResource("1_tool")
+id = &"glow_lamp"
+display_name = "Glow Lamp"
+description = "A lamp fed by glow crystals that never gutters. Throws a clean, steady light through the deepest dark."
+category = 2
+max_stack = 1
+base_value = 70
+tool_type = 4
+power = 1
+stamina_cost = 0.0
+damage = 0.0
+world_model = ExtResource("2_model")
+held_scale = 0.9
+held_rotation_offset = Vector3(0, 0, 0)

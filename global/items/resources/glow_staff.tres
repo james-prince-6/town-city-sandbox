@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="RangedWeaponItem" load_steps=4 format=3]
+
+; Glow Staff: a staff crowned with a power cell and glow crystal. Hurls bolts of crackling light.
+[ext_resource type="Script" path="res://entities/items/weapons/ranged_weapon_item.gd" id="1_ranged"]
+[ext_resource type="PackedScene" uid="uid://b7fireball0aaa" path="res://entities/items/weapons/fireball.tscn" id="2_fireball"]
+[ext_resource type="PackedScene" path="res://assets/models/tools_weapons/kaykit_weapons/wand.gltf" id="3_model"]
+
+[resource]
+script = ExtResource("1_ranged")
+id = &"glow_staff"
+display_name = "Glow Staff"
+description = "A staff crowned with a power cell and glow crystal. Hurls bolts of crackling light at range."
+category = 6
+max_stack = 1
+base_value = 220
+damage = 22.0
+damage_type = 1
+projectile_speed = 24.0
+cooldown = 0.7
+stamina_cost = 0.0
+mana_cost = 14.0
+projectile_scene = ExtResource("2_fireball")
+knockback = 2.0
+world_model = ExtResource("3_model")
+held_scale = 0.85

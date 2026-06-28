@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="Item" load_steps=3 format=3]
+
+; Raw Gemstone: an uncut precious stone prised from a deep gem node. Rare and valuable.
+[ext_resource type="Script" path="res://global/items/item.gd" id="1_item"]
+[ext_resource type="PackedScene" uid="uid://beqonck4qyc5u" path="res://assets/models/tools_weapons/survival-kit/rock-c.fbx" id="2_model"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"raw_gemstone"
+display_name = "Raw Gemstone"
+description = "An uncut precious stone, rough and glittering. A jeweller would pay handsomely once it's cut."
+category = 3
+max_stack = 99
+base_value = 35
+world_model = ExtResource("2_model")

@@ -1,0 +1,17 @@
+[gd_resource type="Resource" script_class="ToolItem" load_steps=2 format=3]
+
+; Reinforced Pickaxe: a hardwood-hafted pickaxe shod in refined metal. Tougher than common picks.
+[ext_resource type="Script" path="res://entities/items/tool_item.gd" id="1_tool"]
+
+[resource]
+script = ExtResource("1_tool")
+id = &"reinforced_pickaxe"
+display_name = "Reinforced Pickaxe"
+description = "A hardwood-hafted pickaxe shod in refined metal. Tougher and harder-hitting than common picks."
+category = 2
+max_stack = 1
+base_value = 120
+tool_type = 0
+power = 2
+stamina_cost = 10.0
+damage = 8.0

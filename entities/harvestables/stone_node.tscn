@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bhrv0base0scn" path="res://entities/harvestables/harvestable.tscn" id="1_base"]
+[ext_resource type="PackedScene" uid="uid://cxqmw425frt00" path="res://assets/models/nature/stylized-megakit/Rock_Medium_1.gltf" id="2_model"]
+
+[node name="StoneNode" instance=ExtResource("1_base")]
+required_tool_type = 4
+required_power = 1
+durability = 4
+drop_item_id = &"stone"
+drop_amount = 3
+drop_as_world_item = true
+prompt_verb = "Mine"
+model_scene = ExtResource("2_model")

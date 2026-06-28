@@ -13,4 +13,6 @@ id = &"ember"
 display_name = "Ember"
 model_scene = ExtResource("4_model")
 skin_texture = ExtResource("8_skin")
+task_pool = Array[StringName]([&"task_ember_ore", &"task_ember_scrap"])
+gives_tasks = true
 dialogue = ExtResource("5_dlg")

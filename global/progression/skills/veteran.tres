@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3]
+
+; SURVIVAL end-game perk: behaviour flag, no stats. EnemySpawner checks
+; Progression.has_perk(&"veteran") and, when its max_difficulty ceiling is set, clamps the
+; difficulty used for budget/elite math — so the deepest dungeons stop ramping their hordes against
+; a power-capped character. Owning this is the player-earned switch for the scaling soft-ceiling.
+
+[ext_resource type="Script" path="res://global/progression/skill.gd" id="1_skill"]
+
+[resource]
+script = ExtResource("1_skill")
+id = &"veteran"
+display_name = "Veteran"
+description = "Hard-won composure. The deepest dungeons stop swelling their hordes against you — their threat settles at a hardened cap."
+branch = 2
+max_rank = 1
+cost = 2
+required_level = 12
+prerequisite = &"second_wind"
+prerequisite_rank = 1
+is_perk = true
+stat_per_rank = {}

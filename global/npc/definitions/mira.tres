@@ -19,4 +19,6 @@ move_speed = 2.0
 turn_speed_degrees = 480.0
 default_behavior = 0
 default_mood = &"neutral"
+task_pool = Array[StringName]([&"task_mira_stone", &"task_mira_fiber"])
+gives_tasks = true
 dialogue = ExtResource("4")

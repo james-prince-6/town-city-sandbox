@@ -1,0 +1,59 @@
+[gd_resource type="Resource" script_class="Quest" load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://global/quests/quest.gd" id="1_quest"]
+[ext_resource type="Script" path="res://global/quests/quest_objective.gd" id="2_objective"]
+[ext_resource type="Script" path="res://global/quests/quest_stage.gd" id="3_stage"]
+[ext_resource type="Script" path="res://global/quests/game_effect.gd" id="4_effect"]
+
+[sub_resource type="Resource" id="obj_glow"]
+script = ExtResource("2_objective")
+description = "Collect 3 glow crystals from the caverns"
+kind = 0
+target = &"glow_crystal"
+required_count = 3
+
+[sub_resource type="Resource" id="obj_gem"]
+script = ExtResource("2_objective")
+description = "Recover 1 raw gemstone for Mira to study"
+kind = 0
+target = &"raw_gemstone"
+required_count = 1
+
+[sub_resource type="Resource" id="stage1_payout"]
+script = ExtResource("4_effect")
+type = 5
+target = &""
+amount = 30
+
+[sub_resource type="Resource" id="stage1"]
+script = ExtResource("3_stage")
+title = "Gather glow crystals"
+objectives = Array[ExtResource("2_objective")]([SubResource("obj_glow")])
+on_complete = Array[ExtResource("4_effect")]([SubResource("stage1_payout")])
+
+[sub_resource type="Resource" id="stage2"]
+script = ExtResource("3_stage")
+title = "Find a raw gemstone"
+objectives = Array[ExtResource("2_objective")]([SubResource("obj_gem")])
+on_complete = Array[ExtResource("4_effect")]([])
+
+[sub_resource type="Resource" id="reward_money"]
+script = ExtResource("4_effect")
+type = 5
+target = &""
+amount = 80
+
+[sub_resource type="Resource" id="reward_rep"]
+script = ExtResource("4_effect")
+type = 4
+target = &"mira"
+amount = 14
+
+[resource]
+script = ExtResource("1_quest")
+id = &"mira_curiosity"
+title = "Mira's Curiosity"
+description = "Mira is cataloguing strange minerals. First bring her glow crystals from the caverns, then track down a single raw gemstone for her collection."
+tier = 1
+stages = Array[ExtResource("3_stage")]([SubResource("stage1"), SubResource("stage2")])
+rewards = Array[ExtResource("4_effect")]([SubResource("reward_money"), SubResource("reward_rep")])

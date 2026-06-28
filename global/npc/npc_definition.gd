@@ -72,6 +72,16 @@ enum Behavior {
 ## Mood this NPC starts in, registered into NPCMoods under `id`. (&"neutral" etc.)
 @export var default_mood: StringName = &"neutral"
 
+@export_group("Tasks")
+## Repeatable TASK-tier quest ids this NPC can hand out. Registered with the
+## QuestSystem on _ready so `has_task_available` / `request_task` know what this
+## character offers. The actual OFFER is authored in the NPC's .dialogue via
+## `do QuestSystem.request_task("<id>")`; this list only declares the pool.
+@export var task_pool: Array[StringName] = []
+## Convenience flag for authoring/tools: true if this NPC hands out tasks at all.
+## Purely informational — the real driver is a non-empty `task_pool`.
+@export var gives_tasks: bool = false
+
 @export_group("Dialogue")
 ## The compiled .dialogue file this NPC talks from. Mood / time / quest / reputation
 ## branching lives inside the file as `if` conditions and cue jumps — one file per

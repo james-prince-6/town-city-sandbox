@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="Item" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://global/items/item.gd" id="1_item"]
+[ext_resource type="PackedScene" uid="uid://bhk6tbv8pv3y5" path="res://assets/models/food_drink/food-kit/bag.fbx" id="2_model"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"animal_hide"
+display_name = "Animal Hide"
+description = "A rough, supple pelt. Cure it and stitch it into straps, pouches, and armour."
+category = 3
+max_stack = 99
+base_value = 8
+world_model = ExtResource("2_model")

@@ -1,0 +1,37 @@
+[gd_resource type="Resource" script_class="Quest" load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://global/quests/quest.gd" id="1_quest"]
+[ext_resource type="Script" path="res://global/quests/quest_objective.gd" id="2_objective"]
+[ext_resource type="Script" path="res://global/quests/game_effect.gd" id="3_effect"]
+
+[sub_resource type="Resource" id="obj"]
+script = ExtResource("2_objective")
+description = "Collect 2 jars of wild honey for Sela"
+kind = 0
+target = &"wild_honey"
+required_count = 2
+
+[sub_resource type="Resource" id="reward_money"]
+script = ExtResource("3_effect")
+type = 5
+target = &""
+amount = 70
+
+[sub_resource type="Resource" id="reward_rep"]
+script = ExtResource("3_effect")
+type = 4
+target = &"sela"
+amount = 12
+
+[resource]
+script = ExtResource("1_quest")
+id = &"task_sela_honey"
+title = "A Sweet Tooth"
+description = "Sela has a craving and a recipe in mind. Bring her 2 jars of wild honey from the groves before her sweet tooth gives up on her."
+tier = 2
+objectives = Array[ExtResource("2_objective")]([SubResource("obj")])
+rewards = Array[ExtResource("3_effect")]([SubResource("reward_money"), SubResource("reward_rep")])
+time_limit_minutes = 300
+giver_npc_id = &"sela"
+repeatable = true
+cooldown_minutes = 600

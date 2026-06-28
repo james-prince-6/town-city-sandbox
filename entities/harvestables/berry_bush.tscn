@@ -1,0 +1,14 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="PackedScene" uid="uid://bhrv0base0scn" path="res://entities/harvestables/harvestable.tscn" id="1_base"]
+[ext_resource type="PackedScene" uid="uid://bdr66m5sg11di" path="res://assets/models/nature/stylized-megakit/Bush_Common_Flowers.gltf" id="2_model"]
+
+[node name="BerryBush" instance=ExtResource("1_base")]
+required_tool_type = 4
+required_power = 1
+durability = 2
+drop_item_id = &"banana"
+drop_amount = 2
+drop_as_world_item = true
+prompt_verb = "Gather"
+model_scene = ExtResource("2_model")

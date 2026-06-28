@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="UpgradeDef" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://global/house/upgrade_def.gd" id="1_upg"]
+
+[resource]
+script = ExtResource("1_upg")
+id = &"kitchen"
+display_name = "Kitchen"
+description = "Fit out the corner with a stove and counter so you can cook meals at home."
+cost_money = 400
+cost_item_id = &"wood_log"
+cost_item_count = 8
+prerequisite = &""
+sort_order = 30

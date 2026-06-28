@@ -17,4 +17,6 @@ move_speed = 1.8
 turn_speed_degrees = 440.0
 default_behavior = 0
 default_mood = &"neutral"
+task_pool = Array[StringName]([&"task_marlo_firewood", &"task_marlo_spice"])
+gives_tasks = true
 dialogue = ExtResource("4")

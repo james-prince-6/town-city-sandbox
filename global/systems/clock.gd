@@ -28,6 +28,13 @@ extends Node
 ## (inventory, dialogue) so the world doesn't move on while the player is busy.
 var paused: bool = false
 
+## How many blocking menus currently want time stopped. Multiple menus can be
+## open at once (e.g. PlayerMenu over a station), so we refcount instead of a
+## bare bool: pause on the FIRST opener, resume only when the LAST one closes.
+## This avoids a "close one menu while another is still open" wrongly resuming
+## time. Bookkeeping only — not serialized (paused itself is captured).
+var _pause_holders: int = 0
+
 # --- Signals ---------------------------------------------------------------
 
 ## Emitted on every in-game minute tick. A HUD clock label listens to this.
@@ -74,6 +81,25 @@ func _ready() -> void:
 	if InventoryUI:
 		InventoryUI.opened.connect(_on_ui_blocked)
 		InventoryUI.closed.connect(_on_ui_unblocked)
+
+	# The original wiring above only covered dialogue + the now-RETIRED bag UI, so
+	# in-game time kept ticking (draining timed-task deadlines) while the player
+	# sat in the active PlayerMenu, a shop, a crafting/brewing station, or the
+	# house upgrade menu. Additively wire those CURRENTLY-USED blocking menus to
+	# the same refcounted pause/resume handlers. Each is an OPTIONAL autoload, so
+	# fetch via get_node_or_null and only connect if it actually exposes the
+	# opened/closed signals — a missing or signal-less node is a silent no-op.
+	for menu_path in [
+		"/root/PlayerMenu",
+		"/root/ShopUI",
+		"/root/BrewingUI",
+		"/root/CraftingUI",
+		"/root/UpgradeUI",
+	]:
+		var menu = get_node_or_null(menu_path)
+		if menu and menu.has_signal("opened") and menu.has_signal("closed"):
+			menu.opened.connect(_on_ui_blocked)
+			menu.closed.connect(_on_ui_unblocked)
 
 func _process(delta: float) -> void:
 	if paused:
@@ -162,16 +188,45 @@ func get_time_string() -> String:
 		display_hour = 12
 	return "%d:%02d %s" % [display_hour, minute, suffix]
 
+# --- Atmosphere helpers ----------------------------------------------------
+# Pure getters so world/atmosphere code can interpolate by time of day WITHOUT
+# duplicating the hour/minute math (or having to listen to time_changed just to
+# read the clock). Additive only — no state, signals or serialization touched.
+
+## The current time of day as a 0..1 fraction of a full 24h day. 0.0 = midnight
+## (00:00), 0.5 = noon (12:00), ~0.9999 just before the next midnight. Atmosphere
+## code can multiply this by TAU for a sun angle, or feed it to lookup tables.
+func get_time_fraction() -> float:
+	return (float(hour) * 60.0 + float(minute)) / 1440.0
+
+## A smooth 0..1 "daylight" factor: 0 = deep night, 1 = full daytime, with soft
+## dawn/dusk ramps via smoothstep so tints glide rather than snap at fixed hours.
+## Dawn ramps up ~5-8h, dusk ramps down ~17-20h. Handy for lerping sky/lamp tone.
+func get_day_factor() -> float:
+	var h: float = float(hour) + float(minute) / 60.0
+	# Night before dawn and after dusk -> 0; full day between ~8 and ~17.
+	var dawn: float = smoothstep(5.0, 8.0, h)
+	var dusk: float = 1.0 - smoothstep(17.0, 20.0, h)
+	return clampf(minf(dawn, dusk), 0.0, 1.0)
+
 # --- Auto-pause wiring -----------------------------------------------------
 # These are called by the UI signals connected in _ready. We pause on open and
 # resume on close. Keeping them as named methods (rather than lambdas) makes the
 # connections easy to read and disconnect later if needed.
 
 func _on_ui_blocked() -> void:
-	pause()
+	# Refcounted: only the FIRST opener actually stops time.
+	_pause_holders += 1
+	if _pause_holders == 1:
+		pause()
 
 func _on_ui_unblocked() -> void:
-	resume()
+	# Refcounted: only the LAST closer resumes, so closing one menu while another
+	# is still open keeps time stopped. clampi guards against any spurious extra
+	# close signal driving the count negative (which would never resume).
+	_pause_holders = maxi(_pause_holders - 1, 0)
+	if _pause_holders == 0:
+		resume()
 
 # --- Save / load -----------------------------------------------------------
 # A single dictionary snapshot, mirroring the other systems. The save system
@@ -188,4 +243,12 @@ func capture_state() -> Dictionary:
 func restore_state(data: Dictionary) -> void:
 	# Route through set_time so signals fire and listeners refresh on load.
 	set_time(data.get("hour", start_hour), data.get("minute", 0))
-	paused = data.get("paused", false)
+	# Pause is purely a function of which blocking UI is OPEN, tracked by the
+	# refcount _pause_holders — which is NOT serialized, so it is always 0 right
+	# after a load. Saving is normally done from the pause menu (which calls
+	# Clock.pause()), so the snapshot's `paused` is almost always true; restoring
+	# that true with zero holders would freeze time FOREVER (nothing is left open
+	# to drive a resume). So reset to running on load and let whatever menu is/gets
+	# opened re-pause through the normal refcounted path.
+	_pause_holders = 0
+	paused = false
