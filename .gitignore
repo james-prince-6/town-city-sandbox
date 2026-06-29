@@ -2,5 +2,7 @@
 .godot/
 /android/
 
-# Claude Code session / agent working data — not part of the project
-.claude/
+# Claude Code session / agent working data — not part of the project.
+# Ignore everything under .claude EXCEPT the shared project subagents in .claude/agents/.
+.claude/*
+!.claude/agents/
