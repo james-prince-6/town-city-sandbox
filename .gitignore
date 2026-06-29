@@ -10,3 +10,10 @@
 # Godot import temp leftovers (never commit these)
 *.import~*.TMP
 *.tmp
+
+# GoE character source-equivalent binaries — paid/licensed; kept OUT of the public repo
+# (regenerate locally via the Blender export — see docs/goe_character_pipeline.md).
+assets/models/characters/goe/*.glb
+assets/models/characters/goe/*.glb.import
+assets/models/characters/goe/goe_female_base_*.png
+assets/models/characters/goe/goe_female_base_*.png.import
