@@ -3,7 +3,7 @@
 > **Status:** Living draft · Last structured: 2026-06-28 (reconciled against working prototype)
 > **Genre:** Story-driven Action RPG with tycoon elements and skill-based mini-games
 > **Engine:** Godot · **Repo:** `james-prince-6/town-city-sandbox`
-> **Full creative vision:** see `docs/WORLD_BIBLE.md` (cast, businesses, world). This GDD stays the lean v1 target.
+> **Full creative vision:** see `docs/design/WORLD_BIBLE.md` (cast, businesses, world). This GDD stays the lean v1 target.
 
 ## How to read this document
 
@@ -134,7 +134,7 @@ dungeons. **v1 target subset** — keep to roughly:
 
 **Full place list** — the businesses (Kippie Arcade, The Flaming Pebble, Bedrock Bank, Astros
 Fishing Friends, George's General Store, Keep It Real-estate, …) and town facilities (Town Hall,
-Adventurers Guild, Magic Council, Library, Bike Shop, …) live in `docs/WORLD_BIBLE.md` §6–7. v1
+Adventurers Guild, Magic Council, Library, Bike Shop, …) live in `docs/design/WORLD_BIBLE.md` §6–7. v1
 draws a small subset from them.
 
 ### 2.3 Tone & rules of the world
@@ -173,22 +173,24 @@ straight into dialog/quest work later:
 | Quests they give | links to §5 |
 | Schedule/location | where the player finds them |
 
-**Canonical cast lives in `docs/WORLD_BIBLE.md` §8.** As of 2026-06-28 the real, named roster is
+**Canonical cast lives in `docs/design/WORLD_BIBLE.md` §8.** As of 2026-06-28 the real, named roster is
 defined there — Orbo Orland (Mayor), Stella Flandano (fashion designer), Barry Barnson (bar/chef),
 Droghnaut (alien fisherman), Samantha Field (librarian), Kippie Kip (arcade), Bo Bossman (tycoon),
 Sally Steelfield & Al Firestorm (adventurers), Xavier (wizard), Fredward (frog being), and more.
 
-**Prototype placeholders (Gus, Mira, Marlo, Sela, Pip, Ember) are superseded** by this named cast
-and will be remapped or retired — note that renaming touches built dialogue `.tres` files, so it's
-a scheduled migration, not a done deal (see WORLD_BIBLE "Prototype cast migration").
+**Prototype placeholders (Gus, Mira, Marlo, Sela, Pip, Ember) have been migrated** (done
+2026-06-28): Gus → **George Coral**; Mira/Marlo/Sela/Pip/Ember retired and parked on disk; the v1
+cast added as new NPCs, each with its own `.dialogue` file (see WORLD_BIBLE "Prototype cast
+migration").
 
 **▶ DECIDE (James):** which ~4–6 of the canonical cast are the **v1 speaking roster** (WORLD_BIBLE
 "v1 subset"). A small, memorable cast still beats a big one for the ~1–2 hour slice.
 
 ### 3.3 Out-of-towners (visitors)
 **Defined:** out-of-towners are outsiders on their own agenda, distinct from the resident Townsfolk.
-The anchor is **Han de Seciro** (WORLD_BIBLE §8) — a mysterious man whose hidden purpose (reveal: a
-treasure hunter / secret agent after an ancient power) is a natural main-story thread. **Fredward**,
+The anchor is **Han de Seciro** (WORLD_BIBLE §8) — a mysterious man whose hidden purpose (reveal: he's the **crown prince** of his kingdom, sent
+to retrieve a power from the **hell gate** — and, unknowingly, after the **Balrog's heart**; see
+WORLD_BIBLE §8–9) is a natural main-story thread. **Fredward**,
 the reclusive ancient frog being, is a related outsider-of-the-land figure.
 
 **▶ EXPAND (still yours):** how many out-of-towners v1 needs and how Han's thread connects to the
@@ -206,7 +208,7 @@ being finished. Structuring the *kinds* of story content so you can write into t
 ### 4.1 Main story
 **v1 spine (designed):** the full main plot is still parked, but **v1 ships a self-contained story
 arc** — *"Help the Town"* — led by Mayor Orbo around a **town-in-a-slump** premise that climaxes in
-the dungeon. Full beat-by-beat in **`docs/quests/help-the-town.md`**. It leaves hooks (Han de
+the dungeon. Full beat-by-beat in **`docs/design/quests/help-the-town.md`**. It leaves hooks (Han de
 Seciro, Fredward) for the larger plot without resolving it.
 
 **▶ EXPAND:** the larger main story beyond v1 — central hook, act beats, ending — when you're ready.
@@ -224,12 +226,12 @@ Your example quest seeds (kept verbatim — these set the tone perfectly):
 
 **▶ EXPAND:** For the quests you want in the vertical slice (see ROADMAP), capture per quest:
 giver, trigger, objective, which system(s) it exercises, reward, and any branches. A reusable
-quest template is provided in `docs/templates/QUEST_TEMPLATE.md`.
+quest template is provided in `docs/design/templates/QUEST_TEMPLATE.md`.
 
 ### 4.3 Branching & dialog
 You note dialogs are "like mini cutscenes" with emoting/expression (Skyrim-style), and that
 branches/decisions "need to be mapped out and written." That writing is yours; the prototype's
-**custom data-driven dialogue system** (see §6.1) already provides the branching/scripting
+**Dialogue Manager**-based system (see §6.1) already provides the branching/scripting
 machinery, plus a cinematic-lite camera and per-line gestures.
 
 ---
@@ -293,7 +295,7 @@ system and make the player want to pursue alternative gameplay tasks." Skill-bas
 *Stardew Valley*.
 
 **Scope note:** this is the pillar that's *thin in v1* — ship **one** mini-game done really
-well, not many (§9). Design the rest later. Use `docs/templates/MINIGAME_TEMPLATE.md` per game.
+well, not many (§9). Design the rest later. Use `docs/design/templates/MINIGAME_TEMPLATE.md` per game.
 
 **▶ built (prototype):** two arcade mini-games exist (a whack game and a Simon game), launched
 from an arcade cabinet, paying out money on finish; plus a notice-board **task** system. Per the
@@ -305,7 +307,7 @@ bar) — see §9.6. It's the one job built to the full bar: real skill (serving/
 a progression curve, and an economy hook (wages → shop/upgrade money). The arcade and fishing exist
 as light activities only in v1. **Designed:** the full loop — timed hold-to-fill pours, juggling a
 customer queue, cleaning between orders, use-based skill + bar upgrades, soft failure — is specified
-in **`docs/minigames/bartending.md`**.
+in **`docs/design/minigames/bartending.md`**.
 
 ### 5.5 Tycoon / production & selling
 Your spec (from *Stardew* inspirations): "Production and selling of items," plus a
@@ -338,12 +340,14 @@ creep back in.
 Distinct from the *writing* (yours), these are the *mechanisms* the writing needs.
 
 ### 6.1 Dialog system
-**▶ built (prototype):** a **custom, data-driven dialogue system** (one `DialogueManager` autoload,
-`.tres` resources) — superseding the earlier "use the Dialogue Manager plugin" decision. It already
-does branching choices, conditions/effects (item, reputation, quest, flag, mood, time gates),
-random/variant lines, a typewriter panel with portraits, **cinematic-lite camera framing**, and
-**per-line gestures** — so the §6.3 "mini-cutscene" feel is largely in. The writing (the actual
-branches) is still yours.
+**▶ built (prototype):** dialog runs on **Nathan Hoad's Dialogue Manager** addon (`.dialogue`
+script files), wrapped by a game-facing **`Dialogue`** autoload (`ui/dialog/dialogue.gd`) that adds
+**cinematic-lite camera framing** and **per-line `[#gesture=…]`** gestures — so the §6.3
+"mini-cutscene" feel is largely in. Branching choices, conditions/gates and consequences (item,
+reputation, quest, flag, mood, time) are authored **inline** in each NPC's `.dialogue` file
+(`if …` / `do …`). *(History: an earlier custom `DialogueResource` `.tres` system was replaced by
+the addon — see `docs/ARCHITECTURE.md` §2–3 and `docs/dialogue_conversations.md`, now superseded.)*
+The writing (the actual branches) is still yours.
 
 ### 6.2 Quest system
 Needs to track: available/active/completed quests, objectives, branching outcomes, and rewards,
@@ -452,13 +456,13 @@ The pressure-release valve. These are decisions, not omissions — protect them 
 
 ### 9.5 Out of scope for v1 (parked, not cancelled)
 Real ideas scheduled for after the slice proves out — see ROADMAP M5–M8 and the backlog parking lot.
-From `docs/WORLD_BIBLE.md`, the parked set includes: the other businesses (Bedrock Bank, Fang's
+From `docs/design/WORLD_BIBLE.md`, the parked set includes: the other businesses (Bedrock Bank, Fang's
 Bowling, Keep It Real-estate, MovieBin, EatQuick!, Furniture Depot, SeedStore+, car dealership,
 MaxTrax), extra dungeon themes and wild biomes, the wider cast and their quests, the Han de Seciro
 main-story thread, house-building beyond the single workshop, and the final art/audio pass.
 
 ### 9.6 v1 content slice (locked 2026-06-28)
-The concrete content the slice ships. Everything is drawn from `docs/WORLD_BIBLE.md`; anything not
+The concrete content the slice ships. Everything is drawn from `docs/design/WORLD_BIBLE.md`; anything not
 named here is parked.
 
 **Locations:**

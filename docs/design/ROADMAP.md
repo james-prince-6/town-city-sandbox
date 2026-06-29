@@ -6,6 +6,14 @@
 > before going wide. It de-risks the whole project and is the single best habit for a solo
 > dev who wants to actually finish.
 
+> ---
+> **⚠ Status (2026-06-29): this roadmap predates the working prototype.** A playable, audited
+> prototype now exists and Milestones **0–4** (foundations, combat, town, dialog/quests, economy +
+> a mini-game) are **already built**, as is the use-based leveling rework (M5 item). The **active,
+> current build plan is `docs/design/V1_BUILD_PLAN.md`** (milestones M-A…M-H toward the v1 slice).
+> Treat the milestones below as original planning context; use M5–M9 and the backlog as the
+> forward-looking view, cross-checked against V1_BUILD_PLAN and `docs/AUDIT.md`.
+
 ## Why vertical-slice-first
 
 You have a lot of systems (combat, crafting, jobs, tycoon, dialog, quests). Building them all
@@ -93,7 +101,7 @@ a reward — fully data-driven.
 
 - [ ] Inventory system (items, stacks, equip).
 - [ ] Economy / currency manager — single source of truth (GDD §5.6).
-- [ ] **One** job/mini-game built to the template in `docs/templates/MINIGAME_TEMPLATE.md`,
+- [ ] **One** job/mini-game built to the template in `docs/design/templates/MINIGAME_TEMPLATE.md`,
       with real skill + progression + an economy hook (GDD §5.4). Just one, fully.
 - [ ] A vendor: sell what the mini-game produces; buy something useful with the proceeds.
 
@@ -172,9 +180,9 @@ next milestone.)*
 - *Additional wild areas* — v1 ships one wild area; the other biomes are post-slice (GDD §2).
 - *Elite/boss enemy tiers, status effects, deeper crafting chain (gold/crystal)* — keep for widening.
 
-**Open decision parked here:**
-- *Leveling model* — prototype uses XP + skill tree; design intent is use-based (GDD §5.2). Reconcile
-  before v1 leveling work.
+**Resolved (was an open decision):**
+- *Leveling model* — ✅ reworked to **use-based** (Skyrim-style) on 2026-06-28; the XP + skill-tree
+  approach is retired (GDD §5.2). No longer a blocker.
 
 ---
 

@@ -9,15 +9,22 @@
 
 ## Premise
 
-Town City is in a **slump**. The local **mine/caves have turned dangerous** (▶ monsters moved in —
-default; could be a cave-in, a magical blight, etc.), so the **miners can't work** — and the miners
-are the town's economic backbone. With them idle, money's tight: George's shelves are bare, the
-Flaming Pebble's full of glum out-of-work regulars, and morale is low. **Mayor Orbo Orland**,
-hands-on and caring, recruits the capable newcomer (you) to help the town get back on its feet —
-and, ultimately, to get to the bottom of what's wrong in the caves.
+Town City is in a **slump**. The local **mine/caves have turned dangerous** — **gem-eating monsters
+have moved in** (cave-problem nature decided 2026-06-29; full lore in `WORLD_BIBLE.md` §9). The mine
+is a gem-rich seam, and the monsters depend on the gems to survive and breed, so they've infested
+it; the **miners can't work**, and the miners are the town's economic backbone. With them idle,
+money's tight: George's shelves are bare, the Flaming Pebble's full of glum out-of-work regulars,
+and morale is low. **Mayor Orbo Orland**, hands-on and caring, recruits the capable newcomer (you)
+to help the town get back on its feet — and, ultimately, to get to the bottom of what's wrong in the
+caves.
 
 This frames the slump up front (jobs/crafting carry the middle) while justifying the **combat +
 dungeon finale** that reopens the mine and lifts the slump.
+
+> **Parked reveal (do NOT pay off in v1):** *why* the monsters surged is a gate to the monsters'
+> world, likely opened by Orbo himself while chasing an economic revival (WORLD_BIBLE §9). The mayor
+> who sends you to fix the crisis may be its unwitting cause. v1 only **foreshadows** this in the
+> wrap (Beat 4) — the reveal belongs to the larger main story (GDD §4.1).
 
 ## How it threads v1
 
@@ -131,9 +138,7 @@ lifts town morale and unlocks the finale. **▶ Gate:** require **all 3**, or a 
 Combat, the procedural dungeon (single theme), a boss/objective, exploration.
 
 ### Branches & choices
-**▶ Does Sally come with you** as a companion (escort/ally AI — more to build) **or just send you
-in** and meet you after? Default: she sends you in (cheaper), with a line implying she "took the
-other tunnel."
+**Decided (2026-06-29): Sally is NOT a companion.** She sends you into the dungeon **alone** (no escort/ally AI to build) and **appears once it’s cleared to congratulate you** — the player **never sees her fight** (a line can imply she "took the other tunnel"). Sally’s larger role is the player’s **combat mentor**: she introduces new combat techniques and weapons as the game progresses (WORLD_BIBLE §8).
 
 ### Rewards
 A big money payout, rare gear / crafting materials, **the mine reopens** (slump resolved), and a
@@ -172,9 +177,11 @@ land. These set up the main plot that v1 leaves open (GDD §4.1).
 - The prototype's **`QuestSystem`** is data-driven (`Quest` `.tres`, `COLLECT_ITEM` / `REACH_FLAG`
   objectives, rewards via `DialogueEffect`), with a **notice-board task** variant — so these beats
   drop in as resources without new code. Hub errands suit the board or direct NPC givers.
-- Dialog runs through the **custom dialogue system** (conditions/effects: item, reputation, quest,
-  flag, mood, time) — gating (e.g. finale unlock) uses a flag the hub sets.
-- **Open design calls (▶):** the cave problem's exact nature; the hub gate (all vs 2-of-3); whether
-  Sally is a companion; the boss/objective at the dungeon's end.
+- Dialog runs through **Nathan Hoad's Dialogue Manager** (`.dialogue` files; conditions/effects via
+  the game-facing `Dialogue` autoload: item, reputation, quest, flag, mood, time) — gating (e.g.
+  finale unlock) uses a flag the hub sets.
+- **Open design calls (▶):** ~~the cave problem's exact nature~~ (RESOLVED 2026-06-29 — gem-eating
+  monsters, WORLD_BIBLE §9); the hub gate (all vs 2-of-3); ~~whether Sally is a companion~~ (RESOLVED
+  2026-06-29 — no; combat mentor only); the boss/objective at the dungeon's end.
 - **Cast/venue coverage:** all six v1 characters (Orbo, George, Barry, Kippie, Droghnaut, Sally) and
   all five venues appear. Zena (Orbo's wife) can add flavor at Town Hall but isn't required.

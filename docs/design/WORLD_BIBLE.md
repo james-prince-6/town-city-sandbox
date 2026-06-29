@@ -105,20 +105,20 @@ The canonical cast. Blank fields are James's to fill; **▶** marks something to
 | **Droghnaut** | Unknown | Fisherman | An alien from beyond the solar system; on visiting Earth he fell in love with fish, relating to them because his space-suit helmet is like a fish bowl. Notably does **not** kill or eat fish — he keeps them as friends. Runs **Astros Fishing Friends**. |
 | **Samantha Field** | 27 F | Librarian | Quiet girl who loves to read. Once you befriend her, she opens up and shows a fun, wacky side. |
 | **Kippie Kip** | 52 M | Arcade owner | Wacky, high-energy man who started and runs the local arcade. Loves games and play, the 90s style, a bit of a hippie. Lives untraditionally but is very fun to be around. |
-| **Liu Fang** | 44 M | Bowling alley owner | *(description TBD)* |
+| **Liu Fang** | 44 M ▶ | Bowling alley owner | An older Asian gentleman — slight hunch, pleasantly nice face, small and unassuming, but an **absolute legend at bowling**. A former **world-record holder** in his day, until **big drama at a tournament** (▶ details TBD) forced him to drop from the scene. He now lives out his self-styled "exile" in Town City, running the bowling alley. Ask him nicely and he'll play you — and his skills **haven't diminished one bit**. *(▶ Age listed as 44 but described as 'older' — reconcile.)* |
 | **Steven "Seeds" Smith** | 25 M | Seed-store clerk | Loves seeds and plants. Collects a wide variety of seeds and sells them, but doesn't like to grow them himself — he finds the seeds far more compelling than the plants they grow into. |
 | **George Coral** | 38 M | Shopkeeper (general store) | A nice, quiet guy. Runs **George's General Store**. Married to Kaitlin Coral. |
 | **Bo Bossman** | 58 M | Boss / tycoon | Runs a large company in town; what they do is unclear, but they make a lot of money. A stereotypical tycoon who thinks he's above the regular townsfolk. |
-| **Sally Steelfield** | 24 F | Adventurer | Strong and quick; actively heads into dungeons to clear out monsters. Loves combat and is very strong. |
+| **Sally Steelfield** | 24 F | Adventurer | Strong and quick; actively heads into dungeons to clear out monsters. Loves combat and is very strong. **Player-facing role: combat mentor** — she introduces new combat techniques and weapons as the player progresses. **Not a companion**: she sends the player into dungeons solo and may appear once one is cleared to congratulate them, but the player never sees her fight (decided 2026-06-29). |
 | **Al Firestorm** | 33 M | Skilled adventurer | Very cool, super skilled in combat, and very handsome. A womanizer — but he can back it up with real skill. |
 | **Xavier** | Unknown (old) | Wizard | No one knows where he came from; he's just always been here. Runs the local wizard circle and is one of the most experienced wizards in the world. Very eccentric; doesn't want to mix with non-magic users or join their society. |
-| **Fredward** | Unknown | None | An ancient frog being who lives in a secluded cave. Has ancient knowledge of the land and is unhappy with humans ruining the environment. |
+| **Fredward** | Unknown | None | A **mystical, ancient frog being** who lives in a secluded cave. **Tied to the magical realms yet deeply rooted in the land** — more a **force of nature than an individual**, with ancient knowledge of the land. Speaks in a funny, froggish, **Yoda-like** way, giving **vague advice on how to handle the monsters**. He is **deeply saddened** by the monsters and has **lost much of his power** as a result; he **resents the humans** who caused this but **will not act against them** — in fact he **does not act against anything at all**. |
 
 ### Out-of-towners
 
 | Name | Age | Job | Description |
 |---|---|---|---|
-| **Han de Seciro** | 45 M | Outsider | A strange, mysterious man from out of town. His purpose isn't clear, but he's plainly on some mission. **(Spoiler / reveal:** he's a treasure hunter after some ancient power — essentially a secret agent for his country.) |
+| **Han de Seciro** | 45 M | Outsider | A strange, mysterious man from out of town, plainly on some mission. **(Spoilers — parked main-story reveals, 2026-06-29; more to add):** his mission is to **find the hell gate and retrieve a power from it for his kingdom**, and the big reveal is that he's the **crown prince**. What he's *actually* after — though he doesn't know it — is the **Balrog's heart**, the corrupting essence that turns whoever wields it **into the Balrog**. This pays off in the planned **two-stage final boss** (§9): after the player first kills the Balrog, Han seizes the heart and becomes the next Balrog. *(Supersedes the earlier "treasure hunter / secret agent" sketch — same idea, now specified.)* |
 
 ### Stubs (named/role only — flesh out)
 
@@ -131,6 +131,93 @@ The canonical cast. Blank fields are James's to fill; **▶** marks something to
 
 ▶ The additions doc ends with one fully blank character entry — a slot left open for the next
 character.
+
+---
+
+## 9. World history & lore — the mine, the gems, the monsters
+
+> Structured 2026-06-29 from James's brain dump. **Source of truth for the raw wording:**
+> `LORE_SOURCE_NOTES.md` (2026-06-29 entry) — this section is the organized version of it.
+> Some specifics are deliberately **parked** (marked ▶) as future story reveals.
+
+**Origins — a mining village in the mountains.** Town City began as a mining village set deep in
+the mountains of the country. It boomed on **iron, copper, and gems** — especially the gems.
+
+**The gems are secretly magical.** The local gems contain magical power (generic, non-specific for
+now). To the layman they look like ordinary rubies, emeralds, and the like — valuable, but the
+townsfolk are **oblivious to their true nature and use**.
+
+**The ancient wizards.** Because of the gems, a group of **ancient wizards** has lived in the area
+for **millennia**, quietly using the gems for their magic — and their **immortality**. (Natural ties
+to **Xavier** and the **Magic Council**, §6–8.) ▶ How much the wizards know about the monsters and
+the gate — and whether they're allies, obstacles, or indifferent — is open.
+
+**The boom and the steady town.** The town thrived on mining for decades, settling into a
+steady-state core of **~5–6 permanent miners**.
+
+**Branching out, and the old-guard tension.** Though it began **totally dependent on mining**, over
+**the last decade** the town has **branched into new sectors**: a growing **tourism** sector, lots
+of **pleasure & leisure** companies, **one big tech firm**, and the various other businesses around
+(the roster in §6, the industries in §5). This diversification created a **social fault line**: some
+of the **old guard resent the changes and want mining kept at the core of the town**. This tension
+is a ready well for character beats and side quests — and it sharpens the slump's stakes, since the
+mine going dark hits the traditionalists hardest. ▶ Who speaks for the old guard vs. the new economy
+(and whether the "one big tech firm" is **Bo Bossman**'s company, §8 — currently "what they do is
+unclear") is open.
+
+**The monsters.** The monsters come from **another realm — call it "hell" for now** (▶ placeholder
+name). They are **twisted creatures whose only desire is to kill and to eat gems**. The gems' magic
+drew them; being magical creatures themselves, they **depend on gems to survive and procreate** — so
+the gem-rich mine is both their food source and their nursery. They arrived **in full force about a
+year before the game begins**; earlier scattered sightings had been dismissed as **urban legend**.
+
+**Gem mechanic — gems as a battlefield resource (gameplay design idea).** Gems aren't only lore;
+they're a **dungeon mechanic**. Occasional **loose gems** appear in the dungeons, and both sides
+want them:
+
+- If a **monster reaches a gem first and eats it**, it enters a **super state** (powered-up).
+- If the **player grabs it first**, it acts like a buff — e.g. the **mana bar stays full for a set
+  duration**.
+
+This makes gems **contested pickups** that create reactive, tense fights (race the enemy to the gem).
+▶ Exact values/durations, and whether different gem types grant different buffs, are to spec. *(New
+mechanic — not in the built combat yet; GDD §5.1.)*
+
+**The conflict & the main arc (▶ larger main story — parked beyond v1).** Fighting the monsters is
+the spine of the **full game's** main story. The player's goal: **find out where they came from, who
+is behind them, and how to stop them.** The arc runs through **boss fights and several levels** that
+must be cleared to reach the **end boss — fought in "hell," the monsters' realm**: the **ultimate
+boss, "Balrog"** (▶ "Balrog" is Tolkien's — treat as a placeholder and pick an original name before
+it becomes canon, to avoid an IP clash). **All of this ties heavily to the Magic Council / wizard
+circle** (§7, Xavier): they know what the gems truly are and are central to the gate, the monsters,
+and the fix. **v1 ships only the first, local breach** — one dungeon, one theme, one boss (see
+`quests/help-the-town.md` Beat 3); the multi-level descent, hell, Balrog, and the council's full
+role are parked here as the post-v1 main story (GDD §4.1).
+
+**The Balrog's heart & the two-stage finale (▶ parked).** The Balrog's power has a physical seat:
+its **heart — the essence of its being, and an ultimate corruptor**. **Whoever wields the heart
+becomes the Balrog.** This drives a planned **two-stage final boss**: the player kills the Balrog
+once, then **Han de Seciro picks up the heart and is transformed into a new Balrog**, forcing a
+second fight. Han's whole arc feeds this — see his cast entry (§8).
+
+**After the end boss — keeping it replayable.** Once the ultimate boss ("Balrog") is **dead, the
+mine clears up and reopens** for the townsfolk (the in-world crisis resolves). But the **dungeons and
+hell levels stay accessible** as **repeatable content** so there's reason to keep playing after the
+story ends. ▶ How they stay fresh (procedural runs, escalating difficulty, reward loops) is to
+spec — note this dovetails with the **procedural dungeon system** the prototype already has (GDD §2,
+§9.6).
+
+**The trigger — a gate to the monster world (▶ parked reveal).** The recent wave was set off by a
+specific **event that the story reveals gradually**: someone opened a **gate connecting to the
+monsters' world**, and it has since **spread beyond the instigator's control**.
+
+- **Working theory (▶ flesh out later):** the instigator is someone who *seems* good and is **close
+  to the town — likely Mayor Orbo himself**. Trying to **revive the town's economy**, he found an
+  **ancient book** describing a spell he believed would **create more gems to mine** — but it opened
+  the gate instead. He **keeps this secret until it is revealed** late in the story.
+- This recontextualizes the v1 "help the town" arc: the caring mayor who recruits you to fix the
+  crisis may be its unwitting cause. **v1 only foreshadows this** (see `quests/help-the-town.md`
+  wrap); the full reveal is parked for the larger main story (GDD §4.1).
 
 ---
 

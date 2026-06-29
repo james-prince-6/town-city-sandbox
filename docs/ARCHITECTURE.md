@@ -61,7 +61,7 @@ The list has grown well past the original handful; the current `project.godot` o
 | 15 | `Hotbar` | `global/systems/hotbar.gd` | 8 equip slots of item ids + selection. `select/get_selected_item`. Signals `slots_changed/selection_changed`. |
 | 16 | `Reputation` | `global/systems/reputation.gd` | Per-NPC score (-100..100) and tier (Hostile→Beloved). `get/add/set_reputation/get_tier`; tier gates (`is_at_least/is_at_most`) drive shop discounts + dialogue branches. |
 | 17 | `QuestSystem` | `global/systems/quest_system.gd` | Loads `Quest` `.tres` from `global/quests/resources/`. Tiered (Main/Side/Task), multi-stage + timed tasks; auto-progresses `COLLECT_ITEM` objectives off `Inventory.item_changed`, applies rewards on completion. |
-| 18 | `Progression` | `global/systems/progression.gd` | Use-based skill XP/levels (Melee/Ranged/Magic) + perks; `get_skill_xp`, cooldown/damage multipliers. (The old `get_xp()` is an inert shim — read per-skill XP instead.) |
+| 18 | `Progression` | `global/systems/progression.gd` | Use-based skill XP/levels (Melee/Ranged/Survival/Magic) + perks; `get_skill_xp`, cooldown/damage multipliers. (The old `get_xp()` is an inert shim — read per-skill XP instead.) |
 | 19 | `Bartending` | `global/systems/bartending.gd` | State for the bartending minigame shift (orders/score). |
 | 20 | `NPCMoods` | `global/npc/npc_moods.gd` | Per-NPC mood state that nudges dialogue/ambience. |
 | 21 | `CraftingSystem` | `global/systems/crafting_system.gd` | Loads `Recipe` `.tres` from `global/crafting/recipes/`. Per-machine brew state keyed by `machine_id`, **timed in game-minutes** so brews continue while you're away. |
@@ -305,10 +305,15 @@ keeps its placeholder capsule and `play_anim` is a no-op. Clips loaded by defaul
 `run`, `interact` (unknown names fall back to `idle`). `target_height` normalizes model scale;
 `face_offset_degrees` (180°) aligns the model's facing with `look_at`.
 
-Playable reference scenes: `stages/overworld/npc_demo/npc_demo.tscn` (navmesh + `home`/`market`/`grove`
-markers + scheduled Sela + coconut pickups + player), and the live `town_square` (baked navmesh + 4
-location markers + scheduled Marlo + wandering Pip + an arcade cabinet + a dungeon entrance). The
-`shop-interior` has the `Shopkeeper` (Gus) placed.
+Playable reference scenes (updated 2026-06-29): the **live town** is
+`stages/overworld/town_template.tscn` — procedural `MarchingSquaresTerrain` ground with the
+**`Shopkeeper` (George Coral)**, crafting stations (workbench / smelter / cooking / brewing), a
+task board, generic `npc.tscn` residents, and a **dungeon entrance** →
+`stages/dungeons/procedural/generated_dungeon.tscn`. The earlier demo/town scenes (`town_square`,
+`shop-interior`, `npc_demo`) and their placeholder NPCs (Gus, Marlo, Pip, Sela) are **retired to
+`stages/archive/`**; NPC AI/schedule/animation reference scenes now live under `stages/dev/`
+(`npc_playground.tscn`, `npc_authoring_demo.tscn`). *(▶ stale: the navmesh "Already baked" list above
+still names the archived `town_square`/`shop-interior`; re-verify against the live scenes.)*
 
 ---
 
