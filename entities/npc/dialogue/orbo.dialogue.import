@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://7mtrvaw8rl0t"
+path="res://.godot/imported/orbo.dialogue-a811ac1ad0628db966c73a3fe157d2a1.tres"
+
+[deps]
+
+source_file="res://entities/npc/dialogue/orbo.dialogue"
+dest_files=["res://.godot/imported/orbo.dialogue-a811ac1ad0628db966c73a3fe157d2a1.tres"]
+
+[params]
+
+defaults=true

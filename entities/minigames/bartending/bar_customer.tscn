@@ -1,0 +1,42 @@
+[gd_scene load_steps=7 format=3]
+
+; A bartending customer = an NPC (bar_customer.gd extends NPC). Mirrors npc.tscn's structure
+; (collider + placeholder capsule + NavAgent + Mixamo Animator) but has NO fixed definition or
+; dialogue — the shift assigns a random patron NPCDefinition before adding it, and the Animator
+; swaps to that model. The placeholder capsule hides once the rigged body builds.
+
+[ext_resource type="Script" path="res://entities/minigames/bartending/bar_customer.gd" id="1_cust"]
+[ext_resource type="Script" path="res://entities/npc/npc_animator.gd" id="3_anim"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/psx/Male/Character_01.fbx" id="4_model"]
+[ext_resource type="Texture2D" path="res://assets/models/characters/psx/Textures/Character_01.png" id="5_skin"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_cust"]
+height = 2.0
+radius = 0.4
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_cust"]
+height = 2.0
+radius = 0.4
+
+[node name="BarCustomer" type="CharacterBody3D"]
+script = ExtResource("1_cust")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+shape = SubResource("CapsuleShape3D_cust")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
+mesh = SubResource("CapsuleMesh_cust")
+
+[node name="NavAgent" type="NavigationAgent3D" parent="."]
+path_desired_distance = 0.5
+target_desired_distance = 0.5
+avoidance_enabled = false
+
+[node name="Animator" type="Node3D" parent="."]
+script = ExtResource("3_anim")
+model_scene = ExtResource("4_model")
+skin_texture = ExtResource("5_skin")
+use_kit_animations = false
+use_mixamo = true

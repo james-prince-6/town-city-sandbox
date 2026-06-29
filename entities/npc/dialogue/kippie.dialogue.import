@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://cqn5xmm1qq2tg"
+path="res://.godot/imported/kippie.dialogue-21b20582406a0fa655b73ada7c616799.tres"
+
+[deps]
+
+source_file="res://entities/npc/dialogue/kippie.dialogue"
+dest_files=["res://.godot/imported/kippie.dialogue-21b20582406a0fa655b73ada7c616799.tres"]
+
+[params]
+
+defaults=true

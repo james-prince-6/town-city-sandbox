@@ -47,6 +47,7 @@ signal load_failed(reason: String)
 	"progression": Progression,
 	"npc_moods": NPCMoods,
 	"house_upgrades": HouseUpgrades,
+	"bartending": Bartending,
 }
 
 # Holds the player transform between a load's scene-change request and the new

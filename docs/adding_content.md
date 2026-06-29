@@ -142,7 +142,9 @@ The three shipped examples:
 Critters use the **hybrid component** pattern: the critter scene
 (`entities/critters/critter.tscn`) is a `CharacterBody3D` with the critter brain
 script PLUS a reusable **Health** component (`components/health.gd`) added as a
-CHILD node.
+CHILD node, AND a **HurtBox** child (team `ENEMY`) so the player's weapons can
+actually land hits. `critter.gd` wires `HurtBox.hit -> Health.apply_damage` in
+`_ready`, so a duplicated critter scene is damageable out of the box.
 
 ### To make a new critter
 
@@ -157,11 +159,17 @@ CHILD node.
 
 ### How combat works (for reference)
 
-The player presses **use_item** (left mouse) while holding a `ToolItem` whose
-`tool_type == WEAPON`. The player raycasts forward; if it hits a body that has a
-`Health` child component, it spends stamina and calls
-`Health.take_damage(weapon.damage)`. When `Health` emits `died`, the critter
-drops loot via `WorldItem.spawn(...)` and frees itself.
+Damage flows through the shared combat backbone (`HitBox -> HurtBox -> Health`;
+see `docs/combat.md`). The player uses a `WEAPON` item, which spawns a `HitBox`
+that overlaps the critter's **HurtBox** (team `ENEMY`). The HurtBox emits
+`hit(info: DamageInfo)`, which `critter.gd` has connected to
+`Health.apply_damage(info)`. When `Health` emits `died`, the critter drops loot
+via `WorldItem.spawn(...)` and frees itself.
+
+> The takeaway for any **damageable mob** (critter, animal, enemy): the scene
+> needs a `HurtBox` (team `ENEMY`) wired to its `Health.apply_damage` — without a
+> HurtBox the player's weapons pass right through. `critter.gd` and
+> `entities/animals/animal.gd` both wire this in `_ready`.
 
 > The **Health** component is reusable: you can add it as a child of a
 > destructible harvestable too, then connect its `died` signal to drop loot.
@@ -623,8 +631,10 @@ player uses the selected hotbar item on left-click via `item.use(player)`.
 - **A consumable** (potion/bomb/grenade): new `.tres` of a `ConsumableItem` subclass
   (`entities/items/consumables/`), `category = 7` (CONSUMABLE). It consumes one on use.
 - **An enemy**: new `EnemyStats` `.tres` (HP, speed, damage, element, ranges, cooldown,
-  `damage_multipliers` for weak/resist, loot) + an inherited scene of `enemy.tscn`; set
-  its `Animator` `model_scene`/`skin_texture` for the look. Place by instancing the scene.
+  `attack_windup` for the normal-attack telegraph, `damage_multipliers` for weak/resist,
+  loot) + an inherited scene of `enemy.tscn`; set its `Animator` `model_scene`/`skin_texture`
+  for the look. Place by instancing the scene. (`enemy.tscn` already carries the `HurtBox`
+  the player's weapons hit — see "smashable" below for the general rule.)
 - **Make something smashable**: give it a `Health` + a `HurtBox` (team ENEMY) — see
   `Breakable` (`components/interactables/`). Player weapons (target ENEMY) will damage it.
 
@@ -652,7 +662,7 @@ player uses the selected hotbar item on left-click via `item.use(player)`.
 | Ingredient / material   | New **Item** `.tres` in `global/items/resources/`              |
 | Tool / weapon           | New **ToolItem** `.tres` in `global/items/resources/`          |
 | Rock / plant / lava node| New Inherited Scene from `harvestable.tscn`, set exports + mesh|
-| Critter                 | Duplicate `critter.tscn`, tune exports + `Health.max_health`   |
+| Critter                 | Duplicate `critter.tscn` (keeps its `Health` + `HurtBox`), tune exports + `Health.max_health` |
 | Hand-placed pickup      | Instance `world_item.tscn`, set `item_id` + `amount`           |
 | Quest                   | New **Quest** `.tres` in `global/quests/resources/` (+ objectives + rewards) |
 | Brewing recipe          | New **Recipe** `.tres` in `global/crafting/recipes/` (+ inputs + output + brew_minutes) |

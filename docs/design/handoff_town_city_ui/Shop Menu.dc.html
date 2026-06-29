@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Space Grotesk',sans-serif;background:#b3ada0;}
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:#cabfac;border:3px solid #e7e1d4;border-radius:6px;}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
+  <div style="position:relative;width:1200px;height:675px;overflow:hidden;border-radius:6px;background:#0e0d12;font-family:'Space Grotesk',sans-serif;">
+    <!-- paused tavern scene -->
+    <div style="position:absolute;inset:0;background:linear-gradient(#7a5a3e 0 30%,#5a4632 30% 60%,#3a2f24 60% 100%);"></div>
+    <div style="position:absolute;left:90px;top:150px;width:170px;height:250px;background:rgba(16,12,10,.45);"></div>
+    <div style="position:absolute;left:520px;top:120px;width:240px;height:120px;background:rgba(16,12,10,.4);"></div>
+    <div style="position:absolute;right:120px;top:200px;width:160px;height:200px;background:repeating-linear-gradient(45deg,rgba(255,255,255,.08) 0 8px,rgba(0,0,0,.18) 8px 16px);border-radius:4px;"></div>
+    <div style="position:absolute;inset:0;background:rgba(14,13,18,.55);"></div>
+
+    <sc-if value="{{ open }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+          <div style="pointer-events:auto;width:920px;height:560px;background:rgba(231,225,212,0.92);border:3px solid #0e0d12;border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:12px;">
+
+            <!-- header -->
+            <div style="display:flex;align-items:center;gap:14px;">
+              <div style="width:46px;height:46px;flex:none;display:flex;align-items:center;justify-content:center;background:#3a3226;border:3px solid #0e0d12;border-radius:6px;font-family:'Chakra Petch';font-weight:600;font-size:13px;color:#e7e1d4;">BAR</div>
+              <div style="display:flex;flex-direction:column;gap:1px;">
+                <div style="font-family:'Chakra Petch';font-weight:600;font-size:22px;color:#221f1a;letter-spacing:.3px;">{{ shopName }}</div>
+                <div style="font-weight:600;font-size:12px;color:#6a655c;">{{ shopTag }}</div>
+              </div>
+              <div style="flex:1;"></div>
+              <!-- player gold -->
+              <div style="display:flex;align-items:center;gap:8px;background:#3a3226;border:3px solid #0e0d12;border-radius:6px;padding:7px 13px;">
+                <span style="display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:999px;background:#c8941e;color:#1a1407;font-family:'Chakra Petch';font-weight:700;font-size:12px;">G</span>
+                <span style="font-family:'Chakra Petch';font-weight:600;font-size:18px;color:#e7d9a8;">{{ gold }}</span>
+              </div>
+              <div onClick="{{ closeShop }}" style="display:flex;align-items:center;gap:7px;cursor:pointer;">
+                <span style="font-weight:700;font-size:11px;letter-spacing:1.5px;color:#6a655c;">LEAVE</span>
+                <span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;background:#221f1a;color:#e7e1d4;font-family:'Chakra Petch';font-weight:600;font-size:12px;border:3px solid #0e0d12;border-radius:4px;">ESC</span>
+              </div>
+            </div>
+
+            <!-- buy / sell toggle -->
+            <div style="display:flex;gap:6px;">
+              <sc-for list="{{ modes }}" as="m" hint-placeholder-count="2">
+                <div onClick="{{ m.onClick }}" style="{{ m.style }}">{{ m.name }}</div>
+              </sc-for>
+            </div>
+
+            <!-- body: list (left) + detail (right) -->
+            <div style="flex:1;min-height:0;display:flex;gap:14px;">
+              <!-- list -->
+              <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:8px;">
+                <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                  <sc-for list="{{ categories }}" as="c" hint-placeholder-count="4">
+                    <div onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.name }}</div>
+                  </sc-for>
+                </div>
+                <div style="position:relative;flex:1;min-height:0;">
+                  <div style="height:100%;overflow-y:auto;overflow-x:hidden;padding-right:6px;display:flex;flex-direction:column;gap:6px;">
+                    <sc-for list="{{ rows }}" as="r" hint-placeholder-count="8">
+                      <div onClick="{{ r.onClick }}" style="{{ r.rowStyle }}">
+                        <div style="{{ r.thumbStyle }}">{{ r.ab }}</div>
+                        <div style="flex:1;min-width:0;display:flex;flex-direction:column;gap:1px;">
+                          <span style="font-family:'Chakra Petch';font-weight:600;font-size:14px;color:#221f1a;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">{{ r.name }}</span>
+                          <span style="font-weight:600;font-size:11px;color:#6a655c;">{{ r.sub }}</span>
+                        </div>
+                        <div style="display:flex;align-items:center;gap:5px;flex:none;">
+                          <span style="display:inline-flex;align-items:center;justify-content:center;width:15px;height:15px;border-radius:999px;background:#c8941e;color:#1a1407;font-weight:700;font-size:9px;">G</span>
+                          <span style="font-family:'Chakra Petch';font-weight:600;font-size:15px;color:{{ r.priceColor }};">{{ r.price }}</span>
+                        </div>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <div style="position:absolute;left:0;right:8px;bottom:0;height:24px;pointer-events:none;background:linear-gradient(rgba(231,225,212,0),rgba(231,225,212,0.95));"></div>
+                </div>
+              </div>
+
+              <!-- detail / cart -->
+              <div style="width:320px;flex:none;background:#e7e1d4;border:3px solid #0e0d12;border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:13px;">
+                <div style="display:flex;gap:13px;align-items:center;">
+                  <div style="{{ detailThumbStyle }}">{{ sel.ab }}</div>
+                  <div style="display:flex;flex-direction:column;gap:3px;">
+                    <div style="font-family:'Chakra Petch';font-weight:600;font-size:18px;color:#221f1a;line-height:1.1;">{{ sel.name }}</div>
+                    <div style="font-weight:600;font-size:11px;letter-spacing:.5px;color:#6a655c;">{{ sel.cat }}</div>
+                  </div>
+                </div>
+                <div style="font-weight:600;font-size:12px;line-height:1.35;color:#6a655c;">{{ sel.desc }}</div>
+
+                <div style="height:2px;background:#cabfac;"></div>
+
+                <!-- unit price -->
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <span style="font-family:'Chakra Petch';font-weight:600;font-size:11px;letter-spacing:1px;color:#6a655c;">{{ unitLabel }}</span>
+                  <div style="display:flex;align-items:center;gap:6px;">
+                    <span style="display:inline-flex;align-items:center;justify-content:center;width:16px;height:16px;border-radius:999px;background:#c8941e;color:#1a1407;font-weight:700;font-size:9px;">G</span>
+                    <span style="font-family:'Chakra Petch';font-weight:600;font-size:15px;color:#221f1a;">{{ sel.unit }}</span>
+                  </div>
+                </div>
+
+                <!-- qty stepper -->
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <span style="font-family:'Chakra Petch';font-weight:600;font-size:11px;letter-spacing:1px;color:#6a655c;">QUANTITY</span>
+                  <div style="display:flex;align-items:center;gap:8px;">
+                    <div onClick="{{ dec }}" style="cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:#fbf8f0;border:3px solid #0e0d12;border-radius:5px;font-family:'Chakra Petch';font-weight:700;font-size:18px;color:#221f1a;">–</div>
+                    <span style="min-width:36px;text-align:center;font-family:'Chakra Petch';font-weight:600;font-size:18px;color:#221f1a;">{{ qty }}</span>
+                    <div onClick="{{ inc }}" style="cursor:pointer;width:30px;height:30px;display:flex;align-items:center;justify-content:center;background:#fbf8f0;border:3px solid #0e0d12;border-radius:5px;font-family:'Chakra Petch';font-weight:700;font-size:18px;color:#221f1a;">+</div>
+                  </div>
+                </div>
+
+                <div style="flex:1;"></div>
+
+                <!-- total -->
+                <div style="display:flex;align-items:center;justify-content:space-between;background:#3a3226;border:3px solid #0e0d12;border-radius:6px;padding:9px 13px;">
+                  <span style="font-family:'Chakra Petch';font-weight:600;font-size:13px;letter-spacing:.5px;color:#cdc7ba;">{{ totalLabel }}</span>
+                  <div style="display:flex;align-items:center;gap:7px;">
+                    <span style="display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;border-radius:999px;background:#c8941e;color:#1a1407;font-weight:700;font-size:10px;">G</span>
+                    <span style="font-family:'Chakra Petch';font-weight:600;font-size:20px;color:#e7d9a8;">{{ total }}</span>
+                  </div>
+                </div>
+
+                <div onClick="{{ confirm }}" style="{{ confirmStyle }}">{{ confirmLabel }}</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- toast -->
+        <sc-if value="{{ toast }}">
+          <div style="position:absolute;left:50%;top:30px;transform:translateX(-50%);background:#221f1a;border:3px solid #0e0d12;border-radius:6px;padding:9px 18px;font-family:'Chakra Petch';font-weight:600;font-size:14px;color:#e7d9a8;">{{ toast }}</div>
+        </sc-if>
+
+        <!-- bottom controls -->
+        <div style="position:absolute;left:22px;right:22px;bottom:14px;display:flex;align-items:center;justify-content:flex-end;">
+          <span style="font-weight:600;font-size:12px;letter-spacing:.4px;color:#cdc7ba;">LB / RB — buy ↔ sell &nbsp;·&nbsp; ↑↓ browse &nbsp;·&nbsp; ←→ quantity &nbsp;·&nbsp; Enter to confirm &nbsp;·&nbsp; Esc to leave</span>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ closed }}">
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+        <div onClick="{{ openShop }}" style="cursor:pointer;display:flex;align-items:center;gap:9px;padding:8px 15px;background:#e7e1d4;border:3px solid #0e0d12;border-radius:6px;">
+          <span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;background:#221f1a;color:#e7e1d4;font-family:'Chakra Petch';font-weight:600;font-size:13px;border-radius:4px;">F</span>
+          <span style="font-family:'Chakra Petch';font-weight:600;font-size:15px;color:#221f1a;">Talk to Barry</span>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1248,&quot;height&quot;:723}}">
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { open:true, mode:'buy', category:'All', sel:0, qty:1, gold:640, toast:'', _t:null }; }
+
+  componentDidMount(){
+    this._key = (e) => {
+      const s = this.state;
+      if (e.key === 'Escape') { this.setState({ open:false }); return; }
+      if (e.key === 'f' || e.key === 'F') { this.setState({ open:true }); return; }
+      if (!s.open) return;
+      if (e.key === 'q' || e.key === '[') { this.setState({ mode:'buy', sel:0, qty:1 }); return; }
+      if (e.key === 'e' || e.key === ']') { this.setState({ mode:'sell', sel:0, qty:1 }); return; }
+      const list = this._filtered(); const n = list.length;
+      if (e.key === 'ArrowUp')   { e.preventDefault(); this.setState({ sel: Math.max(0, s.sel-1), qty:1 }); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); this.setState({ sel: Math.min(n-1, s.sel+1), qty:1 }); }
+      else if (e.key === 'ArrowLeft')  { e.preventDefault(); this._dec(); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); this._inc(); }
+      else if (e.key === 'Enter') { e.preventDefault(); this._confirm(); }
+    };
+    window.addEventListener('keydown', this._key);
+  }
+  componentWillUnmount(){ window.removeEventListener('keydown', this._key); if(this.state._t) clearTimeout(this.state._t); }
+
+  _buyStock(){
+    return [
+      { id:'ale', ab:'ALE', name:'Frog Fizz Ale', cat:'Drinks', buy:12, desc:'Carbonated courage. +stamina, -dignity.' },
+      { id:'lqc', ab:'LQC', name:'Liquid Courage', cat:'Drinks', buy:45, desc:'Tastes like a bad decision. Buffs everything briefly.' },
+      { id:'stew',ab:'STW', name:'Mystery Stew', cat:'Food', buy:20, desc:'It blinks back. Restores a lot of health. Probably.' },
+      { id:'snd', ab:'SND', name:'Half-Eaten Sandwich', cat:'Food', buy:6, desc:'Barry swears the other half was the bad half.' },
+      { id:'pot', ab:'POT', name:'Definitely-Safe Potion', cat:'Consumables', buy:30, desc:'The label has been crossed out twice. Bargain!' },
+      { id:'thr', ab:'THR', name:'Greasy Throwing Knives ×6', cat:'Weapons', buy:38, desc:'Pointy, plentiful, faintly greasy. Sold in sixes.' },
+      { id:'bow', ab:'RBW', name:'Reinforced Bow', cat:'Weapons', buy:120, desc:'Mr. Frog would be proud. Or litigious.' },
+      { id:'iron',ab:'ING', name:'Iron Ingot', cat:'Materials', buy:9, desc:'A sturdy bar. Backbone of most upgrades.' },
+      { id:'wood',ab:'WD',  name:'Wood Log', cat:'Materials', buy:4, desc:'Wood. It is, regrettably, just wood.' },
+      { id:'key', ab:'KEY', name:'Back-Room Key', cat:'Misc', buy:250, desc:'Barry insists he has "no idea" what it opens.' },
+    ];
+  }
+  _sellStock(){
+    return [
+      { id:'ash', ab:'ASH', name:'Lava Ash', cat:'Materials', sell:2, own:47, desc:'Still warm. Barry pays peanuts for it.' },
+      { id:'bone',ab:'BONE',name:'Bone Shard', cat:'Materials', sell:3, own:23, desc:'"Whose bone?" is not a question Barry asks.' },
+      { id:'junk',ab:'JUNK',name:'Glittering Junk', cat:'Junk', sell:1, own:15, desc:'Shiny, worthless, multiplies if ignored.' },
+      { id:'goo', ab:'GOO', name:'Sentient Goo', cat:'Materials', sell:8, own:5, desc:'It waves goodbye as you hand it over.' },
+      { id:'psnd',ab:'PSND',name:'Pocket Sand', cat:'Junk', sell:1, own:99, desc:'Tactical, gritty, endlessly in supply.' },
+      { id:'coin',ab:'COIN',name:'Cursed Coin', cat:'Junk', sell:40, own:2, desc:'Barry will regret this. You will not.' },
+      { id:'iou', ab:'IOU', name:"Barry's IOU", cat:'Misc', sell:0, own:1, desc:'He is not buying back his own IOU. Nice try.' },
+    ];
+  }
+  _all(){ return this.state.mode==='buy' ? this._buyStock() : this._sellStock(); }
+  _cats(){ const set=['All']; this._all().forEach(it=>{ if(!set.includes(it.cat)) set.push(it.cat); }); return set; }
+  _filtered(){ const c=this.state.category; return this._all().filter(it=> c==='All' || it.cat===c); }
+
+  _unit(it){ return this.state.mode==='buy' ? it.buy : it.sell; }
+  _maxQty(it){ return this.state.mode==='buy' ? 99 : (it.own||1); }
+  _inc(){ const list=this._filtered(); const it=list[Math.min(this.state.sel,list.length-1)]; if(!it) return; this.setState({ qty: Math.min(this._maxQty(it), this.state.qty+1) }); }
+  _dec(){ this.setState({ qty: Math.max(1, this.state.qty-1) }); }
+  _flash(msg){ if(this.state._t) clearTimeout(this.state._t); const t=setTimeout(()=>this.setState({toast:'',_t:null}), 2200); this.setState({ toast:msg, _t:t }); }
+  _confirm(){
+    const list=this._filtered(); const it=list[Math.min(this.state.sel,list.length-1)]; if(!it) return;
+    const total=this._unit(it)*this.state.qty;
+    if(this.state.mode==='buy'){
+      if(total>this.state.gold){ this._flash('Not enough gold!'); return; }
+      this.setState({ gold:this.state.gold-total }); this._flash('Bought '+this.state.qty+'× '+it.name);
+    } else {
+      if(this._unit(it)<=0){ this._flash("Barry won't buy that."); return; }
+      this.setState({ gold:this.state.gold+total }); this._flash('Sold '+this.state.qty+'× '+it.name);
+    }
+  }
+
+  renderVals(){
+    const ink='#0e0d12', cream='#e7e1d4', bright='#fbf8f0', text='#221f1a', dim='#6a655c', gold='#c8941e';
+    const s=this.state, buy=s.mode==='buy';
+
+    const modes=[{k:'buy',n:'Buy'},{k:'sell',n:'Sell'}].map(o=>({ name:o.n, onClick:()=>this.setState({mode:o.k,category:'All',sel:0,qty:1}),
+      style:{ flex:'1', textAlign:'center', cursor:'pointer', userSelect:'none', padding:'8px 4px', borderRadius:'5px',
+        fontFamily:"'Chakra Petch', sans-serif", fontWeight:'600', fontSize:'15px', letterSpacing:'.3px',
+        background: s.mode===o.k?bright:cream, color: s.mode===o.k?text:dim, border:'3px solid '+ink } }));
+
+    const categories=this._cats().map(name=>({ name, onClick:()=>this.setState({category:name,sel:0,qty:1}),
+      style:{ cursor:'pointer', userSelect:'none', padding:'4px 11px', borderRadius:'999px', fontWeight:'700', fontSize:'12px', letterSpacing:'.3px',
+        background: name===s.category?bright:cream, color: name===s.category?text:dim, border:'3px solid '+ink } }));
+
+    const list=this._filtered();
+    const sel=Math.min(s.sel, Math.max(0,list.length-1));
+    const rows=list.map((it,i)=>{ const seld=i===sel; const unit=this._unit(it);
+      return { name:it.name, ab:it.ab,
+        sub: buy ? it.cat : (it.cat+'  ·  own ×'+it.own),
+        price: unit>0 ? unit : '—',
+        priceColor: buy ? text : (unit>0?'#5ba36a':dim),
+        onClick:()=>this.setState({sel:i,qty:1}),
+        rowStyle:{ display:'flex', alignItems:'center', gap:'11px', padding:'7px 11px', borderRadius:'5px', cursor:'pointer',
+          background: seld?bright:cream, border: seld?'3px solid #ffffff':'3px solid '+ink },
+        thumbStyle:{ width:'40px', height:'40px', flex:'none', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'4px',
+          background:'#d6cdba', border:'2px solid '+ink, fontFamily:"'Chakra Petch', sans-serif", fontWeight:'600', fontSize:'12px', color:dim } };
+    });
+
+    const it=list[sel]||{ ab:'', name:'—', cat:'', desc:'Nothing selected.' };
+    const unit=this._unit(it)||0;
+    const total=unit*s.qty;
+    const canBuy = buy ? (total<=s.gold) : (unit>0);
+    const confirmLabel = buy ? (total>s.gold?'Not enough gold':'Buy') : (unit<=0?'Not for sale':'Sell');
+
+    return {
+      open:s.open, closed:!s.open,
+      openShop:()=>this.setState({open:true}), closeShop:()=>this.setState({open:false}),
+      shopName:"Barry's Bar & Bric-a-Brac", shopTag:'Open till he passes out · Cash only',
+      gold:s.gold, toast:s.toast,
+      modes, categories, rows,
+      sel:{ ab:it.ab, name:it.name, cat:(it.cat||'').toUpperCase(), desc:it.desc, unit:unit||'—' },
+      detailThumbStyle:{ width:'66px', height:'66px', flex:'none', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'5px',
+        background:'#d6cdba', border:'3px solid '+ink, fontFamily:"'Chakra Petch', sans-serif", fontWeight:'600', fontSize:'16px', color:dim },
+      unitLabel: buy?'UNIT PRICE':'SELL PRICE',
+      qty:s.qty, inc:()=>this._inc(), dec:()=>this._dec(),
+      totalLabel: buy?'TOTAL COST':'YOU GET',
+      total,
+      confirm:()=>this._confirm(), confirmLabel,
+      confirmStyle:{ textAlign:'center', cursor: canBuy?'pointer':'default', userSelect:'none',
+        fontFamily:"'Chakra Petch', sans-serif", fontWeight:'600', fontSize:'16px', padding:'11px', borderRadius:'6px', border:'3px solid '+ink,
+        background: canBuy?gold:cream, color: canBuy?'#1a1407':dim },
+    };
+  }
+}
+</script>
+</body>
+</html>

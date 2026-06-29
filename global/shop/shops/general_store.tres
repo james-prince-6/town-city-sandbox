@@ -11,5 +11,5 @@ buy_markup = 1.25
 sell_markup = 0.4
 buys_all = false
 buy_categories = Array[int]([0, 3, 5])
-reputation_npc = &"gus"
+reputation_npc = &"george"
 tier_gated_stock = {}

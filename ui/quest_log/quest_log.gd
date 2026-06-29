@@ -17,7 +17,7 @@
 
 extends CanvasLayer
 
-const Glass = preload("res://ui/glass_style.gd")
+const Flat = preload("res://ui/ui_style.gd")
 
 ## Tier ids (mirror Quest.Tier: MAIN=0, SIDE=1, TASK=2).
 const TIER_MAIN: int = 0
@@ -54,7 +54,7 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	add_to_group("exclusive_menu")  # so opening another menu closes this one (no stacking)
 	# Frosted-glass backdrop instead of the default dark panel box.
-	Glass.apply(_panel, 18, 22)
+	Flat.apply(_panel, 18, 22)
 	hide()
 
 	# Rebuild whenever the quest picture changes. The new v2 signals (stage

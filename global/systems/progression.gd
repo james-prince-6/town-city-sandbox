@@ -1,91 +1,123 @@
 # progression.gd
-# Autoload singleton (registered in Project Settings -> Autoload as "Progression").
+# Autoload singleton (registered as "Progression").
 #
-# The combat progression brain: killing enemies grants XP, XP fills a level, each level
-# grants a skill point, and points are spent across three playstyle branches (Melee /
-# Ranged / Survival) on Skill resources. Skills are passive stat boosts (more damage,
-# health, stamina, crit, faster bows) plus a few unlockable perks.
+# USE-BASED progression (D1 rework, 2026-06-28) — Skyrim-style. Replaces the old "global XP ->
+# level -> spend skill points" model with FOUR skills that rise as you USE them:
 #
-# Like QuestSystem this is the single source of RUNTIME truth — the Skill .tres files are
-# shareable templates that store no progress. Everything mutable (xp, level, unspent
-# points, per-skill rank) lives here and is saved via capture_state()/restore_state(),
-# gathered by SaveManager alongside the other autoloads.
+#   Melee     — levels when you swing a melee weapon (register_use on a committed swing)
+#   Ranged    — levels when you fire a bow / crossbow
+#   Magic     — levels when you cast a wand (a ranged weapon with a mana cost)
+#   Survival  — levels when you take a hit (endure damage)
 #
-# Design notes:
-# - Skill definitions are auto-loaded by scanning SKILL_DB_PATH at startup into
-#   `database` ({ id -> Skill }), mirroring QuestSystem._load_database(). Drop a new
-#   Skill .tres in and it appears in the tree automatically.
-# - Derived stats are NOT stored; they're summed on demand from allocated ranks via
-#   get_stat(), so loading a save or buying a skill always yields a consistent total.
-# - Flat health/stamina bonuses are pushed onto PlayerStats by _apply_to_player_stats(),
-#   keeping PlayerStats' base at 100 and adding the survival-tree bonus on top.
+# Each skill level grants a small AUTO passive (more damage / faster fire / more HP & resist),
+# and leveling a skill earns a PERK POINT for that skill's tree, spent on its perks (cleave,
+# piercing shot, lifesteal, second wind, etc.). So the player's build emerges from what they do.
 #
-# Access from anywhere: Progression.add_xp(10), Progression.melee_damage_mult(), etc.
+# DESIGN PRINCIPLES that keep the rest of the game unchanged:
+#  - The combat-facing GETTERS are IDENTICAL in name + signature to before
+#    (melee_damage_mult / ranged_damage_mult / ranged_cooldown_mult / crit_chance /
+#    bonus_max_health / bonus_max_stamina / melee_lifesteal / damage_reduction / has_perk).
+#    Only their INTERNALS changed: they now read skill LEVELS (auto-scale) + allocated PERKS.
+#    NEW getters for Magic: magic_damage_mult / magic_cooldown_mult / mana_cost_mult.
+#  - The old stat-passive Skill .tres (heavy_hands, marksman, toughness, ...) are now IGNORED
+#    (is_perk == false): their effect is the per-level auto-scale. The is_perk == true .tres
+#    are the allocatable perks. We keep them all in `database` so nothing dangles; the old
+#    `prerequisite` chain is dropped — perks gate on SKILL LEVEL (required_level reinterpreted
+#    as "min level in this perk's skill") + perk points.
+#  - add_xp() (enemy kills, quest rewards, dev) is repurposed as a modest "combat experience"
+#    nudge spread across the combat skills, so every old caller still improves the player.
+#
+# Anti-grind (§5.2): each skill level costs progressively more use, and every attack that
+# trains a skill spends stamina/mana, so you can't free-grind by mashing into the air.
+#
+# All numbers below are TUNABLE constants — expect to balance them against playtests.
 
 extends Node
 
-## Folder scanned for Skill (.tres) resources at startup. Every Skill found is registered
-## into `database` under its `id`.
+## Folder scanned for Skill (.tres) resources at startup (the PERK definitions).
 const SKILL_DB_PATH := "res://global/progression/skills/"
 
-## Base PlayerStats values the survival tree adds onto. Kept here so recomputing max
-## health/stamina is always "base + bonus" and never drifts as skills are bought/refunded.
+## Base PlayerStats values the Survival skill adds onto (so max H/S is always base + bonus).
 const BASE_MAX_HEALTH: float = 100.0
 const BASE_MAX_STAMINA: float = 100.0
 
-## XP curve: points needed to go from `level` to `level + 1`. A clear linear ramp so each
-## level costs a bit more than the last (level 1->2 = 50, 2->3 = 90, 3->4 = 130, ...).
-const XP_BASE: int = 50
-const XP_PER_LEVEL: int = 40
+# --- The four use-based skills (== Skill.Branch ints; APPEND-ONLY) ----------
+const SKILL_MELEE: int = 0
+const SKILL_RANGED: int = 1
+const SKILL_SURVIVAL: int = 2
+const SKILL_MAGIC: int = 3
+const SKILLS: Array[int] = [SKILL_MELEE, SKILL_RANGED, SKILL_SURVIVAL, SKILL_MAGIC]
+const SKILL_NAMES: Dictionary = {0: "Melee", 1: "Ranged", 2: "Survival", 3: "Magic"}
 
-## Skill points awarded each time the player levels up.
-const POINTS_PER_LEVEL: int = 1
+## Highest level any single skill can reach.
+const LEVEL_CAP: int = 20
 
-## End-game scaling perks (Survival branch). Flat skill passives hard-cap (~+60%), so these two
-## perks instead scale with PLAYER LEVEL beyond ENDGAME_SCALE_LEVEL, giving descent its late-game
-## reward without an unbounded curve. Each is gated by get_rank() > 0, so an un-perked build pays
-## nothing. Tunable here so the integrator can reshape the end-game without editing the getters.
-const ENDGAME_SCALE_LEVEL: int = 10
-## late_bloomer: extra weapon-damage MULTIPLIER added per player level above ENDGAME_SCALE_LEVEL.
+# --- TUNABLE: use-XP curve (rising cost per level = anti-grind) -------------
+const USE_XP_BASE: float = 8.0
+const USE_XP_PER_LEVEL: float = 5.0
+## Use-XP from one trained action (a committed swing / shot / cast / hit taken).
+const USE_XP_PER_ACTION: float = 3.0
+## Fraction of an add_xp() grant turned into use-XP and split across the combat skills.
+const ADD_XP_USE_SCALE: float = 0.15
+
+# --- TUNABLE: per-level AUTO passives (the base each skill grants by level) --
+const MELEE_DMG_PER_LEVEL: float = 0.03      # +3% melee damage / level  (+57% at 20)
+const RANGED_DMG_PER_LEVEL: float = 0.03
+const MAGIC_DMG_PER_LEVEL: float = 0.035
+const RANGED_CD_PER_LEVEL: float = 0.01      # 1% faster / level (clamped at -70%)
+const MAGIC_CD_PER_LEVEL: float = 0.01
+const CRIT_PER_LEVEL: float = 0.004          # +0.4% crit / level of your best attack skill
+const SURVIVAL_HP_PER_LEVEL: float = 4.0     # +4 max HP / level (+76 at 20)
+const SURVIVAL_STAM_PER_LEVEL: float = 2.0
+const SURVIVAL_RESIST_PER_LEVEL: float = 0.008  # +0.8% damage resist / level
+
+## Perk points a skill's tree earns each time that skill levels up.
+const PERK_POINTS_PER_LEVEL: int = 1
+
+## Mana cost multiplier applied while the Mana Surge magic perk is owned.
+const MANA_SURGE_COST_MULT: float = 0.6
+
+## Endgame perks ramp once TOTAL skill levels (the global level) exceed this.
+const ENDGAME_SCALE_LEVEL: int = 24
 const LATE_BLOOMER_DMG_PER_LEVEL: float = 0.03
-## iron_resolve: extra FLAT max health added per player level above ENDGAME_SCALE_LEVEL.
 const IRON_RESOLVE_HP_PER_LEVEL: float = 4.0
 
 # --- Signals ---------------------------------------------------------------
 
-## Emitted whenever XP changes (a kill, or a load). Carries the running totals plus how
-## much XP the CURRENT level needs, so an XP bar can draw a ratio without extra calls.
+## Kept for compatibility (a generic "progression changed" ping; UIs rebuild off it).
 signal xp_changed(xp: int, level: int, xp_to_next: int)
-
-## Emitted once per level gained, after points are credited. `points_gained` is how many
-## points this level-up handed out (usually POINTS_PER_LEVEL).
+## Fires once per GLOBAL level gained (sum of skill levels). NotificationFeed + CombatFeel listen.
 signal leveled_up(level: int, points_gained: int)
-
-## Emitted whenever allocation changes (a skill bought, or a load). UI refreshes off this.
+## Fires whenever allocation / skill state changes (a perk bought, a skill level, a load).
 signal skills_changed
+## NEW: a specific skill reached a new level (branch == SKILL_*; new_level is the new level).
+signal skill_leveled(branch: int, new_level: int)
 
 # --- Core state ------------------------------------------------------------
 
-## id (StringName) -> Skill resource. Lookup table for every skill definition.
+## id (StringName) -> Skill resource. Every Skill .tres; only is_perk ones are allocatable.
 var database: Dictionary = {}
 
-## Total XP earned at the CURRENT level (resets toward 0 each level-up; spillover carries).
-var xp: int = 0
+## branch (int) -> { "level": int, "xp": float }. The per-skill use-leveling state.
+var _skill: Dictionary = {}
 
-## Current player level (starts at 1).
-var level: int = 1
+## branch (int) -> int unspent perk points for that skill's tree.
+var _perk_points: Dictionary = {}
 
-## Unspent skill points available to allocate.
-var points: int = 0
-
-## skill_id (StringName) -> int rank currently owned. Absent = rank 0.
+## perk_id (StringName) -> int rank owned. Absent = 0.
 var _ranks: Dictionary = {}
 
+## Cached global level (sum of skill levels, normalised so a fresh character is level 1).
+var _global_level: int = 1
+
 func _ready() -> void:
-	# Keep ticking even while a blocking UI pauses the tree, mirroring the other systems.
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_load_database()
-	# PlayerStats may not have finished _ready yet; push our derived maxima next idle frame.
+	for b in SKILLS:
+		_skill[b] = {"level": 1, "xp": 0.0}
+		_perk_points[b] = 0
+	_global_level = _compute_global_level()
+	# PlayerStats may not have finished _ready yet; push derived maxima next idle frame.
 	call_deferred("_apply_to_player_stats")
 
 # --- Database --------------------------------------------------------------
@@ -98,8 +130,6 @@ func _load_database() -> void:
 	dir.list_dir_begin()
 	var file_name := dir.get_next()
 	while file_name != "":
-		# In exported builds Godot renames .tres -> .tres.remap; strip that so the load()
-		# path stays valid in both the editor and exports (mirrors QuestSystem).
 		if file_name.ends_with(".tres") or file_name.ends_with(".tres.remap"):
 			var clean := file_name.trim_suffix(".remap")
 			var res := load(SKILL_DB_PATH + clean)
@@ -111,190 +141,242 @@ func _load_database() -> void:
 		file_name = dir.get_next()
 	dir.list_dir_end()
 
-## Look up the full Skill definition for an id (or null if unknown).
 func get_skill(id: StringName) -> Skill:
 	return database.get(id)
 
-## Every Skill in a given branch, as resources (for the tree UI to list a column).
-func get_skills_in_branch(branch: int) -> Array[Skill]:
+## Allocatable PERKS in a branch (is_perk == true), ordered by their skill-level gate then id.
+func get_perks_in_branch(branch: int) -> Array[Skill]:
 	var result: Array[Skill] = []
 	for id in database:
 		var skill: Skill = database[id]
-		if skill != null and skill.branch == branch:
+		if skill != null and skill.is_perk and int(skill.branch) == branch:
 			result.append(skill)
-	# Stable, readable order: required_level then id so columns don't shuffle each run.
 	result.sort_custom(func(a: Skill, b: Skill) -> bool:
 		if a.required_level != b.required_level:
 			return a.required_level < b.required_level
 		return String(a.id) < String(b.id))
 	return result
 
-# --- XP curve & levelling --------------------------------------------------
+## Compatibility alias for the old skill-tree UIs that call get_skills_in_branch().
+func get_skills_in_branch(branch: int) -> Array[Skill]:
+	return get_perks_in_branch(branch)
 
-## XP needed to advance FROM `lvl` to `lvl + 1`.
-func xp_to_next(lvl: int) -> int:
-	return XP_BASE + (maxi(lvl, 1) - 1) * XP_PER_LEVEL
+# --- Use-based levelling ----------------------------------------------------
 
-## Grant XP (typically from an enemy kill). Accumulates, loops level-ups crediting points,
-## and emits xp_changed (and leveled_up per level). Recomputes derived PlayerStats once.
+## Use-XP needed to advance a skill FROM `level` to `level + 1` (rising = anti-grind).
+func skill_xp_to_next(level: int) -> float:
+	return USE_XP_BASE + float(maxi(level, 1)) * USE_XP_PER_LEVEL
+
+## Train a skill. Called by combat when an action commits (a swing/shot/cast/hit-taken).
+## Accumulates use-XP, loops level-ups crediting perk points, and keeps PlayerStats + UI in sync.
+func register_use(branch: int, amount: float = USE_XP_PER_ACTION) -> void:
+	if not _skill.has(branch) or amount <= 0.0:
+		return
+	var s: Dictionary = _skill[branch]
+	if int(s["level"]) >= LEVEL_CAP:
+		return
+	s["xp"] = float(s["xp"]) + amount
+	var leveled := false
+	while int(s["level"]) < LEVEL_CAP and float(s["xp"]) >= skill_xp_to_next(int(s["level"])):
+		s["xp"] = float(s["xp"]) - skill_xp_to_next(int(s["level"]))
+		s["level"] = int(s["level"]) + 1
+		_perk_points[branch] = int(_perk_points[branch]) + PERK_POINTS_PER_LEVEL
+		leveled = true
+		skill_leveled.emit(branch, int(s["level"]))
+	if leveled:
+		_apply_to_player_stats()
+		_recompute_global_level()
+		skills_changed.emit()
+	# Always ping so a skill bar can animate mid-level.
+	xp_changed.emit(0, _global_level, 1)
+
+## The global character level = sum of skill levels, normalised so a fresh character (all
+## skills at 1) reads as level 1. Drives the endgame perks + the HUD "Level N!" toast.
+func _compute_global_level() -> int:
+	var total: int = 0
+	for b in SKILLS:
+		total += int(_skill[b]["level"])
+	return maxi(1, total - (SKILLS.size() - 1))
+
+## Recompute the cached global level; fire leveled_up for each global level just gained.
+func _recompute_global_level() -> void:
+	var gl: int = _compute_global_level()
+	if gl > _global_level:
+		var gained: int = gl - _global_level
+		_global_level = gl
+		for i in range(gained):
+			leveled_up.emit(_global_level - (gained - 1 - i), PERK_POINTS_PER_LEVEL)
+	else:
+		_global_level = gl
+
+# --- Repurposed XP entry points (kept so old callers keep working) ---------
+
+## Generic "combat experience" grant from enemy kills / quest rewards / dev tools. Spread as a
+## modest use-XP nudge across the combat skills (Melee/Ranged/Magic) — direct use is still the
+## main driver; this just keeps fights + quests feeling like they grow you.
 func add_xp(amount: int) -> void:
 	if amount <= 0:
 		return
-	xp += amount
-	var gained_levels: int = 0
-	# Loop in case a single big reward spans several levels.
-	while xp >= xp_to_next(level):
-		xp -= xp_to_next(level)
-		level += 1
-		points += POINTS_PER_LEVEL
-		gained_levels += 1
-		leveled_up.emit(level, POINTS_PER_LEVEL)
-	if gained_levels > 0:
-		# More max health/stamina may now be affordable; keep PlayerStats in sync and tell
-		# the UI the point pool changed.
-		_apply_to_player_stats()
-		skills_changed.emit()
-	xp_changed.emit(xp, level, xp_to_next(level))
+	var per: float = float(amount) * ADD_XP_USE_SCALE / 3.0
+	register_use(SKILL_MELEE, per)
+	register_use(SKILL_RANGED, per)
+	register_use(SKILL_MAGIC, per)
 
-## Shave XP off the CURRENT level's progress (a death penalty). Never de-levels and never drops
-## below 0 — only the in-progress bar is reduced. Returns how much was actually removed so the
-## caller (the death screen) can report it, and emits xp_changed so the HUD bar updates.
+## Death penalty: shave use-XP off each combat skill's in-progress level (never de-levels).
+## Returns the total use-XP removed so the death screen can report something.
 func lose_xp(amount: int) -> int:
 	if amount <= 0:
 		return 0
-	var lost: int = mini(amount, xp)
-	xp -= lost
-	xp_changed.emit(xp, level, xp_to_next(level))
-	return lost
+	var per: float = float(amount) * ADD_XP_USE_SCALE / 3.0
+	var lost: float = 0.0
+	for b in [SKILL_MELEE, SKILL_RANGED, SKILL_MAGIC]:
+		var s: Dictionary = _skill[b]
+		var take: float = minf(per, float(s["xp"]))
+		s["xp"] = float(s["xp"]) - take
+		lost += take
+	xp_changed.emit(0, _global_level, 1)
+	return int(round(lost))
 
-# --- Allocation ------------------------------------------------------------
+# --- Perk allocation -------------------------------------------------------
 
-## True if the skill exists and every gate (rank, points, level, prerequisite) is met.
-func can_allocate(skill_id: StringName) -> bool:
-	var skill: Skill = database.get(skill_id)
-	if skill == null:
+## True if `perk_id` is an allocatable perk whose gates are met: it's a perk, not maxed, its
+## skill is high enough level (required_level reinterpreted as the perk's skill level), and the
+## perk's branch has enough perk points.
+func can_allocate(perk_id: StringName) -> bool:
+	var skill: Skill = database.get(perk_id)
+	if skill == null or not skill.is_perk:
 		return false
-	if get_rank(skill_id) >= skill.max_rank:
+	if get_rank(perk_id) >= skill.max_rank:
 		return false
-	if points < skill.cost:
+	var branch: int = int(skill.branch)
+	if int(_perk_points.get(branch, 0)) < skill.cost:
 		return false
-	if level < skill.required_level:
+	if get_skill_level(branch) < skill.required_level:
 		return false
-	if skill.prerequisite != &"":
-		if get_rank(skill.prerequisite) < skill.prerequisite_rank:
-			return false
 	return true
 
-## Spend points to raise a skill one rank. Returns true on success. Recomputes derived
-## stats and emits skills_changed so combat and UI pick up the change.
-func allocate(skill_id: StringName) -> bool:
-	if not can_allocate(skill_id):
+## Spend perk points to raise a perk one rank. Recomputes derived stats + emits skills_changed.
+func allocate(perk_id: StringName) -> bool:
+	if not can_allocate(perk_id):
 		return false
-	var skill: Skill = database[skill_id]
-	points -= skill.cost
-	_ranks[skill_id] = get_rank(skill_id) + 1
+	var skill: Skill = database[perk_id]
+	var branch: int = int(skill.branch)
+	_perk_points[branch] = int(_perk_points[branch]) - skill.cost
+	_ranks[perk_id] = get_rank(perk_id) + 1
 	_apply_to_player_stats()
 	skills_changed.emit()
 	return true
 
 # --- Queries ---------------------------------------------------------------
 
-func get_rank(skill_id: StringName) -> int:
-	return int(_ranks.get(skill_id, 0))
+func get_rank(perk_id: StringName) -> int:
+	return int(_ranks.get(perk_id, 0))
 
-func get_points() -> int:
-	return points
+func has_perk(perk_id: StringName) -> bool:
+	return get_rank(perk_id) >= 1
 
+func get_skill_level(branch: int) -> int:
+	return int(_skill[branch]["level"]) if _skill.has(branch) else 1
+
+func get_skill_xp(branch: int) -> float:
+	return float(_skill[branch]["xp"]) if _skill.has(branch) else 0.0
+
+func get_skill_xp_to_next(branch: int) -> float:
+	return skill_xp_to_next(get_skill_level(branch))
+
+func get_perk_points(branch: int) -> int:
+	return int(_perk_points.get(branch, 0))
+
+func skill_display_name(branch: int) -> String:
+	return String(SKILL_NAMES.get(branch, "Skill"))
+
+# Compatibility shims for the old skill-tree UIs (now inert / being rewritten):
 func get_level() -> int:
-	return level
-
+	return _global_level
+func get_points() -> int:
+	var t: int = 0
+	for b in SKILLS:
+		t += int(_perk_points[b])
+	return t
 func get_xp() -> int:
-	return xp
+	return 0
+func xp_to_next(_lvl: int) -> int:
+	return 1
 
-## True if a perk (or any skill) is owned at rank >= 1. Combat reads this for perks.
-func has_perk(skill_id: StringName) -> bool:
-	return get_rank(skill_id) >= 1
+# Levels above 1 in a skill (what the auto-scale multiplies; level 1 = baseline, no bonus).
+func _auto(branch: int) -> int:
+	return maxi(get_skill_level(branch) - 1, 0)
 
-# --- Derived stats ---------------------------------------------------------
+# --- Derived stats (sum of perk stat_per_rank — the auto-scale is added in the getters) ---
 
-## Sum stat_per_rank[stat_key] * rank over every allocated skill. Returns 0.0 if nothing
-## contributes. This is the single source of every derived combat number.
+## Sum stat_per_rank[stat_key] * rank over every ALLOCATED perk. (Stat-passive skills are
+## retired; their effect is the per-level auto-scale, added directly in each getter.)
 func get_stat(stat_key: StringName) -> float:
 	var total: float = 0.0
-	for skill_id in _ranks:
-		var rank: int = int(_ranks[skill_id])
+	for perk_id in _ranks:
+		var rank: int = int(_ranks[perk_id])
 		if rank <= 0:
 			continue
-		var skill: Skill = database.get(skill_id)
+		var skill: Skill = database.get(perk_id)
 		if skill == null:
 			continue
 		if skill.stat_per_rank.has(stat_key):
-			var per_rank: float = float(skill.stat_per_rank[stat_key])
-			total += per_rank * float(rank)
+			total += float(skill.stat_per_rank[stat_key]) * float(rank)
 	return total
 
-## Multiplier applied to melee weapon damage (1.0 = unmodified). Adds the level-scaled late_bloomer
-## bonus on top of the flat skill passives so late-game levels keep mattering.
 func melee_damage_mult() -> float:
-	return 1.0 + get_stat(&"melee_damage_mult") + _late_bloomer_bonus()
+	return 1.0 + MELEE_DMG_PER_LEVEL * float(_auto(SKILL_MELEE)) + get_stat(&"melee_damage_mult") + _late_bloomer_bonus()
 
-## Multiplier applied to ranged weapon damage (1.0 = unmodified). Same late_bloomer bonus as melee.
 func ranged_damage_mult() -> float:
-	return 1.0 + get_stat(&"ranged_damage_mult") + _late_bloomer_bonus()
+	return 1.0 + RANGED_DMG_PER_LEVEL * float(_auto(SKILL_RANGED)) + get_stat(&"ranged_damage_mult") + _late_bloomer_bonus()
 
-## Multiplier applied to ranged weapon cooldown (1.0 = unmodified, 0.3 = 70% faster).
-## Clamped so cooldown can never drop below 30% of the weapon's base.
+func magic_damage_mult() -> float:
+	return 1.0 + MAGIC_DMG_PER_LEVEL * float(_auto(SKILL_MAGIC)) + get_stat(&"magic_damage_mult") + _late_bloomer_bonus()
+
 func ranged_cooldown_mult() -> float:
-	return clampf(1.0 - get_stat(&"ranged_cooldown_reduction"), 0.3, 1.0)
+	return clampf(1.0 - (RANGED_CD_PER_LEVEL * float(_auto(SKILL_RANGED)) + get_stat(&"ranged_cooldown_reduction")), 0.3, 1.0)
 
-## Chance (0..1) a hit crits. Combat may roll this to apply a damage bonus.
+func magic_cooldown_mult() -> float:
+	return clampf(1.0 - (MAGIC_CD_PER_LEVEL * float(_auto(SKILL_MAGIC)) + get_stat(&"magic_cooldown_reduction")), 0.3, 1.0)
+
+## Crit scales with your BEST attack skill (so a melee main and a caster both earn crit),
+## plus any perk crit on top. Clamped to a valid probability.
 func crit_chance() -> float:
-	return clampf(get_stat(&"crit_chance"), 0.0, 1.0)
+	var best: int = maxi(maxi(_auto(SKILL_MELEE), _auto(SKILL_RANGED)), _auto(SKILL_MAGIC))
+	return clampf(CRIT_PER_LEVEL * float(best) + get_stat(&"crit_chance"), 0.0, 1.0)
 
-## Flat extra max health from the survival tree, plus the level-scaled iron_resolve bonus so a
-## deep-into-the-game character keeps gaining durability after Toughness has maxed.
 func bonus_max_health() -> float:
-	return get_stat(&"max_health") + _iron_resolve_bonus()
+	return SURVIVAL_HP_PER_LEVEL * float(_auto(SKILL_SURVIVAL)) + get_stat(&"max_health") + _iron_resolve_bonus()
 
-## late_bloomer perk: +LATE_BLOOMER_DMG_PER_LEVEL to the melee/ranged damage multiplier for every
-## player level earned beyond ENDGAME_SCALE_LEVEL. Returns 0.0 until the perk is owned (get_rank > 0)
-## so it never touches an un-perked build; scales with rank too, should the .tres raise max_rank.
+func bonus_max_stamina() -> float:
+	return SURVIVAL_STAM_PER_LEVEL * float(_auto(SKILL_SURVIVAL)) + get_stat(&"max_stamina")
+
+func damage_reduction() -> float:
+	return clampf(SURVIVAL_RESIST_PER_LEVEL * float(_auto(SKILL_SURVIVAL)) + get_stat(&"damage_reduction"), 0.0, 0.9)
+
+func melee_lifesteal() -> float:
+	return clampf(get_stat(&"melee_lifesteal"), 0.0, 1.0)
+
+## Mana cost multiplier for wand casts (the Mana Surge magic perk makes spells cheaper).
+func mana_cost_mult() -> float:
+	return MANA_SURGE_COST_MULT if has_perk(&"mana_surge") else 1.0
+
+## late_bloomer perk: +damage multiplier per GLOBAL level beyond ENDGAME_SCALE_LEVEL.
 func _late_bloomer_bonus() -> float:
 	var rank: int = get_rank(&"late_bloomer")
 	if rank <= 0:
 		return 0.0
-	var levels_over: int = maxi(level - ENDGAME_SCALE_LEVEL, 0)
-	return LATE_BLOOMER_DMG_PER_LEVEL * float(levels_over) * float(rank)
+	return LATE_BLOOMER_DMG_PER_LEVEL * float(maxi(_global_level - ENDGAME_SCALE_LEVEL, 0)) * float(rank)
 
-## iron_resolve perk: +IRON_RESOLVE_HP_PER_LEVEL FLAT max health per player level beyond
-## ENDGAME_SCALE_LEVEL. Folded into bonus_max_health() so _apply_to_player_stats() tops the bar up
-## as the cap climbs each level-up. Returns 0.0 until owned.
+## iron_resolve perk: +flat max health per GLOBAL level beyond ENDGAME_SCALE_LEVEL.
 func _iron_resolve_bonus() -> float:
 	var rank: int = get_rank(&"iron_resolve")
 	if rank <= 0:
 		return 0.0
-	var levels_over: int = maxi(level - ENDGAME_SCALE_LEVEL, 0)
-	return IRON_RESOLVE_HP_PER_LEVEL * float(levels_over) * float(rank)
-
-## Flat extra max stamina from the survival tree.
-func bonus_max_stamina() -> float:
-	return get_stat(&"max_stamina")
-
-## Fraction (0..1) of melee damage dealt that is returned to the player as health.
-## Drives the Lifesteal perk; melee weapons heal final_damage * this on a swing.
-func melee_lifesteal() -> float:
-	return clampf(get_stat(&"melee_lifesteal"), 0.0, 1.0)
-
-## Fraction (0..0.9) of incoming damage ignored. Drives the Thick Skin skill; the player's
-## _on_hurt scales incoming damage by (1.0 - this). Capped at 90% so hits always sting.
-func damage_reduction() -> float:
-	return clampf(get_stat(&"damage_reduction"), 0.0, 0.9)
+	return IRON_RESOLVE_HP_PER_LEVEL * float(maxi(_global_level - ENDGAME_SCALE_LEVEL, 0)) * float(rank)
 
 # --- Pushing derived maxima onto PlayerStats -------------------------------
 
-## Recompute PlayerStats.max_health / max_stamina as base + survival bonus. Current values
-## are preserved (clamped down only if they'd exceed the new max); a raised max tops the
-## current bar up by the same delta so a fresh "+20 max health" feels like a heal.
 func _apply_to_player_stats() -> void:
 	if PlayerStats == null:
 		return
@@ -303,7 +385,6 @@ func _apply_to_player_stats() -> void:
 
 	var health_delta: float = new_max_health - PlayerStats.max_health
 	PlayerStats.max_health = new_max_health
-	# Raising the cap grants the extra as current HP; lowering it just clamps.
 	if health_delta > 0.0 and not PlayerStats.is_dead():
 		PlayerStats.health += health_delta
 	PlayerStats.health = clampf(PlayerStats.health, 0.0, new_max_health)
@@ -319,22 +400,33 @@ func _apply_to_player_stats() -> void:
 # --- Save / load -----------------------------------------------------------
 
 func capture_state() -> Dictionary:
+	var skills: Dictionary = {}
+	for b in SKILLS:
+		skills[b] = {"level": int(_skill[b]["level"]), "xp": float(_skill[b]["xp"])}
 	return {
-		"xp": xp,
-		"level": level,
-		"points": points,
+		"skills": skills,
+		"perk_points": _perk_points.duplicate(),
 		"ranks": _ranks.duplicate(),
 	}
 
 func restore_state(data: Dictionary) -> void:
-	xp = int(data.get("xp", 0))
-	level = maxi(int(data.get("level", 1)), 1)
-	points = int(data.get("points", 0))
+	for b in SKILLS:
+		_skill[b] = {"level": 1, "xp": 0.0}
+		_perk_points[b] = 0
+	var saved_skills: Dictionary = data.get("skills", {})
+	for b in saved_skills:
+		var bi: int = int(b)
+		if _skill.has(bi) and saved_skills[b] is Dictionary:
+			_skill[bi]["level"] = clampi(int(saved_skills[b].get("level", 1)), 1, LEVEL_CAP)
+			_skill[bi]["xp"] = float(saved_skills[b].get("xp", 0.0))
+	var saved_pp: Dictionary = data.get("perk_points", {})
+	for b in saved_pp:
+		_perk_points[int(b)] = int(saved_pp[b])
 	_ranks = {}
 	var saved_ranks: Dictionary = data.get("ranks", {})
 	for id in saved_ranks:
 		_ranks[id] = int(saved_ranks[id])
-	# Recompute everything off the restored ranks and announce the fresh totals.
+	_global_level = _compute_global_level()
 	_apply_to_player_stats()
-	xp_changed.emit(xp, level, xp_to_next(level))
+	xp_changed.emit(0, _global_level, 1)
 	skills_changed.emit()

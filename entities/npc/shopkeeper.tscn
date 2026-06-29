@@ -15,8 +15,8 @@ radius = 0.4
 [node name="Shopkeeper" type="CharacterBody3D"]
 script = ExtResource("1_shopkeeper")
 shop = ExtResource("2_shop")
-npc_name = "Gus"
-npc_id = &"gus"
+npc_name = "George Coral"
+npc_id = &"george"
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Space Grotesk',sans-serif;background:#b3ada0;}
+  ::-webkit-scrollbar{width:10px;}
+  ::-webkit-scrollbar-track{background:transparent;}
+  ::-webkit-scrollbar-thumb{background:#cabfac;border:3px solid #e7e1d4;border-radius:6px;}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
+  <div style="position:relative;width:1200px;height:675px;overflow:hidden;border-radius:6px;background:#0e0d12;font-family:'Space Grotesk',sans-serif;">
+    <!-- paused game scene -->
+    <div style="position:absolute;inset:0;background:linear-gradient(#4a86a4 0 34%,#9a866b 34% 56%,#6a5e50 56% 100%);"></div>
+    <div style="position:absolute;left:120px;top:210px;width:150px;height:190px;background:rgba(16,12,10,.5);"></div>
+    <div style="position:absolute;left:300px;top:160px;width:110px;height:240px;background:rgba(16,12,10,.62);"></div>
+    <div style="position:absolute;right:170px;top:190px;width:190px;height:210px;background:rgba(16,12,10,.5);"></div>
+    <div style="position:absolute;left:690px;top:300px;width:130px;height:220px;background:repeating-linear-gradient(45deg,rgba(255,255,255,.10) 0 8px,rgba(0,0,0,.20) 8px 16px);border-radius:4px;"></div>
+    <!-- ink wash -->
+    <div style="position:absolute;inset:0;background:rgba(14,13,18,.55);"></div>
+
+    <sc-if value="{{ open }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;">
+          <div style="pointer-events:auto;width:900px;height:560px;background:rgba(231,225,212,0.9);border:3px solid #0e0d12;border-radius:6px;padding:18px;display:flex;flex-direction:column;gap:12px;">
+
+            <!-- header -->
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div style="font-family:'Chakra Petch';font-weight:600;font-size:26px;color:#221f1a;letter-spacing:.5px;">Menu</div>
+              <div style="flex:1;"></div>
+              <div onClick="{{ closeMenu }}" style="display:flex;align-items:center;gap:7px;cursor:pointer;">
+                <span style="font-weight:700;font-size:11px;letter-spacing:1.5px;color:#6a655c;">CLOSE</span>
+                <span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;background:#221f1a;color:#e7e1d4;font-family:'Chakra Petch';font-weight:600;font-size:12px;border:3px solid #0e0d12;border-radius:4px;">ESC</span>
+              </div>
+            </div>
+
+            <!-- tab bar -->
+            <div style="display:flex;gap:6px;">
+              <sc-for list="{{ tabs }}" as="t" hint-placeholder-count="6">
+                <div onClick="{{ t.onClick }}" style="{{ t.style }}">{{ t.name }}</div>
+              </sc-for>
+            </div>
+
+            <!-- body -->
+            <div style="flex:1;min-height:0;">
+              <sc-if value="{{ isInventory }}" hint-placeholder-val="{{ true }}">
+                <div style="display:flex;flex-direction:column;gap:10px;height:100%;">
+                  <!-- category filter -->
+                  <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                    <sc-for list="{{ categories }}" as="c" hint-placeholder-count="6">
+                      <div onClick="{{ c.onClick }}" style="{{ c.style }}">{{ c.name }}</div>
+                    </sc-for>
+                  </div>
+                  <!-- grid + scroll affordance -->
+                  <div style="position:relative;flex:1;min-height:0;">
+                    <div style="height:100%;overflow-y:auto;overflow-x:hidden;padding-right:6px;">
+                      <div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-auto-rows:96px;gap:8px;">
+                        <sc-for list="{{ gridItems }}" as="it" hint-placeholder-count="18">
+                          <div draggable="true" onClick="{{ it.onClick }}" onDragStart="{{ it.onDragStart }}" title="{{ it.name }}" style="{{ it.cardStyle }}">
+                            <div style="{{ it.thumbStyle }}">
+                              <span style="{{ it.abStyle }}">{{ it.ab }}</span>
+                              <sc-if value="{{ it.hasCount }}"><span style="position:absolute;right:3px;bottom:3px;font-family:'Space Grotesk';font-weight:700;font-size:10px;color:#221f1a;background:#fbf8f0;border-radius:3px;padding:0 4px;">×{{ it.count }}</span></sc-if>
+                            </div>
+                            <div style="{{ it.nameStyle }}">{{ it.name }}</div>
+                          </div>
+                        </sc-for>
+                      </div>
+                    </div>
+                    <div style="position:absolute;left:0;right:8px;bottom:0;height:28px;pointer-events:none;background:linear-gradient(rgba(231,225,212,0),rgba(231,225,212,0.95));display:flex;align-items:flex-end;justify-content:center;">
+                      <span style="font-size:13px;line-height:1;color:#6a655c;">▾</span>
+                    </div>
+                  </div>
+                  <!-- focused item info -->
+                  <div style="display:flex;align-items:center;gap:8px;min-height:18px;">
+                    <span style="font-family:'Chakra Petch';font-weight:600;font-size:14px;color:#221f1a;">{{ focusName }}</span>
+                    <span style="font-weight:600;font-size:12px;color:#6a655c;">{{ focusMeta }}</span>
+                  </div>
+                  <!-- hotbar -->
+                  <div style="display:flex;align-items:center;gap:10px;">
+                    <span style="font-family:'Chakra Petch';font-weight:600;font-size:11px;letter-spacing:1.5px;color:#6a655c;">HOTBAR</span>
+                    <div style="flex:1;display:flex;gap:3px;padding:3px;background:#0e0d12;border-radius:5px;">
+                      <sc-for list="{{ hotbar }}" as="c" hint-placeholder-count="8">
+                        <div onDragOver="{{ c.onDragOver }}" onDragLeave="{{ c.onDragLeave }}" onDrop="{{ c.onDrop }}" style="{{ c.cellStyle }}">
+                          <span style="position:absolute;top:2px;left:5px;font-family:'Space Grotesk';font-weight:700;font-size:10px;color:#6a655c;">{{ c.slot }}</span>
+                          <sc-if value="{{ c.has }}"><span style="font-family:'Chakra Petch';font-weight:600;font-size:14px;color:#221f1a;letter-spacing:.5px;">{{ c.ab }}</span></sc-if>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ isSkills }}">
+                <div style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;height:100%;overflow-y:auto;padding-right:6px;">
+                  <sc-for list="{{ skillCols }}" as="col" hint-placeholder-count="4">
+                    <div style="display:flex;flex-direction:column;gap:7px;">
+                      <div style="font-family:'Chakra Petch';font-weight:600;font-size:15px;color:#221f1a;">{{ col.name }} — Lv {{ col.lv }}</div>
+                      <div style="position:relative;height:10px;background:#cabfac;border:2px solid #0e0d12;border-radius:4px;overflow:hidden;"><div style="position:absolute;left:0;top:0;bottom:0;width:{{ col.xpw }};background:#5ba36a;"></div></div>
+                      <div style="font-weight:700;font-size:11px;color:#c8941e;">{{ col.bonus }}</div>
+                      <div style="font-weight:700;font-size:11px;color:#6a655c;">Perk points: {{ col.pts }}</div>
+                      <sc-for list="{{ col.perks }}" as="p" hint-placeholder-count="2">
+                        <div style="{{ p.cardStyle }}">
+                          <div style="display:flex;align-items:center;gap:6px;">
+                            <span style="flex:1;font-family:'Chakra Petch';font-weight:600;font-size:12px;color:{{ p.titleColor }};">{{ p.title }}</span>
+                            <span style="{{ p.btnStyle }}">{{ p.btn }}</span>
+                          </div>
+                          <div style="font-weight:600;font-size:10px;line-height:1.25;color:#6a655c;">{{ p.desc }}</div>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ isCrafting }}">
+                <div style="display:flex;gap:12px;height:100%;">
+                  <div style="width:36%;overflow-y:auto;padding-right:6px;display:flex;flex-direction:column;gap:10px;">
+                    <sc-for list="{{ craftGroups }}" as="g" hint-placeholder-count="4">
+                      <div style="display:flex;flex-direction:column;gap:5px;">
+                        <div style="font-family:'Chakra Petch';font-weight:600;font-size:12px;letter-spacing:.5px;color:#6a655c;">{{ g.station }}</div>
+                        <sc-for list="{{ g.items }}" as="it" hint-placeholder-count="2">
+                          <div onClick="{{ it.onClick }}" style="{{ it.style }}">{{ it.name }}</div>
+                        </sc-for>
+                      </div>
+                    </sc-for>
+                  </div>
+                  <div style="flex:1;min-width:0;background:#e7e1d4;border:3px solid #0e0d12;border-radius:6px;padding:16px;display:flex;flex-direction:column;gap:12px;overflow-y:auto;">
+                    <div style="display:flex;gap:14px;align-items:center;">
+                      <div style="width:78px;height:78px;flex:none;display:flex;align-items:center;justify-content:center;background:#d6cdba;border:3px solid #0e0d12;border-radius:5px;font-family:'Chakra Petch';font-weight:600;font-size:18px;color:#6a655c;">{{ craftDetail.ab }}</div>
+                      <div style="display:flex;flex-direction:column;gap:4px;">
+                        <div style="font-family:'Chakra Petch';font-weight:600;font-size:20px;color:#221f1a;">{{ craftDetail.name }}</div>
+                        <div style="font-weight:600;font-size:12px;line-height:1.3;color:#6a655c;">{{ craftDetail.info }}</div>
+                      </div>
+                    </div>
+                    <div style="font-family:'Chakra Petch';font-weight:600;font-size:12px;letter-spacing:1px;color:#6a655c;">INGREDIENTS</div>
+                    <div style="display:flex;flex-direction:column;gap:6px;">
+                      <sc-for list="{{ craftDetail.inputs }}" as="i" hint-placeholder-count="2">
+                        <div style="display:flex;align-items:center;gap:8px;background:#fbf8f0;border:2px solid #0e0d12;border-radius:5px;padding:7px 11px;">
+                          <span style="flex:1;font-family:'Chakra Petch';font-weight:600;font-size:13px;color:#221f1a;">{{ i.line }}</span>
+                          <span style="{{ i.countStyle }}">{{ i.count }}</span>
+                        </div>
+                      </sc-for>
+                    </div>
+                    <div style="font-family:'Chakra Petch';font-weight:600;font-size:15px;color:#221f1a;">{{ craftDetail.outLine }}</div>
+                    <div style="{{ craftDetail.btnStyle }}">{{ craftDetail.btn }}</div>
+                  </div>
+                </div>
+              </sc-if>
+              <sc-if value="{{ isQuests }}">
+                <div style="height:100%;overflow-y:auto;padding-right:6px;display:flex;flex-direction:column;gap:12px;">
+                  <sc-for list="{{ questGroups }}" as="g" hint-placeholder-count="3">
+                    <div style="display:flex;flex-direction:column;gap:7px;">
+                      <div style="font-family:'Chakra Petch';font-weight:600;font-size:14px;color:#221f1a;border-bottom:2px solid #cabfac;padding-bottom:3px;">{{ g.tier }}</div>
+                      <sc-for list="{{ g.items }}" as="q" hint-placeholder-count="1">
+                        <div style="background:#e7e1d4;border:3px solid #0e0d12;border-radius:5px;padding:9px 11px;display:flex;flex-direction:column;gap:5px;">
+                          <div style="display:flex;align-items:center;gap:8px;">
+                            <span style="{{ q.badgeStyle }}">{{ q.badge }}</span>
+                            <span style="flex:1;font-family:'Chakra Petch';font-weight:600;font-size:14px;color:{{ q.titleColor }};">{{ q.title }}</span>
+                            <sc-if value="{{ q.hasStage }}"><span style="font-weight:700;font-size:11px;color:#6a655c;">{{ q.stage }}</span></sc-if>
+                            <span style="{{ q.trackStyle }}">{{ q.trackLabel }}</span>
+                          </div>
+                          <sc-if value="{{ q.time }}"><span style="font-weight:700;font-size:10px;letter-spacing:.5px;color:#ef5340;">[TIME-SENSITIVE]</span></sc-if>
+                          <div style="font-weight:600;font-size:12px;line-height:1.3;color:#6a655c;">{{ q.desc }}</div>
+                          <sc-for list="{{ q.objs }}" as="o" hint-placeholder-count="2">
+                            <div style="{{ o.style }}">{{ o.line }}</div>
+                          </sc-for>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ isReputation }}">
+                <div style="height:100%;overflow-y:auto;padding-right:6px;display:flex;flex-direction:column;gap:7px;">
+                  <sc-for list="{{ repList }}" as="r" hint-placeholder-count="5">
+                    <div style="display:flex;align-items:center;gap:10px;background:#e7e1d4;border:3px solid #0e0d12;border-radius:5px;padding:8px 12px;">
+                      <span style="flex:1;font-family:'Chakra Petch';font-weight:600;font-size:13px;color:#221f1a;">{{ r.name }}</span>
+                      <span style="{{ r.tierStyle }}">{{ r.tier }}</span>
+                      <span style="font-weight:700;font-size:12px;color:#6a655c;min-width:46px;text-align:right;">{{ r.score }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </sc-if>
+              <sc-if value="{{ isMap }}">
+                <div style="display:flex;gap:12px;height:100%;">
+                  <div style="flex:1;min-width:0;border:3px solid #0e0d12;border-radius:6px;background:repeating-linear-gradient(45deg,#d6cdba 0 12px,#cdc3ae 12px 24px);display:flex;align-items:center;justify-content:center;">
+                    <span style="font-family:'Space Grotesk';font-weight:700;font-size:12px;letter-spacing:2px;color:#6a655c;background:#e7e1d4;border:2px solid #0e0d12;border-radius:4px;padding:5px 12px;">MAP GRAPHIC</span>
+                  </div>
+                  <div style="width:38%;overflow-y:auto;padding-right:6px;display:flex;flex-direction:column;gap:9px;">
+                    <div style="font-family:'Chakra Petch';font-weight:600;font-size:16px;color:#221f1a;">Discovered Areas</div>
+                    <sc-for list="{{ mapList }}" as="m" hint-placeholder-count="6">
+                      <div style="display:flex;align-items:center;gap:10px;background:#e7e1d4;border:3px solid #0e0d12;border-radius:5px;padding:8px 12px;">
+                        <span style="{{ m.swatchStyle }}"></span>
+                        <span style="font-family:'Chakra Petch';font-weight:600;font-size:13px;color:#221f1a;">{{ m.name }}</span>
+                      </div>
+                    </sc-for>
+                    <div style="font-weight:600;font-size:12px;color:#6a655c;font-style:italic;">(more to discover…)</div>
+                  </div>
+                </div>
+              </sc-if>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- bottom bar: box-color switcher (left) + instructions (right) -->
+        <div style="position:absolute;left:22px;right:22px;bottom:14px;display:flex;align-items:center;justify-content:space-between;gap:20px;">
+          <div style="display:flex;align-items:center;gap:8px;flex:none;">
+            <span style="font-family:'Chakra Petch';font-weight:600;font-size:11px;letter-spacing:1.5px;color:#cdc7ba;">BOX COLORS</span>
+            <sc-for list="{{ schemeBtns }}" as="b" hint-placeholder-count="3">
+              <div onClick="{{ b.onClick }}" style="{{ b.style }}">{{ b.label }}</div>
+            </sc-for>
+          </div>
+          <span style="font-weight:600;font-size:12px;letter-spacing:.4px;color:#cdc7ba;">LB / RB — switch tabs &nbsp;·&nbsp; ↑↓←→ navigate &nbsp;·&nbsp; 1–8 assign to hotbar &nbsp;·&nbsp; drag to hotbar &nbsp;·&nbsp; Esc to close</span>
+        </div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ closed }}">
+      <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">
+        <div onClick="{{ openMenu }}" style="cursor:pointer;display:flex;align-items:center;gap:9px;padding:8px 15px;background:#e7e1d4;border:3px solid #0e0d12;border-radius:6px;">
+          <span style="display:inline-flex;align-items:center;justify-content:center;min-width:24px;height:24px;padding:0 6px;background:#221f1a;color:#e7e1d4;font-family:'Chakra Petch';font-weight:600;font-size:13px;border-radius:4px;">I</span>
+          <span style="font-family:'Chakra Petch';font-weight:600;font-size:15px;color:#221f1a;">Open Menu</span>
+        </div>
+      </div>
+    </sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1248,&quot;height&quot;:723}}">
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { open:true, tab:0, category:'All', focus:0, overSlot:-1, scheme:'B', craftSel:'iron', hotbar:['swd','bow','xbw','w1','pot','thr',null,null] }; }
+
+  componentDidMount(){
+    this._key = (e) => {
+      const s = this.state;
+      if (e.key === 'Escape') { this.setState({ open:false }); return; }
+      if (e.key === 'i' || e.key === 'I') { this.setState({ open:true }); return; }
+      if (!s.open) return;
+      if (e.key === 'q' || e.key === 'Q' || e.key === '[') { this.setState({ tab:(s.tab+5)%6, focus:0 }); return; }
+      if (e.key === 'e' || e.key === 'E' || e.key === ']') { this.setState({ tab:(s.tab+1)%6, focus:0 }); return; }
+      if (s.tab !== 0) return;
+      const list = this._filtered(); const cols = 6; const n = list.length;
+      if (e.key === 'ArrowLeft')  { e.preventDefault(); this.setState({ focus: Math.max(0, s.focus-1) }); }
+      else if (e.key === 'ArrowRight') { e.preventDefault(); this.setState({ focus: Math.min(n-1, s.focus+1) }); }
+      else if (e.key === 'ArrowUp')   { e.preventDefault(); this.setState({ focus: Math.max(0, s.focus-cols) }); }
+      else if (e.key === 'ArrowDown') { e.preventDefault(); this.setState({ focus: Math.min(n-1, s.focus+cols) }); }
+      else if (/^[1-8]$/.test(e.key)) { const hb=s.hotbar.slice(); hb[parseInt(e.key)-1] = list[s.focus] ? list[s.focus].id : null; this.setState({ hotbar:hb }); }
+    };
+    window.addEventListener('keydown', this._key);
+  }
+  componentWillUnmount(){ window.removeEventListener('keydown', this._key); }
+
+  _items(){
+    return [
+      { id:'swd', ab:'SWD', name:'Soggy Sword', cat:'Weapons', count:0 },
+      { id:'bow', ab:'BOW', name:"Mr. Frog's Bow", cat:'Weapons', count:0 },
+      { id:'xbw', ab:'XBW', name:'Crossbow of Regret', cat:'Weapons', count:0 },
+      { id:'w1',  ab:'W1',  name:'Wand of Mild Inconvenience', cat:'Weapons', count:0 },
+      { id:'w2',  ab:'W2',  name:'Wand of Aggressive Hugs', cat:'Weapons', count:0 },
+      { id:'w3',  ab:'W3',  name:'Wand of Questionable Magic', cat:'Weapons', count:0 },
+      { id:'thr', ab:'THR', name:'Greasy Throwing Knives', cat:'Weapons', count:14 },
+      { id:'pot', ab:'POT', name:'Definitely-Safe Potion', cat:'Consumables', count:3 },
+      { id:'meat',ab:'MEAT',name:'Suspicious Meat', cat:'Consumables', count:3 },
+      { id:'sand',ab:'SAND',name:'Half-Eaten Sandwich', cat:'Consumables', count:1 },
+      { id:'can', ab:'CAN', name:'Fizzy Mystery Can', cat:'Consumables', count:6 },
+      { id:'ash', ab:'ASH', name:'Lava Ash', cat:'Materials', count:47 },
+      { id:'scrp',ab:'SCRP',name:'Scrap Metal', cat:'Materials', count:12 },
+      { id:'wood',ab:'WOOD',name:'Wood Log', cat:'Materials', count:8 },
+      { id:'bone',ab:'BONE',name:'Bone Shard', cat:'Materials', count:23 },
+      { id:'goo', ab:'GOO', name:'Sentient Goo', cat:'Materials', count:5 },
+      { id:'key', ab:'KEY', name:'Town Key', cat:'Quest', count:1 },
+      { id:'iou', ab:'IOU', name:"Barry's IOU", cat:'Quest', count:1 },
+      { id:'psnd',ab:'PSND',name:'Pocket Sand', cat:'Junk', count:99 },
+      { id:'junk',ab:'JUNK',name:'Glittering Junk', cat:'Junk', count:15 },
+      { id:'coin',ab:'COIN',name:'Cursed Coin', cat:'Junk', count:2 },
+      { id:'bug', ab:'BUG', name:'Bug in a Jar', cat:'Junk', count:1 },
+    ];
+  }
+  _filtered(){ const c=this.state.category; return this._items().filter(it => c==='All' || it.cat===c); }
+
+  _pal(){
+    return {
+      A:{ ab:'#f6f1e7', name:'#1b150f',
+        Weapons:['#df6f3c','#c25e30','#f0824a'], Consumables:['#57a065','#478554','#6bbd79'],
+        Materials:['#4f9ed6','#4187bd','#66b4ea'], Quest:['#d2a233','#b88b27','#e8b948'],
+        Junk:['#8f8576','#79705f','#a89d8c'] },
+      B:{ ab:'#3a3226', name:'#2a2218',
+        Weapons:['#cf9279','#b87d63','#dda88f'], Consumables:['#8fb89a','#789f83','#a6cbae'],
+        Materials:['#93b2cc','#7c9bb6','#a9c6df'], Quest:['#cdba88','#b6a374','#ddca98'],
+        Junk:['#b1a796','#988e7d','#c3b9a8'] },
+      C:{ ab:'#f6f1e7', name:'#6a655c',
+        Weapons:['#e7e1d4','#df6f3c','#fbf8f0'], Consumables:['#e7e1d4','#57a065','#fbf8f0'],
+        Materials:['#e7e1d4','#4f9ed6','#fbf8f0'], Quest:['#e7e1d4','#d2a233','#fbf8f0'],
+        Junk:['#e7e1d4','#8f8576','#fbf8f0'] },
+    };
+  }
+
+  renderVals(){
+    const ink='#0e0d12', cream='#e7e1d4', bright='#fbf8f0', text='#221f1a', dim='#6a655c';
+    const s = this.state;
+    const tabNames = ['Inventory','Skills','Crafting','Quests','Reputation','Map'];
+    const tabs = tabNames.map((name,i)=>({ name, onClick:()=>this.setState({tab:i, focus:0}),
+      style: { flex:'1', textAlign:'center', cursor:'pointer', userSelect:'none', padding:'8px 4px', borderRadius:'5px',
+        fontFamily:"'Chakra Petch', sans-serif", fontWeight:'600', fontSize:'14px', letterSpacing:'.3px',
+        background: i===s.tab ? bright : cream, color: i===s.tab ? text : dim, border:'3px solid '+ink } }));
+
+    const cats = ['All','Weapons','Consumables','Materials','Quest','Junk'];
+    const categories = cats.map(name=>({ name, onClick:()=>this.setState({category:name, focus:0}),
+      style: { cursor:'pointer', userSelect:'none', padding:'4px 11px', borderRadius:'999px', fontWeight:'700', fontSize:'12px', letterSpacing:'.3px',
+        background: name===s.category ? bright : cream, color: name===s.category ? text : dim, border:'3px solid '+ink } }));
+
+    const sc = this._pal()[s.scheme];
+    const list = this._filtered();
+    const focus = Math.min(s.focus, Math.max(0, list.length-1));
+    const gridItems = list.map((it,i)=>{
+      const arr = sc[it.cat] || ['#e7e1d4','#d6cdba','#fbf8f0'];
+      const sel = i===focus;
+      return { id:it.id, ab:it.ab, name:it.name, count:it.count, hasCount: it.count>0,
+        onClick:()=>this.setState({focus:i}),
+        onDragStart:(e)=>{ e.dataTransfer.setData('text/plain', it.id); e.dataTransfer.effectAllowed='copy'; },
+        cardStyle: { display:'flex', flexDirection:'column', gap:'4px', padding:'5px', height:'96px', borderRadius:'5px', cursor:'grab',
+          background: sel?arr[2]:arr[0], border: sel?'3px solid #ffffff':'3px solid '+ink },
+        thumbStyle: { position:'relative', flex:'1', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'3px', background:arr[1] },
+        abStyle: { fontFamily:"'Chakra Petch', sans-serif", fontWeight:'600', fontSize:'15px', letterSpacing:'.5px', color:sc.ab },
+        nameStyle: { fontWeight:'600', fontSize:'10px', lineHeight:'1.1', color:sc.name, whiteSpace:'nowrap', overflow:'hidden', textOverflow:'ellipsis' } };
+    });
+
+    const byId = {}; this._items().forEach(it=>byId[it.id]=it);
+    const hotbar = s.hotbar.map((id,slot)=>{ const it=id?byId[id]:null; const over=s.overSlot===slot;
+      return { slot:slot+1, ab: it?it.ab:'', has:!!it,
+        onDragOver:(e)=>{ e.preventDefault(); if(s.overSlot!==slot) this.setState({overSlot:slot}); },
+        onDragLeave:()=>{ if(s.overSlot===slot) this.setState({overSlot:-1}); },
+        onDrop:(e)=>{ e.preventDefault(); const did=e.dataTransfer.getData('text/plain'); const hb=this.state.hotbar.slice(); hb[slot]=did||hb[slot]; this.setState({hotbar:hb, overSlot:-1}); },
+        cellStyle: { position:'relative', flex:'1', minWidth:'0', height:'58px', display:'flex', alignItems:'center', justifyContent:'center',
+          borderRadius:'2px', background: over?bright:cream, outline: over?'3px solid #ffffff':'none', outlineOffset:'-3px' } };
+    });
+
+    const schemeBtns = [{k:'A',label:'Vivid'},{k:'B',label:'Muted'},{k:'C',label:'Tint'}].map(o=>({ label:o.label, onClick:()=>this.setState({scheme:o.k}),
+      style: { cursor:'pointer', userSelect:'none', padding:'3px 10px', borderRadius:'999px', fontFamily:"'Chakra Petch', sans-serif", fontWeight:'600', fontSize:'12px',
+        background: s.scheme===o.k ? bright : 'rgba(231,225,212,0.18)', color: s.scheme===o.k ? text : '#cdc7ba', border:'2px solid '+(s.scheme===o.k?ink:'rgba(231,225,212,0.4)') } }));
+
+    const ready='#5ba36a';
+
+    // SKILLS
+    const skillRaw=[
+      {name:'Melee',lv:7,xp:64,bonus:'+12% melee dmg',pts:2,perks:[{n:'Heavy Swing',r:2,m:3,cost:1,desc:'Charged hits knock foes back.'},{n:'Cleave',r:1,m:1,max:true,desc:'Strike all adjacent enemies.'},{n:'Bloodlust',r:0,m:2,cost:1,locked:true,desc:'Heal a little on every kill.'}]},
+      {name:'Ranged',lv:5,xp:30,bonus:'+8% crit chance',pts:2,perks:[{n:'Steady Aim',r:1,m:3,cost:1,desc:'Stamina drains slower while aiming.'},{n:'Ricochet',r:0,m:2,cost:1,locked:true,desc:'Arrows bounce to a 2nd target.'}]},
+      {name:'Magic',lv:6,xp:48,bonus:'+15 max mana',pts:2,perks:[{n:'Mana Font',r:2,m:2,max:true,desc:'Mana regenerates faster.'},{n:'Wild Surge',r:0,m:3,cost:2,locked:true,desc:'Spells randomly deal double.'}]},
+      {name:'Survival',lv:8,xp:20,bonus:'+20 max stamina',pts:1,perks:[{n:'Iron Gut',r:1,m:2,cost:1,desc:'Sketchy food hurts less.'},{n:'Scavenger',r:3,m:3,max:true,desc:'Junk yields better loot.'}]},
+    ];
+    const skillCols=skillRaw.map(c=>({ name:c.name, lv:c.lv, xpw:c.xp+'%', bonus:c.bonus, pts:c.pts,
+      perks:c.perks.map(p=>{ const lk=!!p.locked, mx=!!p.max; return { title:p.n+' ('+p.r+'/'+p.m+')', desc:p.desc, titleColor:lk?dim:text,
+        btn: mx?'MAX':(p.cost+' pt'),
+        cardStyle:{ background:lk?'rgba(231,225,212,0.5)':cream, border:'3px solid '+ink, borderRadius:'5px', padding:'6px 8px', display:'flex', flexDirection:'column', gap:'3px' },
+        btnStyle: mx?{ fontFamily:"'Chakra Petch',sans-serif", fontWeight:'600', fontSize:'10px', color:dim, padding:'2px 7px', border:'2px solid '+dim, borderRadius:'4px', whiteSpace:'nowrap' }
+          :{ fontFamily:"'Chakra Petch',sans-serif", fontWeight:'600', fontSize:'10px', color:lk?dim:'#1a1407', background:lk?cream:'#c8941e', padding:'2px 7px', border:'2px solid '+ink, borderRadius:'4px', whiteSpace:'nowrap', cursor:lk?'default':'pointer' } };
+      }) }));
+
+    // CRAFTING (master-detail)
+    const craftData=[
+      {station:'Smelter',items:[
+        {id:'iron',n:'Iron Ingot',ab:'ING',out:'Iron Ingot',outN:1,time:'8s',inputs:[{n:'Scrap Metal',need:3,have:12}],info:'A sturdy bar — backbone of most weapon upgrades.'},
+        {id:'glass',n:'Glass',ab:'GLS',out:'Glass',outN:1,time:'5s',inputs:[{n:'Pocket Sand',need:2,have:99}],info:'Surprisingly clear, given the source.'},
+      ]},
+      {station:'Workbench',items:[
+        {id:'rbow',n:'Reinforced Bow',ab:'RBW',out:'Reinforced Bow',outN:1,time:'12s',inputs:[{n:"Mr. Frog's Bow",need:1,have:1},{n:'Wood Log',need:4,have:8}],info:'Mr. Frog would be proud. Or litigious.'},
+        {id:'knife',n:'Knife Batch',ab:'KNF',out:'Greasy Throwing Knives',outN:6,time:'6s',inputs:[{n:'Iron Ingot',need:2,have:0}],info:'Pointy, plentiful, faintly greasy.'},
+      ]},
+      {station:'Cooking Station',items:[
+        {id:'stew',n:'Mystery Stew',ab:'STW',out:'Mystery Stew',outN:2,time:'10s',inputs:[{n:'Suspicious Meat',need:1,have:3},{n:'Sentient Goo',need:1,have:5}],info:'It blinks. Restores a lot of health. Probably.'},
+        {id:'snack',n:'Energy Snack',ab:'SNK',out:'Energy Snack',outN:1,time:'3s',inputs:[{n:'Half-Eaten Sandwich',need:1,have:1}],info:'Half a sandwich, twice the regret.'},
+      ]},
+      {station:'Bar Mixing Station',items:[
+        {id:'fizz',n:'Frog Fizz',ab:'FZZ',out:'Frog Fizz',outN:1,time:'15s',inputs:[{n:'Fizzy Mystery Can',need:1,have:6},{n:'Lava Ash',need:1,have:47}],info:'Carbonated courage with a kick.'},
+        {id:'courage',n:'Liquid Courage',ab:'LQC',out:'Liquid Courage',outN:1,time:'20s',inputs:[{n:'Cursed Coin',need:2,have:2}],info:'Tastes like a bad decision. Buffs everything.'},
+      ]},
+    ];
+    let _craftFound=null;
+    const craftGroups=craftData.map(st=>({ station:st.station, items:st.items.map(it=>{ const seld=it.id===s.craftSel; if(seld)_craftFound=it; return { name:it.n, onClick:()=>this.setState({craftSel:it.id}),
+      style:{ cursor:'pointer', display:'flex', alignItems:'center', padding:'6px 9px', borderRadius:'5px', fontFamily:"'Chakra Petch',sans-serif", fontWeight:'600', fontSize:'12px',
+        background: seld?bright:cream, color:text, border: seld?'3px solid #ffffff':'3px solid '+ink } }; }) }));
+    const _cd=_craftFound||craftData[0].items[0];
+    const _craftable=_cd.inputs.every(i=>i.have>=i.need);
+    const craftDetail={ name:_cd.n, ab:_cd.ab, info:_cd.info, outLine:'→  '+_cd.outN+'× '+_cd.out+'   ('+_cd.time+')',
+      inputs:_cd.inputs.map(i=>({ line:i.n, count:i.have+' / '+i.need,
+        countStyle:{ fontFamily:"'Chakra Petch',sans-serif", fontWeight:'600', fontSize:'12px', color: i.have>=i.need?'#5ba36a':'#ef5340' } })),
+      btn:_craftable?'Craft':'Missing materials',
+      btnStyle:{ alignSelf:'flex-start', fontFamily:"'Chakra Petch',sans-serif", fontWeight:'600', fontSize:'14px', padding:'8px 20px', borderRadius:'5px', border:'3px solid '+ink,
+        background:_craftable?'#c8941e':cream, color:_craftable?'#1a1407':dim, cursor:_craftable?'pointer':'default' } };
+
+    // QUESTS
+    const qBadge={ MAIN:'#c8941e', SIDE:'#4f9ed6', TASK:'#5ba36a' };
+    const questRaw=[
+      {tier:'Main Quests',badge:'MAIN',items:[{title:'Help the Town',stage:'Stage 2/4',desc:'Barry says the goo downtown is "your problem now." Sort it out.',tracked:true,objs:[{done:false,t:'Meet Barry at the bar',cur:0,max:1,big:true},{done:true,t:'Clear the goo in the alley',cur:3,max:3}]}]},
+      {tier:'Side Quests',badge:'SIDE',items:[{title:'Frog Whisperer',desc:"Recover Mr. Frog's missing bow from the pond.",tracked:false,objs:[{done:false,t:'Search the pond',cur:1,max:3}]},{title:'Sand Tycoon',time:true,desc:'Offload your suspicious sand stockpile.',tracked:false,objs:[{done:false,t:'Sell Pocket Sand',cur:31,max:50}]}]},
+      {tier:'Tasks',badge:'TASK',gold:true,items:[{title:'Take Out the Trash',desc:'Dispose of glittering junk before it multiplies.',tracked:false,objs:[{done:false,t:'Trash Glittering Junk',cur:2,max:5}]}]},
+    ];
+    const questGroups=questRaw.map(g=>({ tier:g.tier, items:g.items.map(q=>({
+      badge:g.badge, badgeStyle:{ fontFamily:"'Space Grotesk',sans-serif", fontWeight:'700', fontSize:'10px', letterSpacing:'.5px', color:'#1a1407', background:qBadge[g.badge], borderRadius:'3px', padding:'1px 6px' },
+      title:q.title, titleColor: g.gold?'#c8941e':text, stage:q.stage||'', hasStage:!!q.stage, time:!!q.time, desc:q.desc,
+      trackLabel: q.tracked?'Tracked':'Track',
+      trackStyle:{ cursor:'pointer', fontFamily:"'Chakra Petch',sans-serif", fontWeight:'600', fontSize:'11px', color:q.tracked?'#221f1a':dim, background:q.tracked?bright:cream, border:'2px solid '+ink, borderRadius:'4px', padding:'2px 9px', whiteSpace:'nowrap' },
+      objs:q.objs.map(o=>({ line:(o.done?'☑':'☐')+'  '+o.t+'  ('+o.cur+'/'+o.max+')', style:{ fontWeight:'600', fontSize:o.big?'13px':'12px', color:o.done?ready:(o.big?text:dim) } }))
+    })) }));
+
+    // REPUTATION
+    const repList=[
+      {name:'Barry',tier:'Gold',score:820,color:'#c8941e'},
+      {name:'Mr. Frog',tier:'Friendly',score:540,color:'#5ba36a'},
+      {name:'Goo Gary',tier:'Neutral',score:120,color:'#6a655c'},
+      {name:'The Mayor',tier:'Wary',score:-60,color:'#cf9279'},
+      {name:'Pocket Sand Pete',tier:'Hostile',score:-240,color:'#ef5340'},
+    ].map(r=>({ name:r.name, tier:r.tier, score:(r.score>0?'+':'')+r.score, tierStyle:{ fontFamily:"'Chakra Petch',sans-serif", fontWeight:'600', fontSize:'12px', color:r.color } }));
+
+    // MAP
+    const mapList=[
+      {name:'Downtown',color:'#df6f3c'},{name:'The Pond',color:'#5ba36a'},{name:'The Sewers',color:'#8b6fc4'},
+      {name:"Barry's Bar",color:'#c8941e'},{name:'The Junkyard',color:'#4f9ed6'},{name:'Frog Plaza',color:'#cf9279'},
+    ].map(m=>({ name:m.name, swatchStyle:{ width:'16px', height:'16px', borderRadius:'3px', border:'2px solid '+ink, background:m.color, flex:'none' } }));
+
+    const fi = list[focus];
+    return {
+      open: s.open, closed: !s.open,
+      closeMenu:()=>this.setState({open:false}), openMenu:()=>this.setState({open:true}),
+      tabs, categories, gridItems, hotbar, schemeBtns,
+      isInventory:s.tab===0, isSkills:s.tab===1, isCrafting:s.tab===2, isQuests:s.tab===3, isReputation:s.tab===4, isMap:s.tab===5,
+      activeTabName: tabNames[s.tab],
+      skillCols, craftGroups, craftDetail, questGroups, repList, mapList,
+      focusName: fi ? fi.name : '—',
+      focusMeta: fi ? ('·  ' + fi.cat + (fi.count>0 ? '  ·  ×'+fi.count : '')) : '',
+    };
+  }
+}
+</script>
+</body>
+</html>

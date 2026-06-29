@@ -19,7 +19,7 @@
 
 extends CanvasLayer
 
-const Glass = preload("res://ui/glass_style.gd")
+const Flat = preload("res://ui/ui_style.gd")
 
 # Dying inside a procedural dungeon kicks the player back to the OVERWORLD instead of
 # respawning them among the monsters (dungeons drop local respawn_point markers, which would
@@ -199,10 +199,15 @@ func _compute_penalty() -> void:
 				drops[id] = lose
 				dropped_total += lose
 	var xp_loss: int = 0
+	# get_xp() is now an inert shim (always 0) after the use-based progression rework, so the death
+	# XP stake has to read the REAL in-progress combat use-XP and shave a slice of that instead.
 	var prog: Node = get_node_or_null("/root/Progression")
-	if prog != null:
-		xp_loss = int(floor(float(prog.get_xp()) * DEATH_XP_LOSS_FRACTION))
-	_pending_penalty = {"drops": drops, "xp": xp_loss}
+	if prog != null and prog.has_method("get_skill_xp"):
+		var total_xp: float = 0.0
+		for b in [Progression.SKILL_MELEE, Progression.SKILL_RANGED, Progression.SKILL_MAGIC]:
+			total_xp += float(prog.get_skill_xp(b))
+		xp_loss = int(floor(total_xp * DEATH_XP_LOSS_FRACTION))
+	_pending_penalty = {"drops": drops, "xp": xp_loss, "dropped_total": dropped_total}
 	_update_summary(dropped_total, xp_loss)
 
 # Commit the penalty computed when the screen appeared: pull the planned consumables out of the bag,
@@ -229,7 +234,10 @@ func _apply_penalty() -> void:
 	if xp_loss > 0:
 		var prog: Node = get_node_or_null("/root/Progression")
 		if prog != null:
-			prog.lose_xp(xp_loss)
+			# lose_xp() only shaves a FRACTION of the amount it's handed and returns what it actually
+			# removed, so reconcile the summary to that real figure rather than the larger estimate.
+			var actual_xp_lost: int = prog.lose_xp(xp_loss)
+			_update_summary(int(_pending_penalty.get("dropped_total", 0)), actual_xp_lost)
 	_pending_penalty = {}
 
 # Set the summary line to what was lost, or "No penalty" when nothing was. Guarded so it's safe to
@@ -250,7 +258,7 @@ func _build_ui() -> void:
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(dim)
-	Glass.frost(dim)
+	Flat.frost(dim)
 	_root = dim
 
 	var center := CenterContainer.new()
@@ -258,7 +266,7 @@ func _build_ui() -> void:
 	_root.add_child(center)
 
 	var panel := PanelContainer.new()
-	Glass.apply(panel, 18, 22)
+	Flat.apply(panel, 18, 22)
 	center.add_child(panel)
 
 	var vbox := VBoxContainer.new()

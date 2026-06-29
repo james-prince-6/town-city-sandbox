@@ -159,6 +159,10 @@ func _begin_cinematic() -> void:
 		return
 
 	_player_cam = cam
+	# Free any camera orphaned when a prior conversation's ease-back tween was killed by
+	# _kill_cam_tween() before its _restore_player_cam callback could free it.
+	if is_instance_valid(_dialogue_cam):
+		_dialogue_cam.queue_free()
 	_dialogue_cam = Camera3D.new()
 	world.add_child(_dialogue_cam)
 	_dialogue_cam.global_transform = cam.global_transform

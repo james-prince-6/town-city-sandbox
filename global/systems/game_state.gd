@@ -18,6 +18,11 @@ signal money_changed(new_amount: int)
 ## shop hours will hang off this later.
 signal day_changed(new_day: int)
 
+## Emitted whenever a flag is set via set_flag(). Lets UI react to flag changes
+## without polling — e.g. the HUD quest tracker refreshes when the player's
+## tracked-quest choice (&"tracked_quest") changes from the Quests menu.
+signal flag_changed(flag_name: StringName, value: Variant)
+
 # --- Core persistent state -------------------------------------------------
 
 var money: int = 0:
@@ -53,6 +58,7 @@ func spend_money(amount: int) -> bool:
 
 func set_flag(flag_name: StringName, value: Variant = true) -> void:
 	flags[flag_name] = value
+	flag_changed.emit(flag_name, value)
 
 func get_flag(flag_name: StringName, default: Variant = false) -> Variant:
 	return flags.get(flag_name, default)

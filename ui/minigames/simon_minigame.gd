@@ -161,6 +161,7 @@ func _on_pad_pressed(index: int) -> void:
 		_input_pos += 1
 		if _input_pos >= _sequence.size():
 			# Completed the round.
+			_state = State.SHOWING   # lock input during the post-round gap
 			_score = _sequence.size()
 			_score_label.text = "Round: %d" % _score
 			_status_label.text = "Nice!"

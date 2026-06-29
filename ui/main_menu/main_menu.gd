@@ -23,6 +23,12 @@
 # mouse. ui_cancel deliberately does NOTHING here — this is the root menu, there is
 # nowhere to back out to.
 #
+# VISUAL NOTE: this title screen deliberately BREAKS from the muted in-game cream theme
+# into a bright cartoon look (gold sky, ink outlines, hard offset shadows, goo blobs).
+# Everything is drawn with explicit colors / StyleBoxFlat rather than the project theme.
+# The whole picture is composed on a fixed 1200x675 "design" canvas which is scaled
+# uniformly to fit the viewport and centered (letterbox filled with the base gold).
+#
 # NOTE: intentionally NO class_name. The autoload is registered under the name
 # "MainMenu"; giving the script the same class_name would collide with that global.
 
@@ -47,6 +53,32 @@ const CONTROLS_FALLBACK_GLYPHS: Dictionary = {
 	&"sprint": "Shift",
 }
 
+# --- Cartoon palette (all explicit; the in-game theme is NOT used here) -----
+const INK: Color = Color("221f1a")            # borders / text / shadows
+const BASE_GOLD: Color = Color("ffd54a")      # base fill + letterbox
+const SKY_TOP: Color = Color("5fc3e4")
+const SKY_MID: Color = Color("7fd0e8")
+const SKY_HORIZON: Color = Color("ffe08a")
+const SUN_FILL: Color = Color("ffec9e")
+const CLOUD_FILL: Color = Color("ffffff")
+const HILL_L_FILL: Color = Color("5ba36a")
+const HILL_R_FILL: Color = Color("69b478")
+const GOO_PURPLE: Color = Color("8b6fc4")
+const GOO_RED: Color = Color("ef5340")
+const GOO_BLUE: Color = Color("4a86a4")
+const TITLE_FILL: Color = Color("fbf8f0")
+const TITLE_SHADOW: Color = Color("c8941e")
+const CREAM: Color = Color("fbf8f0")
+const WHITE: Color = Color("ffffff")
+const HINT_GREY: Color = Color("6a655c")
+const ACCENT_GREEN: Color = Color("5ba36a")
+const ACCENT_BLUE: Color = Color("4a86a4")
+const ACCENT_GOLD: Color = Color("c8941e")
+const ACCENT_RED: Color = Color("ef5340")
+
+# The design is authored at this fixed reference resolution and scaled to fit.
+const DESIGN_SIZE: Vector2 = Vector2(1200, 675)
+
 ## True while the title screen is visible. Mirrors the is_open flag the other menus use
 ## (MenuManager reads it to decide whether an exclusive menu is currently up).
 var is_open: bool = false
@@ -56,6 +88,17 @@ var _root: Control
 var _first_button: Button = null
 # Kept so we can enable/disable it each time we open, depending on whether a save exists.
 var _continue_button: Button = null
+
+# --- Cartoon-screen internals ----------------------------------------------
+# The 1200x675 design canvas, uniformly scaled + centered inside the viewport.
+var _design: Control = null
+# The rotating sunburst behind the sun (spun in _process).
+var _spinner: Node2D = null
+# Continue's "Slot 0 · ..." hint label, refreshed whenever the button is shown.
+var _continue_hint_label: Label = null
+# Cartoon display fonts (loaded if present; size-only fallback otherwise).
+var _font_display: Font = null   # Chakra Petch (title / buttons / chips)
+var _font_body: Font = null      # Space Grotesk (tagline / hints)
 
 func _ready() -> void:
 	# High layer so the title sits above the HUD and any gameplay UI. Above the pause
@@ -68,6 +111,12 @@ func _ready() -> void:
 	# OTHER exclusive menus ourselves via MenuManager.opening() in open().
 	_build_ui()
 	hide()
+
+func _process(delta: float) -> void:
+	# Spin the sunburst a full turn every 60s (matches the design's dcSpin animation).
+	# Only bother while the title is actually on screen.
+	if is_open and _spinner != null:
+		_spinner.rotation += delta * TAU / 60.0
 
 func _unhandled_input(event: InputEvent) -> void:
 	# ui_cancel (Esc / B) is swallowed while the title is up so it can't accidentally
@@ -238,6 +287,21 @@ func _refresh_continue() -> void:
 	var have_save: bool = SaveManager.has_loadable_save(DEFAULT_SLOT)
 	_continue_button.disabled = not have_save
 	_continue_button.visible = have_save
+	if have_save and _continue_hint_label != null:
+		_continue_hint_label.text = _continue_hint()
+
+# "Slot 0 · <when>" sub-label for the Continue button. SaveManager stores no playtime
+# (its payload is just version/systems/location), so — mirroring SaveSlotMenu._slot_label —
+# we surface the save file's last-modified timestamp as the most honest "where you left off"
+# marker instead of a fabricated hours-played figure.
+func _continue_hint() -> String:
+	var path: String = SaveManager.slot_path(DEFAULT_SLOT)
+	var mtime: int = FileAccess.get_modified_time(path)
+	if mtime <= 0:
+		return "Slot %d" % DEFAULT_SLOT
+	# Trim the seconds for a compact "YYYY-MM-DD HH:MM" stamp.
+	var when: String = Time.get_datetime_string_from_unix_time(mtime, true).replace("T", " ").substr(0, 16)
+	return "Slot %d · %s" % [DEFAULT_SLOT, when]
 
 func _has_menu_manager() -> bool:
 	return get_node_or_null("/root/MenuManager") != null
@@ -245,51 +309,379 @@ func _has_menu_manager() -> bool:
 # --- UI construction (all in code) -----------------------------------------
 
 func _build_ui() -> void:
-	# Opaque backdrop (this is a full title screen, not a translucent overlay) that also
-	# eats any stray clicks.
+	_load_fonts()
+
+	# Opaque base fill (#ffd54a). Doubles as the backdrop that eats stray clicks and as
+	# the letterbox color around the scaled design canvas. This is `_root`.
 	var bg := ColorRect.new()
-	bg.color = Color(0.06, 0.05, 0.08, 1.0)
+	bg.color = BASE_GOLD
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(bg)
 	_root = bg
 
-	var center := CenterContainer.new()
-	center.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_root.add_child(center)
+	# The 1200x675 design canvas. Scaled uniformly + centered by _layout_design().
+	_design = Control.new()
+	_design.size = DESIGN_SIZE
+	_design.clip_contents = true            # match the design's overflow:hidden frame
+	_design.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_root.add_child(_design)
 
-	var vbox := VBoxContainer.new()
-	vbox.custom_minimum_size = Vector2(300, 0)
-	vbox.add_theme_constant_override("separation", 16)
-	center.add_child(vbox)
+	_build_sky()
+	_build_sunburst()
+	_build_sun()
+	_build_clouds()
+	_build_hills()
+	_build_goo()
+	_build_title()
+	_build_buttons()
+	_build_footer()
 
+	# Keep the canvas fitted to the window now and on every resize.
+	get_viewport().size_changed.connect(_layout_design)
+	_layout_design.call_deferred()
+
+# Uniformly scale the design canvas to fit the viewport, centered (letterbox = base gold).
+func _layout_design() -> void:
+	if _design == null:
+		return
+	var vp: Vector2 = get_viewport().get_visible_rect().size
+	var s: float = min(vp.x / DESIGN_SIZE.x, vp.y / DESIGN_SIZE.y)
+	_design.scale = Vector2(s, s)
+	_design.position = Vector2((vp.x - DESIGN_SIZE.x * s) * 0.5, (vp.y - DESIGN_SIZE.y * s) * 0.5)
+
+# Layer 2: bright sky gradient with a HARD horizon stop at y = 0.42.
+func _build_sky() -> void:
+	var grad := Gradient.new()
+	# Duplicate the 0.42 offset (split by a hair) to make the horizon a crisp hard edge.
+	grad.offsets = PackedFloat32Array([0.0, 0.42, 0.4201, 1.0])
+	grad.colors = PackedColorArray([SKY_TOP, SKY_MID, SKY_HORIZON, BASE_GOLD])
+	var tex := GradientTexture2D.new()
+	tex.gradient = grad
+	tex.fill_from = Vector2(0, 0)
+	tex.fill_to = Vector2(0, 1)             # vertical
+	tex.width = 4
+	tex.height = 256
+	var sky := TextureRect.new()
+	sky.texture = tex
+	sky.position = Vector2.ZERO
+	sky.size = DESIGN_SIZE
+	sky.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	sky.stretch_mode = TextureRect.STRETCH_SCALE
+	sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_design.add_child(sky)
+
+# Layer 3: translucent 12-wedge sunburst behind the sun. 520x520 box at (-180,-180) so its
+# center sits at (80,80), partly offscreen top-left. Spun in _process (full turn / 60s).
+func _build_sunburst() -> void:
+	_spinner = Node2D.new()
+	_spinner.position = Vector2(80, 80)     # circle center
+	_design.add_child(_spinner)
+	var radius := 260.0                      # 520 / 2
+	for i in 12:
+		var a0 := deg_to_rad(float(i) * 30.0)
+		var a1 := deg_to_rad(float(i) * 30.0 + 12.0)   # 12deg wedge per 30deg sector
+		var pts := PackedVector2Array()
+		pts.append(Vector2.ZERO)
+		var steps := 4
+		for s in steps + 1:
+			var a: float = lerp(a0, a1, float(s) / float(steps))
+			pts.append(Vector2(cos(a), sin(a)) * radius)
+		var wedge := Polygon2D.new()
+		wedge.polygon = pts
+		wedge.color = Color(1, 1, 1, 0.34)
+		_spinner.add_child(wedge)
+
+# Layer 4: the sun. 128x128 circle at (18,18), 5px ink border. Static.
+func _build_sun() -> void:
+	_add_panel(Vector2(18, 18), Vector2(128, 128), _flat_box(SUN_FILL, 5, 64))
+
+# Layer 5: two static white cloud pills with 4px ink borders.
+func _build_clouds() -> void:
+	_add_panel(Vector2(760, 70), Vector2(150, 42), _flat_box(CLOUD_FILL, 4, 999))
+	_add_panel(Vector2(540, 140), Vector2(110, 34), _flat_box(CLOUD_FILL, 4, 999))
+
+# Layer 6: two big rounded hill blobs clipped by the bottom edge, 5px ink borders.
+func _build_hills() -> void:
+	_add_panel(Vector2(-60, 495), Vector2(420, 300), _flat_box(HILL_L_FILL, 5, 999))
+	_add_panel(Vector2(800, 505), Vector2(480, 320), _flat_box(HILL_R_FILL, 5, 999))
+
+# Layer 7: three bobbing goo blobs (the mascot menace). Each holds a constant tilt and
+# bobs its Y between 0 and -amp on an ease-in-out loop.
+func _build_goo() -> void:
+	_add_goo(GOO_PURPLE, Vector2(140, 430), 64, -8.0, 16.0, 4.5)
+	_add_goo(GOO_RED, Vector2(852, 300), 48, 10.0, 22.0, 5.2)
+	_add_goo(GOO_BLUE, Vector2(994, 449), 56, -4.0, 12.0, 4.0)
+
+func _add_goo(fill: Color, pos: Vector2, diameter: float, tilt_deg: float, amp: float, dur: float) -> void:
+	var goo := _add_panel(pos, Vector2(diameter, diameter), _flat_box(fill, 5, diameter * 0.5))
+	goo.pivot_offset = Vector2(diameter, diameter) * 0.5
+	goo.rotation_degrees = tilt_deg
+	# Bob: pos.y -> pos.y - amp -> pos.y, sine-eased, looping forever.
+	var tw := create_tween().set_loops().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tw.tween_property(goo, "position:y", pos.y - amp, dur * 0.5)
+	tw.tween_property(goo, "position:y", pos.y, dur * 0.5)
+
+# Layer 8/9: the title block ("Town" / "City") plus the tagline card beneath it.
+func _build_title() -> void:
 	var title := Label.new()
-	title.text = "Town City"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 72)
-	# This title screen has a dark backdrop (no game behind to frost), so the title overrides the
-	# project theme's dark text back to light, with a darker outline for punch.
-	title.add_theme_color_override("font_color", Color(0.95, 0.96, 0.99))
-	title.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 0.5))
-	vbox.add_child(title)
+	title.text = "Town\nCity"
+	title.position = Vector2(80, 150)
+	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_font(title, _font_display, 120)
+	title.add_theme_color_override("font_color", TITLE_FILL)
+	# ~6px ink stroke -> Godot outline_size ~12 (outline radiates both ways).
+	title.add_theme_color_override("font_outline_color", INK)
+	title.add_theme_constant_override("outline_size", 12)
+	# Hard gold drop shadow, offset (8,8), zero blur/outline.
+	title.add_theme_color_override("font_shadow_color", TITLE_SHADOW)
+	title.add_theme_constant_override("shadow_offset_x", 8)
+	title.add_theme_constant_override("shadow_offset_y", 8)
+	title.add_theme_constant_override("shadow_outline_size", 0)
+	# Tighten toward the design's line-height 0.86 (best-effort via negative line spacing).
+	title.add_theme_constant_override("line_spacing", -18)
+	_design.add_child(title)
 
-	# A little breathing room between the title and the buttons.
-	var spacer := Control.new()
-	spacer.custom_minimum_size = Vector2(0, 24)
-	vbox.add_child(spacer)
+	# Tagline card below the title: white bg, 4px ink, radius 8, hard ink shadow (4,4).
+	var tag_pos := Vector2(80, 384)
+	var tag_size := Vector2(330, 34)
+	_add_panel(tag_pos + Vector2(4, 4), tag_size, _flat_box_b(WHITE, INK, 0, 8))   # shadow
+	var card := _add_panel(tag_pos, tag_size, _flat_box(WHITE, 4, 8))
+	var tag := Label.new()
+	tag.text = "A small town. Big problems. Mostly goo."
+	tag.set_anchors_preset(Control.PRESET_FULL_RECT)
+	tag.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	tag.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	tag.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_font(tag, _font_body, 15)
+	tag.add_theme_color_override("font_color", INK)
+	card.add_child(tag)
 
-	_first_button = _add_button(vbox, "New Game", Callable(self, "_on_new_game"))
-	_continue_button = _add_button(vbox, "Continue", Callable(self, "_on_continue"))
-	_add_button(vbox, "Load Game", Callable(self, "_on_load_game"))
-	_add_button(vbox, "Quit", Callable(self, "_on_quit"))
+# Layer 10: the menu button column at (768,250), width 360, gap 14.
+func _build_buttons() -> void:
+	var col := VBoxContainer.new()
+	col.position = Vector2(768, 250)
+	col.custom_minimum_size = Vector2(360, 0)
+	col.add_theme_constant_override("separation", 14)
+	_design.add_child(col)
 
-# Build one menu Button, wire its handler, and return it. UISound auto-hooks every
-# BaseButton's `pressed` signal, so we don't play click sounds by hand here.
-func _add_button(parent: Node, text: String, handler: Callable) -> Button:
+	_first_button = _make_button(col, "New Game", "▶", ACCENT_GREEN, false, _on_new_game)
+	_continue_button = _make_button(col, "Continue", "↻", ACCENT_BLUE, true, _on_continue)
+	var load_btn := _make_button(col, "Load Game", "⊞", ACCENT_GOLD, false, _on_load_game)
+	var quit_btn := _make_button(col, "Quit", "✕", ACCENT_RED, false, _on_quit)
+
+	_continue_hint_label = _continue_button.get_meta("hint_label") as Label
+
+	# Wrap selection at the ends. Default Godot focus nav handles the middle and skips the
+	# hidden Continue row automatically, so we only need to close the loop top<->bottom.
+	_first_button.focus_neighbor_top = _first_button.get_path_to(quit_btn)
+	quit_btn.focus_neighbor_bottom = quit_btn.get_path_to(_first_button)
+
+# Build one cartoon menu row. The row IS a focusable Button (so `pressed`, focus and the
+# behavior contract all hold); its visible body + crisp offset shadow are child panels we
+# slide/recolor on selection. Children are click-transparent so the Button gets the input.
+func _make_button(parent: Node, label: String, icon: String, accent: Color, has_hint: bool, handler: Callable) -> Button:
+	var row := Vector2(360, 64)
+
 	var btn := Button.new()
-	btn.text = text
-	btn.custom_minimum_size = Vector2(0, 48)
+	btn.text = ""
+	btn.custom_minimum_size = row
 	btn.focus_mode = Control.FOCUS_ALL
+	# Strip the Button's own chrome — we draw the body ourselves with child panels.
+	var empty_states := ["normal", "hover", "pressed", "focus", "disabled"]
+	for st in empty_states:
+		btn.add_theme_stylebox_override(st, StyleBoxEmpty.new())
 	btn.pressed.connect(handler)
 	parent.add_child(btn)
+
+	# Crisp (zero-blur) drop shadow: a duplicate ink panel behind the body.
+	var shadow := Panel.new()
+	shadow.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shadow.position = Vector2(4, 4)
+	shadow.size = row
+	shadow.add_theme_stylebox_override("panel", _flat_box_b(INK, INK, 0, 12))
+	btn.add_child(shadow)
+
+	# Body panel (recolored on selection).
+	var body := Panel.new()
+	body.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	body.position = Vector2.ZERO
+	body.size = row
+	var body_normal := _flat_box_b(CREAM, INK, 4, 12)
+	var body_sel := _flat_box_b(accent, INK, 4, 12)
+	body.add_theme_stylebox_override("panel", body_normal)
+	btn.add_child(body)
+
+	# Row content: [icon chip] [label .... ] [hint?]
+	var hb := HBoxContainer.new()
+	hb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hb.set_anchors_preset(Control.PRESET_FULL_RECT)
+	hb.offset_left = 18
+	hb.offset_top = 15
+	hb.offset_right = -18
+	hb.offset_bottom = -15
+	hb.add_theme_constant_override("separation", 14)
+	body.add_child(hb)
+
+	# Icon chip (34x34, radius 8, 3px ink). Accent bg / cream glyph; inverts on selection.
+	var chip := Panel.new()
+	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	chip.custom_minimum_size = Vector2(34, 34)
+	var chip_normal := _flat_box_b(accent, INK, 3, 8)
+	var chip_sel := _flat_box_b(CREAM, INK, 3, 8)
+	chip.add_theme_stylebox_override("panel", chip_normal)
+	hb.add_child(chip)
+	var icon_lbl := Label.new()
+	icon_lbl.text = icon
+	icon_lbl.set_anchors_preset(Control.PRESET_FULL_RECT)
+	icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	icon_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_font(icon_lbl, _font_display, 16)
+	icon_lbl.add_theme_color_override("font_color", CREAM)
+	chip.add_child(icon_lbl)
+
+	# Label (flex 1).
+	var title_lbl := Label.new()
+	title_lbl.text = label
+	title_lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	title_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	title_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_font(title_lbl, _font_display, 23)
+	title_lbl.add_theme_color_override("font_color", INK)
+	hb.add_child(title_lbl)
+
+	# Optional hint chip (Continue's "Slot 0 · ...").
+	var hint_lbl: Label = null
+	if has_hint:
+		hint_lbl = Label.new()
+		hint_lbl.text = ""
+		hint_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		hint_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		_apply_font(hint_lbl, _font_body, 11)
+		hint_lbl.add_theme_color_override("font_color", HINT_GREY)
+		hb.add_child(hint_lbl)
+
+	# Stash references for the selection visual swap.
+	btn.set_meta("accent", accent)
+	btn.set_meta("shadow", shadow)
+	btn.set_meta("body", body)
+	btn.set_meta("body_normal", body_normal)
+	btn.set_meta("body_sel", body_sel)
+	btn.set_meta("chip", chip)
+	btn.set_meta("chip_normal", chip_normal)
+	btn.set_meta("chip_sel", chip_sel)
+	btn.set_meta("title_label", title_lbl)
+	btn.set_meta("icon_label", icon_lbl)
+	btn.set_meta("hint_label", hint_lbl)
+
+	# Focus drives the selected look; hovering grabs focus (so mouse == selection).
+	btn.focus_entered.connect(_set_selected.bind(btn, true))
+	btn.focus_exited.connect(_set_selected.bind(btn, false))
+	btn.mouse_entered.connect(btn.grab_focus)
 	return btn
+
+# Swap a button between its normal and selected (focused) look, animating the lift + shadow.
+func _set_selected(btn: Button, on: bool) -> void:
+	if not is_instance_valid(btn):
+		return
+	var accent: Color = btn.get_meta("accent")
+	var body: Panel = btn.get_meta("body")
+	var shadow: Panel = btn.get_meta("shadow")
+	var chip: Panel = btn.get_meta("chip")
+
+	body.add_theme_stylebox_override("panel", btn.get_meta("body_sel") if on else btn.get_meta("body_normal"))
+	chip.add_theme_stylebox_override("panel", btn.get_meta("chip_sel") if on else btn.get_meta("chip_normal"))
+
+	var title_lbl: Label = btn.get_meta("title_label")
+	title_lbl.add_theme_color_override("font_color", WHITE if on else INK)
+	var icon_lbl: Label = btn.get_meta("icon_label")
+	icon_lbl.add_theme_color_override("font_color", INK if on else CREAM)
+	var hint_lbl = btn.get_meta("hint_label") if btn.has_meta("hint_label") else null
+	if hint_lbl != null:
+		(hint_lbl as Label).add_theme_color_override("font_color", WHITE if on else HINT_GREY)
+
+	# Slide the body up-left to (-3,-3) and grow the shadow to (7,7) when selected.
+	var prev = btn.get_meta("sel_tween") if btn.has_meta("sel_tween") else null
+	if prev != null and (prev as Tween).is_valid():
+		(prev as Tween).kill()
+	var tw := create_tween().set_parallel(true).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.tween_property(body, "position", Vector2(-3, -3) if on else Vector2.ZERO, 0.08)
+	tw.tween_property(shadow, "position", Vector2(7, 7) if on else Vector2(4, 4), 0.08)
+	btn.set_meta("sel_tween", tw)
+
+# Layer 11: footer — version chip (left) + nav hint (right), pinned near the bottom.
+func _build_footer() -> void:
+	# Version chip: ink bg, gold text. Version number can come from ProjectSettings; the
+	# build name is the design's literal.
+	var ver := "0.4.1"
+	if ProjectSettings.has_setting("application/config/version"):
+		var v = ProjectSettings.get_setting("application/config/version")
+		if typeof(v) == TYPE_STRING and String(v) != "":
+			ver = String(v)
+	var version_text := "v%s · build \"Sentient Goo\"" % ver
+
+	var chip := _add_panel(Vector2(80, 628), Vector2(232, 27), _flat_box_b(INK, INK, 0, 6))
+	var ver_lbl := Label.new()
+	ver_lbl.text = version_text
+	ver_lbl.set_anchors_preset(Control.PRESET_FULL_RECT)
+	ver_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	ver_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	ver_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_font(ver_lbl, _font_display, 12)
+	ver_lbl.add_theme_color_override("font_color", BASE_GOLD)
+	chip.add_child(ver_lbl)
+
+	# Nav hint: right-aligned ink text.
+	var nav := Label.new()
+	nav.text = "↑↓ navigate  ·  Enter select"
+	nav.position = Vector2(700, 631)
+	nav.size = Vector2(428, 24)
+	nav.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	nav.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	nav.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_apply_font(nav, _font_body, 12)
+	nav.add_theme_color_override("font_color", INK)
+	_design.add_child(nav)
+
+# --- Small construction helpers --------------------------------------------
+
+# Load the cartoon display fonts if present; we degrade to the default font (size only)
+# rather than hard-fail if the files ever move.
+func _load_fonts() -> void:
+	var chakra := "res://ui/fonts/ChakraPetch-SemiBold.ttf"
+	var grotesk := "res://ui/fonts/SpaceGrotesk-Bold.ttf"
+	if ResourceLoader.exists(chakra):
+		_font_display = load(chakra)
+	if ResourceLoader.exists(grotesk):
+		_font_body = load(grotesk)
+
+# Apply a font (if loaded) + size to a Label.
+func _apply_font(lbl: Label, font: Font, size: int) -> void:
+	if font != null:
+		lbl.add_theme_font_override("font", font)
+	lbl.add_theme_font_size_override("font_size", size)
+
+# StyleBoxFlat with an INK border of the given width (the common case for this screen).
+func _flat_box(bg: Color, border_w: int, radius: int) -> StyleBoxFlat:
+	return _flat_box_b(bg, INK, border_w, radius)
+
+# StyleBoxFlat with an explicit border color (used for the ink shadow panels: bg == border).
+func _flat_box_b(bg: Color, border_col: Color, border_w: int, radius: int) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = bg
+	sb.border_color = border_col
+	sb.set_border_width_all(border_w)
+	sb.set_corner_radius_all(radius)
+	sb.corner_detail = 12
+	return sb
+
+# Add a click-transparent Panel with the given stylebox to the design canvas.
+func _add_panel(pos: Vector2, size: Vector2, stylebox: StyleBox) -> Panel:
+	var p := Panel.new()
+	p.position = pos
+	p.size = size
+	p.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	p.add_theme_stylebox_override("panel", stylebox)
+	_design.add_child(p)
+	return p

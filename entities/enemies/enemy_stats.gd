@@ -76,6 +76,11 @@ enum SpecialStyle { SLAM, VOLLEY, RING, SPIRAL }
 ## Minimum seconds between attacks (the attack's recovery / wind-up gate).
 @export var attack_cooldown: float = 1.5
 
+## Visible NORMAL-attack telegraph (seconds). During this beat the body pulses an amber
+## warning (see enemy.gd._pulse_attack_tell) and CombatFeel.play_attack_tell() fires before
+## the blow lands. 0 = no telegraph (instant swing), matching the pre-field behavior.
+@export var attack_windup: float = 0.0
+
 ## Knockback force the NORMAL attack imparts to the player (stamped onto the spawned
 ## HitBox.knockback). Small for a light jab; a slam uses special_knockback instead.
 @export var attack_knockback: float = 2.0

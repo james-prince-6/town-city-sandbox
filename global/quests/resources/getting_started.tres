@@ -6,9 +6,9 @@
 
 [sub_resource type="Resource" id="Resource_objective_met"]
 script = ExtResource("2_objective")
-description = "Talk to Marlo at the brewery"
+description = "Talk to Mayor Orbo at the Town Hall"
 kind = 1
-target = &"met_marlo"
+target = &"met_orbo"
 required_count = 1
 
 [sub_resource type="Resource" id="Resource_reward_money"]
@@ -22,6 +22,6 @@ script = ExtResource("1_quest")
 id = &"getting_started"
 title = "Getting Started"
 tier = 0
-description = "New in town? Find Marlo at the brewery just west of the square and see what he needs."
+description = "New in town? Find Mayor Orbo at the Town Hall, just off the square, and see what he needs."
 objectives = Array[ExtResource("2_objective")]([SubResource("Resource_objective_met")])
 rewards = Array[ExtResource("3_effect")]([SubResource("Resource_reward_money")])

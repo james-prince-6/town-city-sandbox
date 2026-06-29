@@ -19,7 +19,7 @@
 
 extends CanvasLayer
 
-const Glass = preload("res://ui/glass_style.gd")
+const Flat = preload("res://ui/ui_style.gd")
 
 # The VBox that holds one Label per visible action line. Built in the .tscn.
 @onready var panel_container: PanelContainer = $PanelContainer
@@ -41,7 +41,7 @@ func _ready() -> void:
 	if _input_device != null and _input_device.has_signal("device_changed"):
 		_input_device.device_changed.connect(_on_device_changed)
 	# Frosted-glass backing instead of a flat dark panel.
-	Glass.apply(panel_container, 12, 14)
+	Flat.apply(panel_container, 12, 14)
 	# Hidden until something asks to be shown.
 	hide_prompt()
 

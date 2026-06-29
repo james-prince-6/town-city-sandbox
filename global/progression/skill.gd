@@ -33,9 +33,10 @@
 class_name Skill
 extends Resource
 
-## The three playstyle branches the skill tree is organised into. APPEND-ONLY: existing
-## .tres store this as an int, so never reorder or remove values.
-enum Branch { MELEE, RANGED, SURVIVAL }
+## The playstyle branches / use-based skills the tree is organised into. APPEND-ONLY:
+## existing .tres store this as an int, so never reorder or remove values. MAGIC (3) was
+## added for the use-based rework (D1) — wand-casting levels its own skill.
+enum Branch { MELEE, RANGED, SURVIVAL, MAGIC }
 
 ## Unique, stable string id used as the dictionary key in Progression and in save files.
 ## NEVER change this once a save references it. Example: "heavy_hands".

@@ -1,0 +1,47 @@
+[gd_resource type="Resource" script_class="Quest" load_steps=8 format=3]
+
+; Help the Town — the MAIN quest Mayor Orbo hands you after the getting_started intro, so the
+; quest log isn't empty once you've met him (playtest fix). GREYBOX: a completable "get to know
+; the townsfolk who need help" beat — meet Barry, Droghnaut and Sally (each venue owner's
+; dialogue marks its met_<id> flag). M-F replaces these with the real Beat-2 errand hub
+; (restock George / bartending shift / morale activity), the 2-of-3 gate, and the dungeon finale.
+
+[ext_resource type="Script" path="res://global/quests/quest.gd" id="1_quest"]
+[ext_resource type="Script" path="res://global/quests/quest_objective.gd" id="2_objective"]
+[ext_resource type="Script" path="res://global/quests/game_effect.gd" id="3_effect"]
+
+[sub_resource type="Resource" id="obj_barry"]
+script = ExtResource("2_objective")
+description = "Meet Barry at The Flaming Pebble"
+kind = 1
+target = &"met_barry"
+required_count = 1
+
+[sub_resource type="Resource" id="obj_droghnaut"]
+script = ExtResource("2_objective")
+description = "Meet Droghnaut at Astros Fishing Friends"
+kind = 1
+target = &"met_droghnaut"
+required_count = 1
+
+[sub_resource type="Resource" id="obj_sally"]
+script = ExtResource("2_objective")
+description = "Meet Sally at the Adventurers Guild"
+kind = 1
+target = &"met_sally"
+required_count = 1
+
+[sub_resource type="Resource" id="reward_money"]
+script = ExtResource("3_effect")
+type = 5
+target = &""
+amount = 75
+
+[resource]
+script = ExtResource("1_quest")
+id = &"help_the_town"
+title = "Help the Town"
+tier = 0
+description = "Town City's in a slump, and its key folk each need a hand. Get out and introduce yourself — Barry at The Flaming Pebble, Droghnaut at Astros Fishing Friends, and Sally at the Adventurers Guild."
+objectives = Array[ExtResource("2_objective")]([SubResource("obj_barry"), SubResource("obj_droghnaut"), SubResource("obj_sally")])
+rewards = Array[ExtResource("3_effect")]([SubResource("reward_money")])

@@ -347,7 +347,7 @@ func _start_wandering() -> void:
 func _face_heading(heading: Vector3, delta: float) -> void:
 	if heading.length() < 0.001:
 		return
-	var target_yaw: float = atan2(heading.x, heading.z)
+	var target_yaw: float = atan2(-heading.x, -heading.z)
 	# lerp_angle takes the short way around; the 8*delta factor (clamped) is a snappy ease.
 	var t: float = clampf(delta * 8.0, 0.0, 1.0)
 	rotation.y = lerp_angle(rotation.y, target_yaw, t)

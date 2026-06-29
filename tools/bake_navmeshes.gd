@@ -32,8 +32,10 @@ const CONFIGS := [
 	},
 	{
 		"name": "bar_inside",
+		# The bar is now a flat BarInside root (it used to render in its own SubViewport); parse
+		# the whole scene so the bake carves around the furniture (tables/stools) + bar fixtures.
 		"scene": "res://stages/overworld/bar-inside/barinside.tscn",
-		"parse_root": "SubViewportContainer/SubViewport",
+		"parse_root": ".",
 		"aabb_pos": Vector3.ZERO,  # auto-computed from geometry below
 		"aabb_size": Vector3.ZERO,
 		"out": "res://stages/overworld/bar-inside/barinside_nav.res",

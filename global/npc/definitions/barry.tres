@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="NPCDefinition" load_steps=5 format=3]
+
+; Barry Barnson — gruff chef/bartender; runs The Flaming Pebble and hires the player for the
+; bartending job (v1 cast, M-B). GREYBOX visuals: a stock PSX male until an art pass.
+[ext_resource type="Script" path="res://global/npc/npc_definition.gd" id="1"]
+[ext_resource type="PackedScene" path="res://assets/models/characters/psx/Male/Character_06.fbx" id="2"]
+[ext_resource type="Texture2D" path="res://assets/models/characters/psx/Textures/Character_06.png" id="3"]
+[ext_resource type="Resource" path="res://entities/npc/dialogue/barry.dialogue" id="4"]
+
+[resource]
+script = ExtResource("1")
+id = &"barry"
+display_name = "Barry"
+model_scene = ExtResource("2")
+skin_texture = ExtResource("3")
+target_height = 1.82
+move_speed = 1.7
+turn_speed_degrees = 440.0
+default_behavior = 0
+default_mood = &"neutral"
+dialogue = ExtResource("4")

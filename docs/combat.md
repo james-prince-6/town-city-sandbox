@@ -110,3 +110,21 @@ Kenney `.fbx` (browse `assets/models/tools_weapons/`, `assets/models/props/`).
 Cooldowns stamped with `Time.get_ticks_msec()` must initialise the "last used" timestamp
 to a large NEGATIVE number (e.g. `-100000`), NOT `0` — ticks start near 0, so a `0` init
 blocks the first action during the first second of runtime.
+
+## Fixes (2026-06-28)
+
+- **Normal-attack telegraph is real.** `EnemyStats` now has the `@export var attack_windup`
+  field (seconds, default `0.0`). When a sheet authors a positive value, `enemy.gd` first
+  pulses an amber warning (`_pulse_attack_tell`) and fires `CombatFeel.play_attack_tell()`,
+  waits out the wind-up, then strikes — re-enabling the telegraph path that had no data
+  field to drive it. `0` keeps the old instant swing, so existing sheets are unchanged.
+  (`enemy.gd` reads it defensively via `stats.get(&"attack_windup")`, so pre-field `.tres`
+  files still load.)
+- **Animal facing / bite fixed.** `animal.gd._face_heading()` now yaws with
+  `atan2(-heading.x, -heading.z)` (was inverted). Hostile animals now face the player as
+  they chase, so their bite HitBox — placed at local `-Z` (forward) in `_spawn_bite_hitbox`
+  — actually lands.
+- **Critters are damageable.** `critter.tscn` now carries a `HurtBox` child (team `ENEMY`);
+  `critter.gd` wires `_hurt_box.hit -> health.apply_damage` on `_ready`, so player weapon
+  HitBoxes overlapping it deal damage through the normal backbone (previously a critter had
+  no HurtBox and could not be hit).

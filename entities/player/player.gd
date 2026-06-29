@@ -322,6 +322,8 @@ func _on_hurt(info: DamageInfo) -> void:
 
 	# Thick Skin (survival tree): ignore a fraction of whatever still lands.
 	amount = amount * (1.0 - Progression.damage_reduction())
+	# Train the Survival skill by enduring hits (use-based rework, D1).
+	Progression.register_use(Progression.SKILL_SURVIVAL)
 	# Second Wind's clutch save is handled inside PlayerStats.take_damage.
 	PlayerStats.take_damage(amount)
 	# Shove the player along the hit direction (full knockback for unblocked hits).

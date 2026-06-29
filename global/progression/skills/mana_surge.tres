@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3]
+
+; MAGIC perk (use-based rework, D1). Spells cost less mana, so you can cast for longer.
+; Combat reads Progression.mana_cost_mult() (returns < 1.0 while this perk is owned).
+
+[ext_resource type="Script" path="res://global/progression/skill.gd" id="1_skill"]
+
+[resource]
+script = ExtResource("1_skill")
+id = &"mana_surge"
+display_name = "Mana Surge"
+description = "Channel mana efficiently — your spells cost noticeably less to cast."
+branch = 3
+max_rank = 1
+cost = 2
+required_level = 6
+prerequisite = &""
+prerequisite_rank = 1
+is_perk = true
+stat_per_rank = {}

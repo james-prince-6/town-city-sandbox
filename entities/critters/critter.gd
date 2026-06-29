@@ -40,6 +40,9 @@ extends CharacterBody3D
 # The reusable Health component dropped in as a child of the scene. We grab it in
 # _ready and listen for its `died` signal.
 @onready var health: Node = $Health
+# The HurtBox child (team = ENEMY) the player's weapons overlap; it re-emits a `hit`
+# signal we forward to Health so the critter can actually take damage.
+@onready var _hurt_box: HurtBox = $HurtBox
 
 # --- Internal AI state -----------------------------------------------------
 
@@ -64,6 +67,11 @@ func _ready() -> void:
 
 	# When our Health child reports it has died, drop loot and clean up.
 	health.died.connect(_on_health_died)
+
+	# Forward incoming hits (from the player's weapon HitBox overlapping our HurtBox)
+	# into the Health component, so the critter is actually damageable.
+	if is_instance_valid(_hurt_box):
+		_hurt_box.hit.connect(health.apply_damage)
 
 	# Start out resting, then the timer logic in _physics_process takes over and
 	# alternates between resting and wandering on its own.

@@ -1,0 +1,35 @@
+# Droghnaut — an alien fisherman who keeps fish as friends (never eats them); runs Astros
+# Fishing Friends. GREYBOX (M-B): a calm, otherworldly greeting + hub. The light fishing
+# activity (Beat 2c / decision D6) is built in M-E and wired into his dialogue in M-F.
+# ART NOTE: no PSX model matches an alien with a fish-bowl helmet — a stock human stands in
+# for now. Flag for a custom model / creative substitution (see V1_BUILD_PLAN §0.5).
+
+~ start
+if not GameState.get_flag("met_droghnaut")
+	do GameState.set_flag("met_droghnaut")
+	do QuestSystem.mark_flag("met_droghnaut")
+	=> greeting
+else
+	=> hub
+
+~ greeting
+Droghnaut: [#gesture=look] Ah. A visitor. The fish noticed you before I did — they notice everything.
+Droghnaut: [#gesture=talk] I am Droghnaut. I came a very long way to meet these wonderful creatures. Sit a while.
+=> hub
+
+~ hub
+% Droghnaut: [#gesture=idle] The water is calm today.
+% Droghnaut: [#gesture=talk] What troubles you, land-friend?
+- You don't eat the fish?
+	=> fish
+- Just passing through.
+	=> bye
+
+~ fish
+Droghnaut: [#gesture=talk] Eat them? Never. They are my friends. We understand each other — my helmet, you see, is much like their home.
+=> hub
+
+~ bye
+% Droghnaut: [#gesture=wave] May your waters stay calm.
+% Droghnaut: [#gesture=look] The fish say farewell.
+=> END

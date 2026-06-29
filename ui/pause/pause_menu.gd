@@ -5,8 +5,13 @@
 # (which runs with PROCESS_MODE_ALWAYS, so it wouldn't stop on its own) so in-game
 # time and brewing halt too.
 #
-# It's built entirely in code (no .tscn) so there's no layout to maintain. Three
-# actions: Resume, Settings (a small sub-panel: master volume + fullscreen), Quit.
+# It's built entirely in code (no .tscn) so there's no layout to maintain. The main
+# panel is a keyboard/controller cursor list (Resume / Save / Load / Settings /
+# Controls / Main Menu / Quit); Settings and Controls are sub-panels reached from it.
+#
+# Visuals follow docs/design/handoff_town_city_ui/Pause Menu.dc.html — the Town City
+# flat "sticker" look (cream panels, 3px ink outline, Chakra Petch titles). All the
+# StyleBoxFlat/colour work is built inline here so this file owns its whole appearance.
 #
 # Escape etiquette: this only opens when nothing else is using Escape. If a
 # conversation or another menu (inventory/shop/brewing) is open, we leave Escape to
@@ -65,6 +70,26 @@ const FONT_SCALE_OPTIONS: Array = [
 	{"label": "Normal", "scale": 1.0},
 	{"label": "Large", "scale": 1.2},
 ]
+
+# --- Design tokens (from the handoff HTML) ---------------------------------
+const C_INK: Color = Color(0.0549, 0.0510, 0.0706, 1.0)        # #0e0d12
+const C_TEXT: Color = Color(0.1333, 0.1216, 0.1020, 1.0)       # #221f1a
+const C_DIM: Color = Color(0.4157, 0.3961, 0.3608, 1.0)        # #6a655c
+const C_CREAM: Color = Color(0.9059, 0.8824, 0.8314, 1.0)      # #e7e1d4
+const C_BRIGHT: Color = Color(0.9843, 0.9725, 0.9412, 1.0)     # #fbf8f0
+const C_TRACK: Color = Color(0.7922, 0.7490, 0.6745, 1.0)      # #cabfac
+const C_GOLD: Color = Color(0.7843, 0.5804, 0.1176, 1.0)       # #c8941e
+const C_KEYCAP: Color = Color(0.9059, 0.8510, 0.6588, 1.0)     # #e7d9a8
+const C_DIVIDER: Color = Color(0.8392, 0.8039, 0.7294, 1.0)    # #d6cdba
+const C_PANEL: Color = Color(0.9059, 0.8824, 0.8314, 0.95)     # cream @ .95
+const C_CLEAR: Color = Color(0, 0, 0, 0)
+
+# Chakra Petch SemiBold for titles/labels; Space Grotesk Bold for body/values.
+const FONT_TITLE: FontFile = preload("res://ui/fonts/ChakraPetch-SemiBold.ttf")
+const FONT_BODY: FontFile = preload("res://ui/fonts/SpaceGrotesk-Bold.ttf")
+
+# Round gold slider thumb (built once, shared by every slider).
+var _thumb_cache: ImageTexture = null
 
 func _ready() -> void:
 	# Above everything else (dialogue is 11) and always processing so the menu still
@@ -150,26 +175,18 @@ func close() -> void:
 
 # --- UI construction (all in code) -----------------------------------------
 
-const Glass = preload("res://ui/glass_style.gd")
+const Flat = preload("res://ui/ui_style.gd")
 
 func _build_ui() -> void:
 	# Full-screen frosted-glass backdrop (no black) that also eats clicks behind the menu.
 	var dim := ColorRect.new()
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
-	Glass.frost(dim)
+	Flat.frost(dim)
 	add_child(dim)
 	_root = dim
 
-	_main_panel = _make_center_column("Paused", [
-		{"text": "Resume", "handler": Callable(self, "close")},
-		{"text": "Save Game", "handler": Callable(self, "_on_save")},
-		{"text": "Load Game", "handler": Callable(self, "_on_load")},
-		{"text": "Settings", "handler": Callable(self, "_show_settings")},
-		{"text": "Controls", "handler": Callable(self, "_show_controls")},
-		{"text": "Main Menu", "handler": Callable(self, "_on_main_menu")},
-		{"text": "Quit", "handler": Callable(self, "_on_quit")},
-	])
+	_main_panel = _build_main_panel()
 	_root.add_child(_main_panel)
 
 	_settings_panel = _build_settings_panel()
@@ -180,67 +197,215 @@ func _build_ui() -> void:
 	_root.add_child(_controls_panel)
 	_controls_panel.hide()
 
-# Builds a centered vertical column with a title and a list of buttons.
-func _make_center_column(title: String, buttons: Array) -> Control:
+	# Persistent footer hint, right-aligned along the bottom edge (over every panel).
+	var hint := Label.new()
+	hint.text = "↑↓ navigate · Enter select · Esc back / resume"
+	hint.add_theme_font_override("font", FONT_BODY)
+	hint.add_theme_font_size_override("font_size", 12)
+	hint.add_theme_color_override("font_color", C_CREAM)
+	hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	hint.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	hint.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hint.anchor_left = 0.0
+	hint.anchor_right = 1.0
+	hint.anchor_top = 1.0
+	hint.anchor_bottom = 1.0
+	hint.offset_left = 24.0
+	hint.offset_right = -24.0
+	hint.offset_top = -40.0
+	hint.offset_bottom = -14.0
+	_root.add_child(hint)
+
+# --- Shared style builders -------------------------------------------------
+
+# Cream sticker panel: cream@.95 fill, 3px ink outline, radius 8, `pad` content margin.
+func _panel_stylebox(pad: int = 22) -> StyleBoxFlat:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = C_PANEL
+	sb.set_border_width_all(3)
+	sb.border_color = C_INK
+	sb.set_corner_radius_all(8)
+	sb.content_margin_left = float(pad)
+	sb.content_margin_right = float(pad)
+	sb.content_margin_top = float(pad)
+	sb.content_margin_bottom = float(pad)
+	return sb
+
+# A flat horizontal rule used under titles (track colour) or between rows.
+func _rule(height: int, col: Color) -> ColorRect:
+	var c := ColorRect.new()
+	c.color = col
+	c.custom_minimum_size = Vector2(0, height)
+	return c
+
+# The little 34x34 "‹" back chip used by both sub-panel headers.
+func _make_back_button() -> Button:
+	var b := Button.new()
+	b.text = "‹"
+	b.focus_mode = Control.FOCUS_ALL
+	b.custom_minimum_size = Vector2(34, 34)
+	b.add_theme_font_override("font", FONT_TITLE)
+	b.add_theme_font_size_override("font_size", 18)
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = C_BRIGHT
+	sb.set_border_width_all(3)
+	sb.border_color = C_INK
+	sb.set_corner_radius_all(6)
+	for st in ["normal", "hover", "pressed", "focus", "disabled"]:
+		b.add_theme_stylebox_override(st, sb)
+	for st in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]:
+		b.add_theme_color_override(st, C_TEXT)
+	b.pressed.connect(_show_main)
+	return b
+
+# A left-aligned Chakra title for a sub-panel header.
+func _make_header_title(text: String) -> Label:
+	var t := Label.new()
+	t.text = text
+	t.add_theme_font_override("font", FONT_TITLE)
+	t.add_theme_font_size_override("font_size", 28)
+	t.add_theme_color_override("font_color", C_TEXT)
+	t.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	return t
+
+# --- Main panel (cursor list) ----------------------------------------------
+
+func _build_main_panel() -> Control:
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 
-	# Glass box behind the menu content (the border width doubles as inner padding).
 	var panel := PanelContainer.new()
-	Glass.apply(panel, 18, 24)
+	panel.add_theme_stylebox_override("panel", _panel_stylebox(22))
 	center.add_child(panel)
 
 	var vbox := VBoxContainer.new()
-	vbox.custom_minimum_size = Vector2(280, 0)
-	vbox.add_theme_constant_override("separation", 14)
+	vbox.custom_minimum_size = Vector2(316, 0)   # 360 panel − 2*22 padding
+	vbox.add_theme_constant_override("separation", 12)
 	panel.add_child(vbox)
 
-	var title_label := Label.new()
-	title_label.text = title
-	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title_label.add_theme_font_size_override("font_size", 40)
-	vbox.add_child(title_label)
+	var title := Label.new()
+	title.text = "Paused"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_override("font", FONT_TITLE)
+	title.add_theme_font_size_override("font_size", 38)
+	title.add_theme_color_override("font_color", C_TEXT)
+	vbox.add_child(title)
 
-	for spec in buttons:
-		var btn := Button.new()
-		btn.text = spec["text"]
-		btn.custom_minimum_size = Vector2(0, 48)
-		btn.focus_mode = Control.FOCUS_ALL
-		btn.pressed.connect(spec["handler"])
-		vbox.add_child(btn)
-		# First main-panel button is Resume; remember it to grab focus on open.
+	vbox.add_child(_rule(3, C_TRACK))
+
+	var specs := [
+		{"text": "Resume", "handler": Callable(self, "close")},
+		{"text": "Save Game", "handler": Callable(self, "_on_save")},
+		{"text": "Load Game", "handler": Callable(self, "_on_load")},
+		{"text": "Settings", "handler": Callable(self, "_show_settings")},
+		{"text": "Controls", "handler": Callable(self, "_show_controls")},
+		{"text": "Main Menu", "handler": Callable(self, "_on_main_menu")},
+		{"text": "Quit", "handler": Callable(self, "_on_quit")},
+	]
+	_resume_button = null
+	for spec in specs:
+		var row := _make_row(String(spec["text"]), spec["handler"])
+		vbox.add_child(row)
+		# First main-panel row is Resume; remember it to grab focus on open.
 		if _resume_button == null:
-			_resume_button = btn
+			_resume_button = row
 
 	return center
+
+# One selectable cursor row: a focusable Button whose look tracks keyboard focus
+# (and mouse hover, which grabs focus). Selected = bright fill + ink border + gold
+# caret + ink text; unselected = transparent fill + a 3px TRANSPARENT border (so the
+# row reserves the same space) + hidden caret + dim text.
+func _make_row(label_text: String, handler: Callable) -> Button:
+	var row := Button.new()
+	row.focus_mode = Control.FOCUS_ALL
+	row.custom_minimum_size = Vector2(0, 44)
+	row.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+
+	var hb := HBoxContainer.new()
+	hb.set_anchors_preset(Control.PRESET_FULL_RECT)
+	hb.offset_left = 14.0
+	hb.offset_right = -14.0
+	hb.offset_top = 0.0
+	hb.offset_bottom = 0.0
+	hb.add_theme_constant_override("separation", 12)
+	hb.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(hb)
+
+	var caret := Label.new()
+	caret.text = "▸"
+	caret.custom_minimum_size = Vector2(14, 0)
+	caret.add_theme_font_override("font", FONT_TITLE)
+	caret.add_theme_font_size_override("font_size", 15)
+	caret.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	caret.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hb.add_child(caret)
+
+	var lbl := Label.new()
+	lbl.text = label_text
+	lbl.add_theme_font_override("font", FONT_TITLE)
+	lbl.add_theme_font_size_override("font_size", 19)
+	lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	hb.add_child(lbl)
+
+	row.set_meta("caret", caret)
+	row.set_meta("lbl", lbl)
+	row.focus_entered.connect(_on_row_focus.bind(row, true))
+	row.focus_exited.connect(_on_row_focus.bind(row, false))
+	row.mouse_entered.connect(row.grab_focus)
+	row.pressed.connect(handler)
+	_set_row_selected(row, false)
+	return row
+
+func _on_row_focus(row: Button, selected: bool) -> void:
+	_set_row_selected(row, selected)
+
+func _set_row_selected(row: Button, selected: bool) -> void:
+	var sb := StyleBoxFlat.new()
+	sb.set_corner_radius_all(7)
+	sb.set_border_width_all(3)
+	if selected:
+		sb.bg_color = C_BRIGHT
+		sb.border_color = C_INK
+	else:
+		sb.bg_color = C_CLEAR
+		sb.border_color = C_CLEAR   # transparent but 3px → reserves the same width
+	for st in ["normal", "hover", "pressed", "focus", "disabled"]:
+		row.add_theme_stylebox_override(st, sb)
+	var caret := row.get_meta("caret") as Label
+	var lbl := row.get_meta("lbl") as Label
+	if caret:
+		caret.add_theme_color_override("font_color", C_GOLD if selected else C_CLEAR)
+	if lbl:
+		lbl.add_theme_color_override("font_color", C_TEXT if selected else C_DIM)
+
+# --- Settings panel --------------------------------------------------------
 
 func _build_settings_panel() -> Control:
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", _panel_stylebox(22))
+	center.add_child(panel)
+
 	var vbox := VBoxContainer.new()
-	vbox.custom_minimum_size = Vector2(320, 0)
-	vbox.add_theme_constant_override("separation", 12)
-	center.add_child(vbox)
+	vbox.custom_minimum_size = Vector2(396, 0)   # 440 panel − 2*22 padding
+	vbox.add_theme_constant_override("separation", 13)
+	panel.add_child(vbox)
 
-	var title := Label.new()
-	title.text = "Settings"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 36)
-	vbox.add_child(title)
+	# Header: ‹ back chip + left-aligned title + track divider.
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 12)
+	header.add_child(_make_back_button())
+	header.add_child(_make_header_title("Settings"))
+	vbox.add_child(header)
+	vbox.add_child(_rule(3, C_TRACK))
 
-	# Master volume slider.
-	var vol_label := Label.new()
-	vol_label.text = "Master Volume"
-	vbox.add_child(vol_label)
-
-	var vol := HSlider.new()
-	vol.min_value = 0.0
-	vol.max_value = 1.0
-	vol.step = 0.01
-	vol.value = _get_master_volume()
-	vol.value_changed.connect(_on_volume_changed)
-	vbox.add_child(vol)
+	# Master volume.
+	_add_slider_block(vbox, "Master Volume", 0.0, 1.0, 0.01, _get_master_volume(), true, Callable(self, "_on_volume_changed"))
 
 	# Per-bus volume sliders. Each resolves its bus index via _bus_or_master so a missing
 	# bus degrades gracefully (it just drives Master instead of erroring on index -1).
@@ -250,59 +415,208 @@ func _build_settings_panel() -> Control:
 
 	# Mouse sensitivity (core FPS accessibility control). Seeded from the live player so the
 	# slider reflects the current value whenever Settings is opened.
-	var sens_label := Label.new()
-	sens_label.text = "Mouse Sensitivity"
-	vbox.add_child(sens_label)
+	_add_slider_block(vbox, "Mouse Sensitivity", 0.1, 1.0, 0.05, _get_mouse_sensitivity(), false, Callable(self, "_on_sensitivity_changed"))
 
-	var sens := HSlider.new()
-	sens.min_value = 0.1
-	sens.max_value = 1.0
-	sens.step = 0.05
-	sens.value = _get_mouse_sensitivity()
-	sens.value_changed.connect(_on_sensitivity_changed)
-	vbox.add_child(sens)
+	# Fullscreen pill toggle.
+	_add_fullscreen_row(vbox)
 
-	# Fullscreen toggle.
-	var fs := CheckButton.new()
-	fs.text = "Fullscreen"
-	fs.button_pressed = DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
-	fs.toggled.connect(_on_fullscreen_toggled)
-	vbox.add_child(fs)
+	# Accessibility: UI text size. A radio-style segmented row (Small / Normal / Large)
+	# persisted through the GameState flag API; player_menu & crafting_ui read it to rescale
+	# their font overrides on next open. Pure UI scale — no gameplay is affected.
+	_add_font_scale_row(vbox)
 
-	# Accessibility: UI text size. A radio-style row (Small / Normal / Large) persisted
-	# through the GameState flag API; player_menu & crafting_ui read it to rescale their
-	# font overrides on next open. Pure UI scale — no gameplay is affected.
-	var font_label := Label.new()
-	font_label.text = "UI Text Size"
-	vbox.add_child(font_label)
+	return center
+
+# A labelled slider block: [label .......... value] over a track + round gold thumb.
+func _add_slider_block(parent: Node, label_text: String, vmin: float, vmax: float, vstep: float, value: float, is_pct: bool, on_change: Callable) -> void:
+	var block := VBoxContainer.new()
+	block.add_theme_constant_override("separation", 5)
+
+	var head := HBoxContainer.new()
+	var lbl := Label.new()
+	lbl.text = label_text
+	lbl.add_theme_font_override("font", FONT_TITLE)
+	lbl.add_theme_font_size_override("font_size", 14)
+	lbl.add_theme_color_override("font_color", C_TEXT)
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	head.add_child(lbl)
+
+	var val := Label.new()
+	val.add_theme_font_override("font", FONT_BODY)
+	val.add_theme_font_size_override("font_size", 13)
+	val.add_theme_color_override("font_color", C_DIM)
+	val.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	head.add_child(val)
+	block.add_child(head)
+
+	var slider := _make_slider(vmin, vmax, vstep, value)
+	block.add_child(slider)
+	parent.add_child(block)
+
+	var updater := func(v: float) -> void:
+		if is_pct:
+			val.text = "%d%%" % int(round(v * 100.0))
+		else:
+			val.text = "%.2f" % v
+	updater.call(value)
+	slider.value_changed.connect(on_change)
+	slider.value_changed.connect(updater)
+
+# A styled HSlider: #cabfac track, 3px ink border, radius 5, round gold thumb.
+func _make_slider(vmin: float, vmax: float, vstep: float, value: float) -> HSlider:
+	var slider := HSlider.new()
+	slider.min_value = vmin
+	slider.max_value = vmax
+	slider.step = vstep
+	slider.value = value
+	slider.custom_minimum_size = Vector2(0, 22)
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+	var track := StyleBoxFlat.new()
+	track.bg_color = C_TRACK
+	track.set_border_width_all(3)
+	track.border_color = C_INK
+	track.set_corner_radius_all(5)
+	track.content_margin_top = 5.0
+	track.content_margin_bottom = 5.0
+	track.content_margin_left = 5.0
+	track.content_margin_right = 5.0
+	slider.add_theme_stylebox_override("slider", track)
+
+	# No separate "filled" highlight — the track is a single uniform colour.
+	var empty := StyleBoxEmpty.new()
+	slider.add_theme_stylebox_override("grabber_area", empty)
+	slider.add_theme_stylebox_override("grabber_area_highlight", empty)
+
+	var thumb := _thumb_texture()
+	slider.add_theme_icon_override("grabber", thumb)
+	slider.add_theme_icon_override("grabber_highlight", thumb)
+	slider.add_theme_icon_override("grabber_disabled", thumb)
+	return slider
+
+# Build (once) a 20x20 round gold thumb with a 3px ink ring.
+func _thumb_texture() -> ImageTexture:
+	if _thumb_cache != null:
+		return _thumb_cache
+	var s := 20
+	var img := Image.create(s, s, false, Image.FORMAT_RGBA8)
+	img.fill(C_CLEAR)
+	var c := (s - 1) / 2.0
+	var outer := 9.5
+	var inner := outer - 3.0
+	for y in s:
+		for x in s:
+			var d := Vector2(float(x) - c, float(y) - c).length()
+			if d <= inner:
+				img.set_pixel(x, y, C_GOLD)
+			elif d <= outer:
+				img.set_pixel(x, y, C_INK)
+	_thumb_cache = ImageTexture.create_from_image(img)
+	return _thumb_cache
+
+# Fullscreen toggle row: label + a 52x28 pill switch (gold on / cream off, sliding knob).
+func _add_fullscreen_row(parent: Node) -> void:
+	var row := HBoxContainer.new()
+
+	var lbl := Label.new()
+	lbl.text = "Fullscreen"
+	lbl.add_theme_font_override("font", FONT_TITLE)
+	lbl.add_theme_font_size_override("font_size", 14)
+	lbl.add_theme_color_override("font_color", C_TEXT)
+	lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.add_child(lbl)
+
+	var pill := Button.new()
+	pill.toggle_mode = true
+	pill.focus_mode = Control.FOCUS_ALL
+	pill.custom_minimum_size = Vector2(52, 28)
+	pill.size_flags_horizontal = Control.SIZE_SHRINK_END
+	pill.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+
+	var knob := Panel.new()
+	var ksb := StyleBoxFlat.new()
+	ksb.bg_color = C_INK
+	ksb.set_corner_radius_all(10)
+	knob.add_theme_stylebox_override("panel", ksb)
+	knob.set_size(Vector2(20, 20))
+	knob.custom_minimum_size = Vector2(20, 20)
+	knob.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	pill.add_child(knob)
+
+	pill.button_pressed = DisplayServer.window_get_mode() == DisplayServer.WINDOW_MODE_FULLSCREEN
+	pill.toggled.connect(_on_fullscreen_toggled)
+	pill.toggled.connect(func(on: bool) -> void: _update_fs_visual(pill, knob, on))
+	_update_fs_visual(pill, knob, pill.button_pressed)
+
+	row.add_child(pill)
+	parent.add_child(row)
+
+func _update_fs_visual(pill: Button, knob: Panel, on: bool) -> void:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = C_GOLD if on else C_CREAM
+	sb.set_border_width_all(3)
+	sb.border_color = C_INK
+	sb.set_corner_radius_all(14)
+	for st in ["normal", "hover", "pressed", "focus", "disabled"]:
+		pill.add_theme_stylebox_override(st, sb)
+	knob.position = Vector2(28.0 if on else 4.0, 4.0)
+
+# UI Text Size: a label + 3 equal-flex segmented radio buttons.
+func _add_font_scale_row(parent: Node) -> void:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 10)
+
+	var lbl := Label.new()
+	lbl.text = "UI Text Size"
+	lbl.add_theme_font_override("font", FONT_TITLE)
+	lbl.add_theme_font_size_override("font_size", 14)
+	lbl.add_theme_color_override("font_color", C_TEXT)
+	row.add_child(lbl)
+
+	var seg := HBoxContainer.new()
+	seg.add_theme_constant_override("separation", 5)
+	seg.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	var current_scale: float = _get_font_scale()
-	var font_row := HBoxContainer.new()
-	font_row.add_theme_constant_override("separation", 6)
 	_font_buttons.clear()
 	for opt in FONT_SCALE_OPTIONS:
 		var opt_scale: float = float(opt["scale"])
 		var fb := Button.new()
 		fb.text = String(opt["label"])
 		fb.toggle_mode = true
-		fb.custom_minimum_size = Vector2(0, 40)
+		fb.focus_mode = Control.FOCUS_ALL
 		fb.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		fb.add_theme_font_override("font", FONT_TITLE)
+		fb.add_theme_font_size_override("font_size", 13)
 		fb.button_pressed = is_equal_approx(current_scale, opt_scale)
 		fb.set_meta("scale", opt_scale)
 		fb.pressed.connect(_on_font_scale.bind(opt_scale))
-		font_row.add_child(fb)
+		_style_font_button(fb, fb.button_pressed)
+		seg.add_child(fb)
 		_font_buttons.append(fb)
-	vbox.add_child(font_row)
 
-	var back := Button.new()
-	back.text = "Back"
-	back.custom_minimum_size = Vector2(0, 48)
-	back.pressed.connect(_show_main)
-	vbox.add_child(back)
+	row.add_child(seg)
+	parent.add_child(row)
 
-	return center
+func _style_font_button(fb: Button, selected: bool) -> void:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = C_BRIGHT if selected else C_CREAM
+	sb.set_border_width_all(3)
+	sb.border_color = C_INK
+	sb.set_corner_radius_all(6)
+	sb.content_margin_left = 7.0
+	sb.content_margin_right = 7.0
+	sb.content_margin_top = 4.0
+	sb.content_margin_bottom = 4.0
+	for st in ["normal", "hover", "pressed", "focus", "disabled"]:
+		fb.add_theme_stylebox_override(st, sb)
+	var col := C_TEXT if selected else C_DIM
+	for st in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color", "font_hover_pressed_color"]:
+		fb.add_theme_color_override(st, col)
 
-# Read-only key-binding reference: a scrollable 2-column [glyph] Action list built from
+# --- Controls panel --------------------------------------------------------
+
+# Read-only key-binding reference: a scrollable list of [keycap] Action rows built from
 # DISPLAYED_ACTIONS. Glyphs come from the InputDevice autoload (active-device aware) and
 # degrade to the raw action name if that autoload is absent, so this never blanks out.
 func _build_controls_panel() -> Control:
@@ -310,53 +624,83 @@ func _build_controls_panel() -> Control:
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 
 	var panel := PanelContainer.new()
-	Glass.apply(panel, 16, 22)
+	panel.add_theme_stylebox_override("panel", _panel_stylebox(22))
 	center.add_child(panel)
 
 	var vbox := VBoxContainer.new()
-	vbox.custom_minimum_size = Vector2(360, 0)
-	vbox.add_theme_constant_override("separation", 10)
+	vbox.custom_minimum_size = Vector2(416, 0)   # 460 panel − 2*22 padding
+	vbox.add_theme_constant_override("separation", 13)
 	panel.add_child(vbox)
 
-	var title := Label.new()
-	title.text = "Controls"
-	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 36)
-	vbox.add_child(title)
+	# Header: ‹ back chip + left-aligned title + track divider.
+	var header := HBoxContainer.new()
+	header.add_theme_constant_override("separation", 12)
+	header.add_child(_make_back_button())
+	header.add_child(_make_header_title("Controls"))
+	vbox.add_child(header)
+	vbox.add_child(_rule(3, C_TRACK))
 
-	# Cap the height so a long action list scrolls rather than overflowing the screen.
+	# Scroll body sized so the whole panel is ~520 tall and long lists scroll.
 	var scroll := ScrollContainer.new()
-	scroll.custom_minimum_size = Vector2(0, 360)
+	scroll.custom_minimum_size = Vector2(0, 420)
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	vbox.add_child(scroll)
 
-	var grid := GridContainer.new()
-	grid.columns = 2
-	grid.add_theme_constant_override("h_separation", 18)
-	grid.add_theme_constant_override("v_separation", 6)
-	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.add_child(grid)
+	var list := VBoxContainer.new()
+	list.add_theme_constant_override("separation", 0)
+	list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	scroll.add_child(list)
 
 	for entry in DISPLAYED_ACTIONS:
 		var action: StringName = entry["action"]
-		var glyph := Label.new()
-		glyph.text = "[%s]" % _glyph_for(action)
-		glyph.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		glyph.custom_minimum_size = Vector2(96, 0)
-		glyph.modulate = Color(0.95, 0.9, 0.6)
-		grid.add_child(glyph)
+		var mc := MarginContainer.new()
+		mc.add_theme_constant_override("margin_left", 4)
+		mc.add_theme_constant_override("margin_right", 4)
+		mc.add_theme_constant_override("margin_top", 6)
+		mc.add_theme_constant_override("margin_bottom", 6)
+		var hb := HBoxContainer.new()
+		hb.add_theme_constant_override("separation", 12)
+		hb.add_child(_make_keycap(_glyph_for(action)))
 		var lbl := Label.new()
 		lbl.text = String(entry["label"])
+		lbl.add_theme_font_override("font", FONT_BODY)
+		lbl.add_theme_font_size_override("font_size", 15)
+		lbl.add_theme_color_override("font_color", C_TEXT)
+		lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		lbl.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		grid.add_child(lbl)
-
-	var back := Button.new()
-	back.text = "Back"
-	back.custom_minimum_size = Vector2(0, 48)
-	back.pressed.connect(_show_main)
-	vbox.add_child(back)
+		hb.add_child(lbl)
+		mc.add_child(hb)
+		list.add_child(mc)
+		# 2px row divider (#d6cdba), matching the HTML border-bottom.
+		list.add_child(_rule(2, C_DIVIDER))
 
 	return center
+
+# A dark ink keycap chip with a centred Chakra glyph (#e7d9a8), min width 74.
+func _make_keycap(txt: String) -> Control:
+	var p := PanelContainer.new()
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = C_INK
+	sb.set_corner_radius_all(5)
+	sb.content_margin_left = 9.0
+	sb.content_margin_right = 9.0
+	sb.content_margin_top = 0.0
+	sb.content_margin_bottom = 0.0
+	p.add_theme_stylebox_override("panel", sb)
+	p.custom_minimum_size = Vector2(74, 26)
+	p.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	p.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+
+	var l := Label.new()
+	l.text = txt
+	l.add_theme_font_override("font", FONT_TITLE)
+	l.add_theme_font_size_override("font_size", 13)
+	l.add_theme_color_override("font_color", C_KEYCAP)
+	l.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	p.add_child(l)
+	return p
 
 # Short label for an action's active-device binding, via the InputDevice autoload.
 # Falls back to the bare action name when that autoload isn't registered.
@@ -437,17 +781,8 @@ func _on_volume_changed(value: float) -> void:
 # once (with a Master fallback) and bound into the change handler.
 func _add_bus_slider(parent: Node, label_text: String, bus_name: String) -> void:
 	var bus_idx: int = _bus_or_master(bus_name)
-	var label := Label.new()
-	label.text = label_text
-	parent.add_child(label)
-
-	var slider := HSlider.new()
-	slider.min_value = 0.0
-	slider.max_value = 1.0
-	slider.step = 0.01
-	slider.value = db_to_linear(AudioServer.get_bus_volume_db(bus_idx))
-	slider.value_changed.connect(_on_bus_volume_changed.bind(bus_idx))
-	parent.add_child(slider)
+	var value: float = db_to_linear(AudioServer.get_bus_volume_db(bus_idx))
+	_add_slider_block(parent, label_text, 0.0, 1.0, 0.01, value, true, _on_bus_volume_changed.bind(bus_idx))
 
 func _on_bus_volume_changed(value: float, bus_idx: int) -> void:
 	AudioServer.set_bus_volume_db(bus_idx, linear_to_db(maxf(value, 0.0001)))
@@ -494,7 +829,9 @@ func _on_font_scale(scale: float) -> void:
 		gs.set_flag(FONT_SCALE_FLAG, scale)
 	for fb in _font_buttons:
 		if is_instance_valid(fb):
-			fb.button_pressed = is_equal_approx(float(fb.get_meta("scale", 1.0)), scale)
+			var sel := is_equal_approx(float(fb.get_meta("scale", 1.0)), scale)
+			fb.button_pressed = sel
+			_style_font_button(fb, sel)
 
 func _on_fullscreen_toggled(on: bool) -> void:
 	DisplayServer.window_set_mode(

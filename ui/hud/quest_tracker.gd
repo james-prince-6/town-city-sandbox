@@ -2,10 +2,10 @@
 # Autoload singleton (registered as "QuestTracker", pointing at THIS .gd script).
 #
 # A tiny always-on "what am I doing / where" panel pinned top-left, just under the
-# money readout. It shows the single most-important active quest: its tier label
-# (colour-coded), title, current stage (for multi-stage quests), and the first
-# objective with a LIVE collect count (e.g. "[ ] Gather lava ash (2/5)"). When no
-# quest is active it hides entirely.
+# HUD stat bars. It shows the single most-important active quest in the Town City
+# sticker style: a gold tier TAB ("MAIN QUEST" / "SIDE QUEST" / "TASK") sitting on a
+# cream CARD with the quest title, optional stage line, and the first objective with a
+# checkbox + LIVE collect count (e.g. "Gather lava ash (2/5)"). Hides when idle.
 #
 # WHY a standalone CanvasLayer autoload (not an edit to hud.gd): this keeps the
 # quest-discoverability work completely OFF the Combat HUD so the two never collide.
@@ -13,41 +13,31 @@
 # and redraws on its signals (+ Inventory.item_changed for live collect counts).
 #
 # It sits on CanvasLayer layer 6 (with the quest log) and process_mode = ALWAYS so it
-# stays readable while a menu pauses the tree. Dark text on the frosted glass matches
-# the project's "dark text on glass" readability convention.
-#
-# Robustness: every autoload it touches is reached via get_node_or_null and guarded,
-# so it boots cleanly regardless of autoload registration order (it retries the bind
-# on the next frame if QuestSystem isn't up yet). All reads off the QuestSystem Node
-# reference are Variant, so we use untyped/explicitly-typed vars — never `:=`.
+# stays readable while a menu pauses the tree. Styling comes from the project theme's
+# QuestTab / QuestCard / Display / Dim variations (no per-node colours needed).
 
 extends CanvasLayer
 
-const Glass = preload("res://ui/glass_style.gd")
+# Tier index -> tab label (mirrors Quest.Tier: MAIN=0, SIDE=1, TASK=2).
+const TIER_NAMES: Array = ["MAIN QUEST", "SIDE QUEST", "TASK"]
+## Dark ink the tab label uses so it reads on the gold tab.
+const TAB_TEXT_COLOR: Color = Color(0.102, 0.078, 0.027)
+## The objective checkbox: solid ink when done, faint when still to do.
+const CHECK_DONE: Color = Color(0.055, 0.051, 0.071, 1.0)
+const CHECK_TODO: Color = Color(0.055, 0.051, 0.071, 0.28)
 
-# Tier index -> label + colour (mirrors Quest.Tier: MAIN=0, SIDE=1, TASK=2). Colours
-# are dark/saturated so they read against the light frosted glass (matches quest_log).
-const TIER_NAMES: Array = ["Main Quest", "Side Quest", "Task"]
-const TIER_COLORS: Array = [
-	Color(0.58, 0.36, 0.02),   # MAIN - dark gold
-	Color(0.16, 0.20, 0.30),   # SIDE - slate (matches quest_log header)
-	Color(0.72, 0.42, 0.04),   # TASK - amber (matches quest_log task colour)
-]
-## Near-black body / title text for readability on the bright glass panel.
-const BODY_COLOR: Color = Color(0.12, 0.14, 0.18)
-const TITLE_COLOR: Color = Color(0.08, 0.10, 0.15)
-## Dark gold the title switches to while the featured quest is the MAIN story quest, so
-## the backbone goal is unmistakable at a glance (matches the MAIN tier colour).
-const MAIN_TITLE_COLOR: Color = Color(0.58, 0.36, 0.02)
-## Small marker prepended to the immediate (current-stage, first) objective so the very
-## next thing to do reads as a call to action. Kept ASCII for the default UI font.
-const NEXT_STEP_PREFIX: String = "[NEXT STEP] "
+## GameState flag holding the player's HUD-tracked quest choice (set from the Quests
+## menu). Empty = auto-pick the top active quest; NONE = explicitly hide the bar; any
+## other value = that quest id.
+const TRACKED_FLAG: StringName = &"tracked_quest"
+const TRACK_NONE: StringName = &"__none__"
 
-# Built once in _build_ui(); thereafter only their text/colour/visibility change.
-var _panel: PanelContainer
+# Built once in _build_ui(); thereafter only their text / visibility change.
+var _root: VBoxContainer
 var _tier: Label
 var _title: Label
 var _stage: Label
+var _check: ColorRect
 var _objective: Label
 
 # True once we've successfully wired QuestSystem/Inventory signals.
@@ -65,40 +55,73 @@ func _ready() -> void:
 # --- Setup -----------------------------------------------------------------
 
 func _build_ui() -> void:
-	_panel = PanelContainer.new()
-	_panel.set_anchors_preset(Control.PRESET_TOP_LEFT)
-	# Top-left, sitting under the HUD's health/stamina/mana/money stack.
-	_panel.position = Vector2(16, 150)
-	_panel.custom_minimum_size = Vector2(240, 0)
-	_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# Frosted-glass box (rim + blurred game view behind it), like the other panels.
-	Glass.apply(_panel, 12, 14)
-	add_child(_panel)
+	# Root column: tab stacked directly on the card (no gap), top-left under the bars.
+	_root = VBoxContainer.new()
+	_root.set_anchors_preset(Control.PRESET_TOP_LEFT)
+	# Below the top-left stat-bar stack (info strip + 3 bars); clears the mana bar.
+	_root.position = Vector2(22, 172)
+	_root.custom_minimum_size = Vector2(240, 0)
+	_root.add_theme_constant_override("separation", 0)
+	_root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(_root)
 
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 12)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_right", 12)
-	margin.add_theme_constant_override("margin_bottom", 10)
-	_panel.add_child(margin)
+	# --- gold tier tab ---
+	var tab := PanelContainer.new()
+	tab.theme_type_variation = &"QuestTab"
+	tab.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	tab.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_root.add_child(tab)
 
-	var vbox := VBoxContainer.new()
-	vbox.add_theme_constant_override("separation", 3)
-	margin.add_child(vbox)
+	_tier = Label.new()
+	_tier.theme_type_variation = &"Display"
+	_tier.add_theme_font_size_override("font_size", 10)
+	_tier.add_theme_color_override("font_color", TAB_TEXT_COLOR)
+	_tier.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	tab.add_child(_tier)
 
-	_tier = _make_label(vbox, 12, TIER_COLORS[0])
-	_title = _make_label(vbox, 17, TITLE_COLOR)
-	_stage = _make_label(vbox, 12, TIER_COLORS[1])
-	_objective = _make_label(vbox, 13, BODY_COLOR)
+	# --- cream card ---
+	var card := PanelContainer.new()
+	card.theme_type_variation = &"QuestCard"
+	card.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_root.add_child(card)
+
+	var v := VBoxContainer.new()
+	v.add_theme_constant_override("separation", 7)
+	card.add_child(v)
+
+	_title = Label.new()
+	_title.theme_type_variation = &"Display"
+	_title.add_theme_font_size_override("font_size", 16)
+	_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_title.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_child(_title)
+
+	_stage = Label.new()
+	_stage.theme_type_variation = &"Dim"
+	_stage.add_theme_font_size_override("font_size", 12)
+	_stage.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_child(_stage)
+
+	# objective row: checkbox + step text
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 8)
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	v.add_child(row)
+
+	_check = ColorRect.new()
+	_check.custom_minimum_size = Vector2(13, 13)
+	_check.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_check.color = CHECK_TODO
+	_check.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(_check)
+
+	_objective = Label.new()
+	_objective.theme_type_variation = &"Dim"
+	_objective.add_theme_font_size_override("font_size", 13)
 	_objective.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-
-func _make_label(parent: Node, size: int, color: Color) -> Label:
-	var label := Label.new()
-	label.add_theme_font_size_override("font_size", size)
-	label.add_theme_color_override("font_color", color)
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	parent.add_child(label)
-	return label
+	_objective.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_objective.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	row.add_child(_objective)
 
 # Wire QuestSystem (quest changes) + Inventory (live collect counts). Reached via
 # get_node_or_null so registration order can't break us; retried next frame if the
@@ -119,8 +142,17 @@ func _bind_systems() -> void:
 	var inv: Node = get_node_or_null("/root/Inventory")
 	if inv != null and inv.has_signal("item_changed"):
 		inv.connect("item_changed", _on_item_changed)
+	# Live-refresh the moment the player tracks/untracks a quest (GameState flag change).
+	var gs: Node = get_node_or_null("/root/GameState")
+	if gs != null and gs.has_signal("flag_changed"):
+		gs.connect("flag_changed", _on_flag_changed)
 	_bound = true
 	_refresh()
+
+# Only the tracked-quest flag affects this panel; ignore every other flag.
+func _on_flag_changed(flag_name: StringName, _value: Variant) -> void:
+	if flag_name == TRACKED_FLAG:
+		_refresh()
 
 # --- Refresh ---------------------------------------------------------------
 
@@ -133,28 +165,21 @@ func _on_item_changed(_id = null, _count = null) -> void:
 	_refresh()
 
 func _refresh() -> void:
-	if _panel == null:
+	if _root == null:
 		return
 	var quests: Node = get_node_or_null("/root/QuestSystem")
 	if quests == null:
-		_panel.visible = false
+		_root.visible = false
 		return
 	var quest = _pick_quest(quests)
 	if quest == null:
-		_panel.visible = false
+		_root.visible = false
 		return
-	_panel.visible = true
+	_root.visible = true
 
 	var tier_index: int = clampi(int(quest.tier), 0, TIER_NAMES.size() - 1)
 	_tier.text = TIER_NAMES[tier_index]
-	_tier.add_theme_color_override("font_color", TIER_COLORS[tier_index])
 	_title.text = quest.title
-	# Gild the title while the MAIN story quest is featured (tier 0); plain near-black
-	# otherwise. Read straight off the resource's tier so it tracks the picked quest.
-	var is_main: bool = tier_index == 0
-	if quests.has_method("get_quest_tier"):
-		is_main = int(quests.get_quest_tier(quest.id)) == 0
-	_title.add_theme_color_override("font_color", MAIN_TITLE_COLOR if is_main else TITLE_COLOR)
 
 	_apply_stage(quests, quest)
 	_apply_objective(quests, quest)
@@ -164,10 +189,13 @@ func _refresh() -> void:
 # active; otherwise we fall back to highest tier first (Main, then Side, then Task), and
 # within a tier the first active one. Returns null when nothing is active.
 func _pick_quest(quests: Node):
-	# Honour the player-chosen tracked quest first, if it's still active.
+	# Honour the player's explicit choice from the Quests menu first.
 	var gs: Node = get_node_or_null("/root/GameState")
 	if gs != null and gs.has_method("get_flag"):
-		var tid = gs.get_flag(&"tracked_quest", &"")
+		var tid = gs.get_flag(TRACKED_FLAG, &"")
+		# Player explicitly untracked the featured quest → show nothing.
+		if tid == TRACK_NONE:
+			return null
 		if tid != &"" and quests.has_method("is_active") and quests.is_active(tid):
 			if quests.has_method("get_quest"):
 				var chosen = quests.get_quest(tid)
@@ -195,36 +223,45 @@ func _apply_stage(quests: Node, quest) -> void:
 	else:
 		_stage.visible = false
 
-# Show the first current-stage objective with its live progress, mirroring the quest
-# log's checkbox style. Hides if the quest has no objectives we can read.
+# Show the first current-stage objective with its live progress + checkbox state. Hides
+# the whole row if the quest has no objectives we can read.
 func _apply_objective(quests: Node, quest) -> void:
 	if not quests.has_method("get_current_objectives"):
-		_objective.visible = false
+		_set_objective_visible(false)
 		return
 	var objectives = quests.get_current_objectives(quest.id)
 	if objectives == null or objectives.is_empty():
-		_objective.visible = false
+		_set_objective_visible(false)
 		return
 	var progress = quests.get_objective_progress(quest.id)
 	var obj = objectives[0]
 	var current: int = 0
 	if progress != null and progress.size() > 0:
 		current = int(progress[0])
-	_objective.visible = true
-	# Prefix the immediate goal with a small call-to-action marker so a new player knows
-	# exactly what to do next, not just what the objective is.
-	_objective.text = NEXT_STEP_PREFIX + _objective_text(obj, current)
+	_set_objective_visible(true)
+	var done: bool = _objective_done(obj, current)
+	_check.color = CHECK_DONE if done else CHECK_TODO
+	_objective.text = _objective_text(obj, current)
 
-# One objective line: REACH_FLAG reads done/not-done, COLLECT_ITEM shows "(cur/req)".
+func _set_objective_visible(v: bool) -> void:
+	_check.visible = v
+	_objective.visible = v
+
+# Whether the first objective is satisfied (REACH_FLAG: reached; COLLECT_ITEM: count met).
+func _objective_done(objective, current: int) -> bool:
+	var is_flag: bool = "kind" in objective and int(objective.kind) == 1
+	if is_flag:
+		return current >= 1
+	return current >= maxi(int(objective.required_count), 1)
+
+# One objective line WITHOUT the old ASCII checkbox (the ColorRect is the checkbox now):
+# COLLECT_ITEM shows "desc (cur/req)", REACH_FLAG shows just the desc.
 func _objective_text(objective, current: int) -> String:
 	var desc: String = objective.description
-	# QuestObjective.Kind: COLLECT_ITEM = 0, REACH_FLAG = 1 (enums here are append-only).
-	var is_flag: bool = false
-	if "kind" in objective:
-		is_flag = int(objective.kind) == 1
+	var is_flag: bool = "kind" in objective and int(objective.kind) == 1
 	if is_flag:
-		return ("[x] %s" % desc) if current >= 1 else ("[ ] %s" % desc)
+		return desc
 	var required: int = maxi(int(objective.required_count), 1)
 	if current >= required:
-		return "[x] %s" % desc
-	return "[ ] %s (%d/%d)" % [desc, current, required]
+		return desc
+	return "%s (%d/%d)" % [desc, current, required]

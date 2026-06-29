@@ -39,6 +39,7 @@ Hotbar="*res://global/systems/hotbar.gd"
 Reputation="*res://global/systems/reputation.gd"
 QuestSystem="*res://global/systems/quest_system.gd"
 Progression="*res://global/systems/progression.gd"
+Bartending="*res://global/systems/bartending.gd"
 NPCMoods="*res://global/npc/npc_moods.gd"
 CraftingSystem="*res://global/systems/crafting_system.gd"
 HUD="*res://ui/hud/hud.tscn"
@@ -74,7 +75,7 @@ enabled=PackedStringArray("res://addons/MarchingSquaresTerrain/plugin.cfg", "res
 
 [gui]
 
-theme/custom="res://ui/theme/ui_theme.tres"
+theme/custom="res://ui/town_city_theme.tres"
 
 [input]
 
@@ -226,4 +227,4 @@ block={
 
 [internationalization]
 
-locale/translations_pot_files=PackedStringArray("res://entities/npc/dialogue/ember.dialogue", "res://entities/npc/dialogue/marlo.dialogue", "res://entities/npc/dialogue/mira.dialogue", "res://entities/npc/dialogue/pip.dialogue", "res://entities/npc/dialogue/sela.dialogue")
+locale/translations_pot_files=PackedStringArray("res://entities/npc/dialogue/ember.dialogue", "res://entities/npc/dialogue/marlo.dialogue", "res://entities/npc/dialogue/mira.dialogue", "res://entities/npc/dialogue/pip.dialogue", "res://entities/npc/dialogue/sela.dialogue", "res://entities/npc/dialogue/barry.dialogue", "res://entities/npc/dialogue/droghnaut.dialogue", "res://entities/npc/dialogue/kippie.dialogue", "res://entities/npc/dialogue/orbo.dialogue", "res://entities/npc/dialogue/sally.dialogue")

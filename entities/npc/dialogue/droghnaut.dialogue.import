@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://dj1d5vkwbqbb2"
+path="res://.godot/imported/droghnaut.dialogue-40c968758580e9d15e7d90983c8e20ce.tres"
+
+[deps]
+
+source_file="res://entities/npc/dialogue/droghnaut.dialogue"
+dest_files=["res://.godot/imported/droghnaut.dialogue-40c968758580e9d15e7d90983c8e20ce.tres"]
+
+[params]
+
+defaults=true

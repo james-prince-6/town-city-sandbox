@@ -53,3 +53,51 @@ teleport graph: town gates, wild-area dungeon entrances, interior leave doors, d
 their spawn markers); items/economy/crafting/harvest; UI/menus/HUD; and a project-wide grep for
 the engine-fatal gotchas (`:=` Variant inference, `#` in scene files, cold-cache class
 instancing, zero-init cooldowns, broken resource paths).
+
+## 2026-06-29 — Codebase audit (multi-agent) + bug-fix pass
+
+> Second multi-agent audit pass: ~16 candidate findings → adversarial verification →
+> **10 confirmed real bugs (all fixed)** + 2 partials completed afterward. Two further
+> claims were rejected as false positives.
+
+### Confirmed bugs fixed (by file)
+
+- **`global/systems/clock.gd`** — auto-pause menu wiring (PlayerMenu/ShopUI/BrewingUI/
+  CraftingUI/UpgradeUI) ran in `Clock._ready` before those later-registered autoloads
+  existed, so the clock never paused for those menus; now deferred via
+  `_wire_blocking_menus.call_deferred()`.
+- **`entities/animals/animal.gd`** — facing yaw was inverted (`atan2(heading.x, heading.z)`
+  → `atan2(-heading.x, -heading.z)`); animals ran backwards and hostile bites whiffed
+  because the model faced away from its target.
+- **`ui/minigames/simon_minigame.gd`** — tapping a pad during the post-round gap indexed
+  `_sequence` out of bounds (runtime error/crash); input is now locked (`_state = SHOWING`)
+  during the gap.
+- **`entities/items/consumables/consumable_item.gd`** — `_throw_from_camera()` could crash
+  on a null world; now null-guards `SceneManager.current_world()` before `add_child`.
+- **`ui/death/death_screen.gd`** — the death XP penalty was always 0 (it read the inert
+  `Progression.get_xp()` shim); now sums real per-skill use-XP via `get_skill_xp()` over
+  Melee/Ranged/Magic and reconciles displayed vs actually-removed XP, so death finally has
+  the intended stakes.
+- **`global/systems/progression.gd`** — `magic_cooldown_mult()` read the *ranged* cooldown
+  stat key; now reads `&"magic_cooldown_reduction"` so ranged perks no longer speed up spells.
+- **`entities/enemies/enemy_stats.gd`** — added the missing `@export var attack_windup`
+  (default `0.0`), re-enabling the normal-attack telegraph path in `enemy.gd` that silently
+  no-op'd without the property.
+- **`ui/dialog/dialogue.gd`** — fixed a `Camera3D` leak when a new conversation starts mid
+  camera ease-back; the prior cam is now guarded before `queue_free`.
+
+### Partials completed afterward
+
+- **`stages/interiors/adventurers_guild.gd`** (+ new `stages/dungeons/procedural/guild_mine.tscn`)
+  — the Guild's Mine entrance exited to Town; it now points at `guild_mine.tscn` (inherited
+  from `generated_dungeon.tscn`) whose exit returns to the Guild (spawn `from_town`).
+- **`entities/critters/critter.tscn` + `critter.gd`** — critters had no HurtBox so weapons
+  passed through them; added a HurtBox (team ENEMY) in the scene and wired
+  `hurt_box.hit -> health.apply_damage` in `critter.gd` so they take damage.
+
+### Rejected (false positives)
+
+Adversarial verification dismissed three claims — do not treat as bugs: a dialogue
+name-tint "clobber" (the addon emits `got_dialogue` deferred, so no clobber occurs); a
+`quest_system` re-entrancy double-grant (the implicated trigger never fires that path); and
+a collector save-persistence "gap" (the per-scene reset is intended behavior).

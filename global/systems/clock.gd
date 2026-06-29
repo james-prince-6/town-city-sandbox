@@ -86,9 +86,18 @@ func _ready() -> void:
 	# in-game time kept ticking (draining timed-task deadlines) while the player
 	# sat in the active PlayerMenu, a shop, a crafting/brewing station, or the
 	# house upgrade menu. Additively wire those CURRENTLY-USED blocking menus to
-	# the same refcounted pause/resume handlers. Each is an OPTIONAL autoload, so
-	# fetch via get_node_or_null and only connect if it actually exposes the
-	# opened/closed signals — a missing or signal-less node is a silent no-op.
+	# the same refcounted pause/resume handlers. These autoloads are all registered
+	# AFTER Clock, so they do not exist yet at our _ready time — get_node_or_null
+	# would return null and silently wire nothing. Defer the wiring to the next idle
+	# frame, by which point every autoload has entered /root.
+	_wire_blocking_menus.call_deferred()
+
+# Connect the CURRENTLY-USED blocking menus to the refcounted pause/resume
+# handlers. Deferred from _ready because these autoloads load after Clock and so
+# are absent during our _ready. Each is an OPTIONAL autoload, so fetch via
+# get_node_or_null and only connect if it actually exposes the opened/closed
+# signals — a missing or signal-less node is a silent no-op.
+func _wire_blocking_menus() -> void:
 	for menu_path in [
 		"/root/PlayerMenu",
 		"/root/ShopUI",

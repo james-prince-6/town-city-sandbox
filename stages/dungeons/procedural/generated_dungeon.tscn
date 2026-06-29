@@ -13,6 +13,7 @@
 script = ExtResource("1_gen")
 start_seed = 12345
 difficulty = 1
+forced_theme_name = "Mine"
 
 [node name="Player" parent="." instance=ExtResource("2_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

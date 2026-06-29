@@ -68,6 +68,8 @@ func use(player: Node) -> void:
 
 	_last_swing_ms = now
 	CombatFeel.play_swing()
+	# Train the Melee skill on every committed swing (stamina-gated above, so no free grind).
+	Progression.register_use(Progression.SKILL_MELEE)
 
 	# Scale damage by the player's Melee-branch progression: a base multiplier plus a
 	# chance-based crit from the Crit Edge skill. Progression is an autoload, always

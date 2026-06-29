@@ -28,7 +28,11 @@
 
 extends CanvasLayer
 
-const Glass = preload("res://ui/glass_style.gd")
+const Flat = preload("res://ui/ui_style.gd")
+
+## Master switch. Disabled for now (user request) — the banner never reveals while false.
+## The autoload stays registered and harmless; flip back to true to restore onboarding.
+const ENABLED: bool = false
 
 ## GameState flag that, once true, suppresses this banner forever (it rides along in
 ## the normal GameState save, so a returning player is never nagged again).
@@ -111,6 +115,8 @@ func _process(delta: float) -> void:
 # down, and a player actually exists in the world. This keeps the banner from flashing
 # behind the main menu at boot.
 func _should_reveal() -> bool:
+	if not ENABLED:
+		return false
 	if _flag_seen():
 		_dismissed = true
 		return false
@@ -210,7 +216,7 @@ func _build_ui() -> void:
 	_panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_panel.position = Vector2(0, 12)
 	# Frosted-glass box (rim + blurred game view behind it), like the other panels.
-	Glass.apply(_panel, 12, 14)
+	Flat.apply(_panel, 12, 14)
 	add_child(_panel)
 
 	var margin := MarginContainer.new()

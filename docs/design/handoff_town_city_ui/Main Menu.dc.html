@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Space Grotesk',sans-serif;background:#b3ada0;}
+  @keyframes dcSpin{to{transform:rotate(360deg);}}
+  @keyframes dcBob1{0%,100%{transform:translateY(0) rotate(-8deg);}50%{transform:translateY(-16px) rotate(-8deg);}}
+  @keyframes dcBob2{0%,100%{transform:translateY(0) rotate(10deg);}50%{transform:translateY(-22px) rotate(10deg);}}
+  @keyframes dcBob3{0%,100%{transform:translateY(0) rotate(-4deg);}50%{transform:translateY(-12px) rotate(-4deg);}}
+  @keyframes dcPop{0%{transform:scale(.6) rotate(-12deg);opacity:0;}100%{transform:scale(1) rotate(-3deg);opacity:1;}}
+</style>
+</helmet>
+<div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;">
+  <div style="position:relative;width:1200px;height:675px;overflow:hidden;border-radius:6px;background:#ffd54a;font-family:'Space Grotesk',sans-serif;">
+    <!-- bright sky -->
+    <div style="position:absolute;inset:0;background:linear-gradient(#5fc3e4 0%,#7fd0e8 42%,#ffe08a 42%,#ffd54a 100%);"></div>
+    <!-- sunburst -->
+    <div style="position:absolute;left:-180px;top:-180px;width:520px;height:520px;border-radius:999px;background:conic-gradient(from 0deg,rgba(255,255,255,.34) 0 12deg,transparent 12deg 30deg);animation:dcSpin 60s linear infinite;"></div>
+    <div style="position:absolute;left:18px;top:18px;width:128px;height:128px;border-radius:999px;background:#ffec9e;border:5px solid #221f1a;"></div>
+    <!-- clouds -->
+    <div style="position:absolute;left:760px;top:70px;width:150px;height:42px;background:#fff;border:4px solid #221f1a;border-radius:999px;"></div>
+    <div style="position:absolute;left:540px;top:140px;width:110px;height:34px;background:#fff;border:4px solid #221f1a;border-radius:999px;"></div>
+    <!-- ground hills -->
+    <div style="position:absolute;left:-60px;bottom:-120px;width:420px;height:300px;border-radius:999px;background:#5ba36a;border:5px solid #221f1a;"></div>
+    <div style="position:absolute;right:-80px;bottom:-150px;width:480px;height:320px;border-radius:999px;background:#69b478;border:5px solid #221f1a;"></div>
+    <!-- floating goo blobs (the game's mascot menace) -->
+    <div style="position:absolute;left:140px;top:430px;width:64px;height:64px;background:#8b6fc4;border:5px solid #221f1a;border-radius:46% 54% 60% 40%/50% 46% 54% 50%;animation:dcBob1 4.5s ease-in-out infinite;"></div>
+    <div style="position:absolute;right:300px;top:300px;width:48px;height:48px;background:#ef5340;border:5px solid #221f1a;border-radius:54% 46% 40% 60%/46% 60% 40% 54%;animation:dcBob2 5.2s ease-in-out infinite;"></div>
+    <div style="position:absolute;right:150px;bottom:170px;width:56px;height:56px;background:#4a86a4;border:5px solid #221f1a;border-radius:50% 50% 46% 54%/54% 46% 54% 46%;animation:dcBob3 4s ease-in-out infinite;"></div>
+
+    <!-- title block -->
+    <div style="position:absolute;left:80px;top:150px;display:flex;flex-direction:column;gap:10px;">
+      <div style="font-family:'Chakra Petch';font-weight:700;font-size:120px;line-height:.86;letter-spacing:-2px;color:#fbf8f0;-webkit-text-stroke:6px #221f1a;text-shadow:8px 8px 0 #c8941e;">Town<br>City</div>
+      <div style="margin-top:6px;align-self:flex-start;background:#fff;border:4px solid #221f1a;border-radius:8px;padding:6px 14px;box-shadow:4px 4px 0 #221f1a;font-weight:700;font-size:15px;color:#221f1a;">A small town. Big problems. Mostly goo.</div>
+    </div>
+
+    <!-- menu buttons -->
+    <div style="position:absolute;right:72px;top:250px;width:360px;display:flex;flex-direction:column;gap:14px;">
+      <sc-for list="{{ buttons }}" as="b" hint-placeholder-count="4">
+        <div onClick="{{ b.onClick }}" onMouseEnter="{{ b.onHover }}" style="{{ b.style }}">
+          <span style="{{ b.iconStyle }}">{{ b.icon }}</span>
+          <span style="flex:1;font-family:'Chakra Petch';font-weight:700;font-size:23px;letter-spacing:.5px;color:{{ b.textColor }};">{{ b.label }}</span>
+          <sc-if value="{{ b.hint }}"><span style="font-weight:700;font-size:11px;letter-spacing:.3px;color:{{ b.hintColor }};">{{ b.hint }}</span></sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- toast -->
+    <sc-if value="{{ toast }}">
+      <div style="position:absolute;left:50%;top:28px;transform:translateX(-50%) rotate(-1.5deg);background:#221f1a;border:4px solid #221f1a;border-radius:8px;padding:9px 20px;box-shadow:4px 4px 0 rgba(34,31,26,.3);font-family:'Chakra Petch';font-weight:700;font-size:15px;color:#ffd54a;">{{ toast }}</div>
+    </sc-if>
+
+    <!-- footer -->
+    <div style="position:absolute;left:80px;right:72px;bottom:20px;display:flex;align-items:center;justify-content:space-between;">
+      <span style="background:#221f1a;border-radius:6px;padding:4px 11px;font-family:'Chakra Petch';font-weight:600;font-size:12px;letter-spacing:.5px;color:#ffd54a;">v0.4.1 · build “Sentient Goo”</span>
+      <span style="font-weight:700;font-size:12px;letter-spacing:.4px;color:#221f1a;">↑↓ navigate &nbsp;·&nbsp; Enter select</span>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1248,&quot;height&quot;:723}}">
+class Component extends DCLogic {
+  constructor(p){ super(p); this.state = { sel:0, hasSave:true }; }
+
+  componentDidMount(){
+    this._key=(e)=>{
+      const items=this._items(); const n=items.length;
+      if(e.key==='ArrowUp'){ e.preventDefault(); this.setState({sel:(this.state.sel-1+n)%n}); }
+      else if(e.key==='ArrowDown'){ e.preventDefault(); this.setState({sel:(this.state.sel+1)%n}); }
+      else if(e.key===' '||e.key==='Enter'){ e.preventDefault(); const it=items[this.state.sel]; if(it) it.act(); }
+    };
+    window.addEventListener('keydown', this._key);
+  }
+  componentWillUnmount(){ window.removeEventListener('keydown', this._key); }
+
+  _flash(msg){ if(this._t) clearTimeout(this._t); this._msg=msg; this.forceUpdate(); this._t=setTimeout(()=>{ this._msg=''; this.forceUpdate(); }, 1600); }
+
+  _items(){
+    const arr=[ { id:'new', label:'New Game', icon:'▶', color:'#5ba36a', hint:'', act:()=>this._flash('Starting a fresh run…') } ];
+    if(this.state.hasSave) arr.push({ id:'cont', label:'Continue', icon:'↻', color:'#4a86a4', hint:'Slot 0 · 3h 12m', act:()=>this._flash('Resuming last save…') });
+    arr.push({ id:'load', label:'Load Game', icon:'⊞', color:'#c8941e', hint:'', act:()=>this._flash('Opening save slots…') });
+    arr.push({ id:'quit', label:'Quit', icon:'✕', color:'#ef5340', hint:'', act:()=>this._flash('See you, hero.') });
+    return arr;
+  }
+
+  renderVals(){
+    const ink='#221f1a';
+    const items=this._items();
+    const sel=Math.min(this.state.sel, items.length-1);
+    const buttons=items.map((it,i)=>{ const on=i===sel; return {
+      label: it.label, icon: it.icon, hint: it.hint, hintColor: on?'#fff':'#6a655c',
+      onClick:()=>it.act(), onHover:()=>{ if(this.state.sel!==i) this.setState({sel:i}); },
+      style:{ display:'flex', alignItems:'center', gap:'14px', padding:'15px 18px', cursor:'pointer', borderRadius:'12px',
+        border:'4px solid '+ink, background: on?it.color:'#fbf8f0',
+        boxShadow: on?'7px 7px 0 '+ink:'4px 4px 0 '+ink,
+        transform: on?'translate(-3px,-3px)':'none', transition:'transform .08s, box-shadow .08s' },
+      iconStyle:{ flex:'none', width:'34px', height:'34px', display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'8px',
+        border:'3px solid '+ink, background: on?'#fbf8f0':it.color, color: on?ink:'#fbf8f0',
+        fontFamily:"'Chakra Petch', sans-serif", fontWeight:'700', fontSize:'16px' },
+      textColor: on?'#fff':ink };
+    });
+
+    return { buttons, toast:this._msg||'' };
+  }
+}
+</script>
+</body>
+</html>

@@ -25,7 +25,7 @@
 
 extends CanvasLayer
 
-const Glass = preload("res://ui/glass_style.gd")
+const Flat = preload("res://ui/ui_style.gd")
 
 ## The two things this screen can do with a slot.
 enum Mode { SAVE, LOAD }
@@ -129,7 +129,7 @@ func _build_shell() -> void:
 	# Full-screen frosted-glass backdrop (no black) that also eats clicks behind the menu.
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
-	Glass.frost(dim)
+	Flat.frost(dim)
 	add_child(dim)
 	_root = dim
 
@@ -137,9 +137,9 @@ func _build_shell() -> void:
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_root.add_child(center)
 
-	# Glass box behind the menu content (the border width doubles as inner padding).
+	# Flat box behind the menu content (the border width doubles as inner padding).
 	var panel := PanelContainer.new()
-	Glass.apply(panel, 18, 22)
+	Flat.apply(panel, 18, 22)
 	center.add_child(panel)
 
 	var vbox := VBoxContainer.new()

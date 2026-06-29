@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>*{box-sizing:border-box;}body{margin:0;font-family:'Space Grotesk',sans-serif;background:#cfcabd;}</style>
+</helmet>
+<div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:32px;background:#cfcabd;">
+  <div style="font-family:'Space Grotesk';font-weight:700;font-size:13px;letter-spacing:3px;color:#3a352d;text-transform:uppercase;">Town City — Combat HUD</div>
+  <div style="position:relative;width:960px;height:540px;overflow:hidden;border-radius:6px;background:#0e0d12;font-family:'Space Grotesk',sans-serif;">
+    <!-- scene -->
+    <div style="position:absolute;inset:0;background:linear-gradient(#4a86a4 0 34%,#9a866b 34% 56%,#6a5e50 56% 100%);"></div>
+    <div style="position:absolute;left:70px;top:176px;width:120px;height:148px;background:rgba(16,12,10,.5);"></div>
+    <div style="position:absolute;left:206px;top:134px;width:88px;height:190px;background:rgba(16,12,10,.62);"></div>
+    <div style="position:absolute;right:120px;top:154px;width:150px;height:170px;background:rgba(16,12,10,.5);"></div>
+    <div style="position:absolute;left:540px;top:240px;width:104px;height:175px;background:repeating-linear-gradient(45deg,rgba(255,255,255,.10) 0 7px,rgba(0,0,0,.20) 7px 14px);border-radius:4px;display:flex;align-items:flex-end;justify-content:center;">
+      <span style="font-family:'Space Grotesk';font-weight:700;font-size:10px;letter-spacing:1px;color:#f4f1e8;background:rgba(0,0,0,.7);padding:2px 6px;border-radius:3px;margin-bottom:5px;">NPC · BARRY</span>
+    </div>
+
+    <!-- LEFT COLUMN -->
+    <div style="position:absolute;left:22px;top:20px;display:flex;flex-direction:column;gap:11px;width:262px;">
+      <!-- info strip: clock + money -->
+      <div style="align-self:flex-start;width:208px;display:flex;align-items:center;gap:8px;padding:7px 14px;background:#e7e1d4;border:3px solid #0e0d12;border-radius:5px;">
+        <span style="font-size:15px;color:#c8941e;">☀</span>
+        <span style="font-family:'Chakra Petch';font-weight:600;font-size:16px;letter-spacing:.4px;color:#221f1a;">6:40</span>
+        <span style="font-weight:600;font-size:11px;letter-spacing:1px;color:#6a655c;">DAY 3</span>
+        <span style="width:2px;height:15px;background:rgba(14,13,18,.25);margin:0 3px;"></span>
+        <span style="font-family:'Chakra Petch';font-weight:600;font-size:16px;color:#6a655c;">$</span>
+        <span style="font-family:'Chakra Petch';font-weight:600;font-size:16px;color:#221f1a;">245</span>
+      </div>
+
+      <!-- bars: combined into one box -->
+      <div style="display:flex;align-items:stretch;width:208px;height:52px;border:3px solid #0e0d12;border-radius:5px;overflow:hidden;">
+        <div style="width:24px;flex:none;display:flex;flex-direction:column;gap:2px;background:#0e0d12;">
+          <div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:13px;color:#ef5340;">♥</div>
+          <div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:12px;color:#e7e1d4;">⚡</div>
+          <div style="flex:1;display:flex;align-items:center;justify-content:center;font-size:11px;color:#e7e1d4;">✦</div>
+        </div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:2px;background:#0e0d12;">
+          <div style="position:relative;flex:1;background:rgba(231,225,212,0.45);"><div style="position:absolute;left:0;top:0;bottom:0;width:{{ hpW }};background:#ef5340;"></div></div>
+          <div style="position:relative;flex:1;background:rgba(231,225,212,0.45);"><div style="position:absolute;left:0;top:0;bottom:0;width:{{ spW }};background:#5ba36a;"></div></div>
+          <div style="position:relative;flex:1;background:rgba(231,225,212,0.45);"><div style="position:absolute;left:0;top:0;bottom:0;width:{{ mpW }};background:#8b6fc4;"></div></div>
+        </div>
+      </div>
+
+      <!-- status chips -->
+      <div style="display:flex;justify-content:space-between;width:208px;margin-top:2px;">
+        <div style="display:flex;align-items:center;gap:5px;padding:3px 9px;background:#e7e1d4;border:3px solid #0e0d12;border-radius:4px;"><span style="font-weight:700;font-size:11px;letter-spacing:.5px;color:#221f1a;">PSN</span><span style="font-weight:700;font-size:11px;color:#6a655c;">12</span></div>
+        <div style="display:flex;align-items:center;gap:5px;padding:3px 9px;background:#e7e1d4;border:3px solid #0e0d12;border-radius:4px;"><span style="font-weight:700;font-size:11px;letter-spacing:.5px;color:#221f1a;">HAS</span><span style="font-weight:700;font-size:11px;color:#6a655c;">08</span></div>
+        <div style="display:flex;align-items:center;gap:5px;padding:3px 9px;background:#e7e1d4;border:3px solid #0e0d12;border-radius:4px;"><span style="font-weight:700;font-size:11px;letter-spacing:.5px;color:#221f1a;">SHD</span><span style="font-weight:700;font-size:11px;color:#6a655c;">21</span></div>
+      </div>
+
+      <!-- quest tracker -->
+      <div style="position:relative;width:208px;margin-top:5px;">
+        <div style="display:inline-block;background:#c8941e;color:#1a1407;font-family:'Chakra Petch';font-weight:700;font-size:10px;letter-spacing:1.5px;padding:3px 11px;border:3px solid #0e0d12;border-bottom:none;border-radius:6px 6px 0 0;">MAIN QUEST</div>
+        <div style="background:#e7e1d4;border:3px solid #0e0d12;border-radius:0 6px 6px 6px;padding:11px 13px;">
+          <div style="font-family:'Chakra Petch';font-weight:600;font-size:17px;color:#221f1a;line-height:1.05;margin-bottom:9px;">Help the Town</div>
+          <div style="display:flex;align-items:flex-start;gap:8px;"><span style="margin-top:1px;width:13px;height:13px;border:2px solid rgba(14,13,18,.45);border-radius:3px;flex:none;"></span><span style="font-weight:600;font-size:13px;color:#6a655c;line-height:1.25;">Meet Barry at the bar</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- toasts -->
+    <div style="position:absolute;right:22px;top:20px;display:flex;flex-direction:column;gap:8px;align-items:flex-end;">
+      <div style="padding:5px 13px;background:#e7e1d4;border:3px solid #0e0d12;border-radius:4px;font-weight:700;font-size:13px;color:#221f1a;">+3 Scrap Metal</div>
+      <div style="padding:5px 13px;background:#e7e1d4;border:3px solid #0e0d12;border-radius:4px;font-family:'Chakra Petch';font-weight:600;font-size:14px;color:#c8941e;">LEVEL 4!</div>
+      <div style="padding:5px 13px;background:#e7e1d4;border:3px solid #0e0d12;border-radius:4px;font-weight:700;font-size:13px;color:#c8941e;">Quest Complete!</div>
+    </div>
+
+    <!-- crosshair -->
+    <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:5px;height:5px;border-radius:50%;background:#f4f1e8;border:2px solid #0e0d12;"></div>
+
+    <!-- interaction prompt -->
+    <sc-if value="{{ showPrompt }}" hint-placeholder-val="{{ true }}">
+      <div style="position:absolute;left:50%;top:calc(50% + 38px);transform:translateX(-50%);display:flex;align-items:center;gap:9px;padding:6px 13px 6px 7px;background:#e7e1d4;border:3px solid #0e0d12;border-radius:5px;">
+        <span style="display:inline-flex;align-items:center;justify-content:center;min-width:23px;height:23px;padding:0 6px;background:#221f1a;color:#e7e1d4;font-family:'Chakra Petch';font-weight:600;font-size:13px;border:3px solid #0e0d12;border-radius:4px;">E</span>
+        <span style="font-weight:700;font-size:15px;color:#221f1a;">Talk to Barry</span>
+      </div>
+    </sc-if>
+
+    <!-- unified hotbar -->
+    <div style="position:absolute;left:50%;bottom:20px;transform:translateX(-50%);display:flex;gap:3px;padding:3px;background:#0e0d12;border:3px solid #0e0d12;border-radius:5px;">
+      <sc-for list="{{ cells }}" as="w" hint-placeholder-count="8">
+        <div style="{{ w.cellStyle }}">
+          <span style="{{ w.tagStyle }}">{{ w.tag }}</span>
+          <span style="position:absolute;top:3px;left:6px;font-family:'Space Grotesk';font-weight:700;font-size:10px;color:#6a655c;">{{ w.key }}</span>
+          <sc-if value="{{ w.hasCount }}"><span style="position:absolute;bottom:2px;right:6px;font-family:'Space Grotesk';font-weight:700;font-size:11px;color:#6a655c;">×{{ w.count }}</span></sc-if>
+        </div>
+      </sc-for>
+    </div>
+
+    <!-- overlays -->
+    <sc-if value="{{ lowHealth }}"><div style="position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 130px 36px rgba(190,28,28,.55);"></div></sc-if>
+    <sc-if value="{{ damageFlash }}"><div style="position:absolute;inset:0;pointer-events:none;background:rgba(214,40,40,.26);"></div></sc-if>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;:{&quot;width&quot;:1040,&quot;height&quot;:640},&quot;health&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:72,&quot;min&quot;:0,&quot;max&quot;:100,&quot;step&quot;:1,&quot;unit&quot;:&quot;%&quot;,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;HUD State&quot;},&quot;showPrompt&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;HUD State&quot;},&quot;damageFlash&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:false,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;HUD State&quot;}}">
+class Component extends DCLogic {
+  renderVals() {
+    const health = this.props.health ?? 72, stamina = 54, mana = 38;
+    const pct = v => Math.round(Math.max(0, Math.min(100, v))) + '%';
+    const items = [
+      { tag:'SWD', count:'', key:'1' }, { tag:'BOW', count:'24', key:'2' },
+      { tag:'XBW', count:'8', key:'3' }, { tag:'W1', count:'', key:'4' },
+      { tag:'W2', count:'', key:'5' }, { tag:'W3', count:'', key:'6' },
+      { tag:'THR', count:'5', key:'7' }, { tag:'POT', count:'3', key:'8' },
+    ];
+    const cells = items.map((it, i) => {
+      const sel = i === 0;
+      return {
+        tag:it.tag, count:it.count, key:it.key, hasCount:!!it.count, sel,
+        cellStyle: Object.assign({}, {
+          position:'relative', width:'56px', height:'52px', display:'flex',
+          alignItems:'center', justifyContent:'center', overflow:'hidden', borderRadius:'2px',
+          backgroundColor: sel ? '#fbf8f0' : '#e7e1d4'
+        }),
+        tagStyle: { fontFamily:"'Chakra Petch', sans-serif", fontWeight:'600', fontSize:'16px', letterSpacing:'.5px', color: sel ? '#221f1a' : '#6a655c' }
+      };
+    });
+    return {
+      hpW: pct(health), spW: pct(stamina), mpW: pct(mana),
+      cells,
+      showPrompt: this.props.showPrompt ?? true,
+      damageFlash: this.props.damageFlash ?? false,
+      lowHealth: health <= 30,
+    };
+  }
+}
+</script>
+</body>
+</html>

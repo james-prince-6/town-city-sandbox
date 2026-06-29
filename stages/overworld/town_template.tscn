@@ -106,31 +106,19 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.44145972, -1.7499981, -2.32
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.519104, 0.113708496, -2.2906818)
 shape = SubResource("DungeonCol")
 
-[node name="Shopkeeper" parent="." instance=ExtResource("9_shop")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -6)
+; Town-square shopkeeper RETIRED in the v1 cast migration (M-B): George Coral runs the
+; General Store interior (general_store_inside.gd), not a square stall. The keeper identity
+; lives on shopkeeper.tscn / general_store.tres (reputation_npc = &"george").
 
 [node name="Workbench" parent="." instance=ExtResource("10_bench")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -6)
 
-[node name="Mira" parent="." instance=ExtResource("11_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, -5)
-definition = ExtResource("12_mira")
-
-[node name="Pip" parent="." instance=ExtResource("11_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -3)
-definition = ExtResource("13_pip")
-
-[node name="Marlo" parent="." instance=ExtResource("11_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -4)
-definition = ExtResource("30_marlo")
-
-[node name="Sela" parent="." instance=ExtResource("11_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -8)
-definition = ExtResource("31_sela")
-
-[node name="Ember" parent="." instance=ExtResource("11_npc")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -3)
-definition = ExtResource("32_ember")
+; Town-square placeholder NPCs (Mira, Pip, Marlo, Sela, Ember) RETIRED in the v1 cast
+; migration (M-B). Their NPCDefinition + .dialogue files stay parked on disk (not deleted);
+; the v1 cast lives in its venues — Orbo in the Town Hall now, and George/Barry/Kippie/
+; Droghnaut/Sally placed with their interiors in M-C. The crafting stations below remain.
+; (The mira/pip/marlo/sela/ember ext_resources above are now unused but left in place to
+; keep the load_steps header intact; they instance no nodes.)
 
 [node name="BrewingMachine" parent="." instance=ExtResource("33_brew")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, -6)
@@ -822,6 +810,7 @@ script = ExtResource("8_teleport")
 target_scene_path = "res://stages/wild/sunpetal_meadow.tscn"
 prompt_text = "Enter Sunpetal Meadow"
 target_spawn_point = &"from_town"
+locked = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="GateMeadow"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
@@ -849,6 +838,7 @@ script = ExtResource("8_teleport")
 target_scene_path = "res://stages/wild/iron_hills.tscn"
 prompt_text = "Enter the Iron Hills"
 target_spawn_point = &"from_town"
+locked = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="GateHills"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
@@ -876,6 +866,7 @@ script = ExtResource("8_teleport")
 target_scene_path = "res://stages/wild/cinder_barrens.tscn"
 prompt_text = "Enter the Cinder Barrens"
 target_spawn_point = &"from_town"
+locked = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="GateBarrens"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
@@ -1067,6 +1058,7 @@ script = ExtResource("8_teleport")
 target_scene_path = "res://stages/dungeons/town_sewer.tscn"
 prompt_text = "Descend into the Sewer"
 target_spawn_point = &""
+locked = true
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="GateSewer"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
@@ -1087,3 +1079,117 @@ text = "Sewer"
 
 [node name="TaskBoard" parent="." instance=ExtResource("50_taskboard")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 12)
+
+; --- v1 VENUE GATES (M-C): The Flaming Pebble, Kippie Arcade, Adventurers Guild, Astros Fishing.
+; The bar/arcade are hand-authored interiors that place their own Player at the door, so their
+; gate uses an empty spawn point; the guild/fishing are RoomInterior subclasses that build a
+; "from_town" marker, so their gate targets it. Each pairs with a from_<venue> return marker the
+; interior's Leave door lands the player on. Gate placement is greybox — eyeball in M-G.
+
+[node name="GateBar" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 1, -8)
+script = ExtResource("8_teleport")
+target_scene_path = "res://stages/overworld/bar-inside/barinside.tscn"
+prompt_text = "Enter The Flaming Pebble"
+target_spawn_point = &""
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GateBar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("GateBox")
+
+[node name="Post" type="MeshInstance3D" parent="GateBar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("GatePost")
+surface_material_override/0 = SubResource("GateMat")
+
+[node name="Sign" type="Label3D" parent="GateBar"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+pixel_size = 0.011
+billboard = 1
+font_size = 64
+outline_size = 12
+text = "The Flaming Pebble"
+
+[node name="from_bar" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 1, -8)
+
+[node name="GateArcade" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 1, -8)
+script = ExtResource("8_teleport")
+target_scene_path = "res://stages/overworld/arcade_inside.tscn"
+prompt_text = "Enter Kippie Arcade"
+target_spawn_point = &""
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GateArcade"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("GateBox")
+
+[node name="Post" type="MeshInstance3D" parent="GateArcade"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("GatePost")
+surface_material_override/0 = SubResource("GateMat")
+
+[node name="Sign" type="Label3D" parent="GateArcade"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+pixel_size = 0.011
+billboard = 1
+font_size = 64
+outline_size = 12
+text = "Kippie Arcade"
+
+[node name="from_arcade" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 1, -8)
+
+[node name="GateGuild" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 1, 16)
+script = ExtResource("8_teleport")
+target_scene_path = "res://stages/interiors/adventurers_guild.tscn"
+prompt_text = "Enter the Adventurers Guild"
+target_spawn_point = &"from_town"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GateGuild"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("GateBox")
+
+[node name="Post" type="MeshInstance3D" parent="GateGuild"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("GatePost")
+surface_material_override/0 = SubResource("GateMat")
+
+[node name="Sign" type="Label3D" parent="GateGuild"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+pixel_size = 0.011
+billboard = 1
+font_size = 64
+outline_size = 12
+text = "Adventurers Guild"
+
+[node name="from_guild" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15, 1, 16)
+
+[node name="GateFishing" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18, 1, 16)
+script = ExtResource("8_teleport")
+target_scene_path = "res://stages/interiors/astros_fishing.tscn"
+prompt_text = "Enter Astros Fishing Friends"
+target_spawn_point = &"from_town"
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="GateFishing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+shape = SubResource("GateBox")
+
+[node name="Post" type="MeshInstance3D" parent="GateFishing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0)
+mesh = SubResource("GatePost")
+surface_material_override/0 = SubResource("GateMat")
+
+[node name="Sign" type="Label3D" parent="GateFishing"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.6, 0)
+pixel_size = 0.011
+billboard = 1
+font_size = 64
+outline_size = 12
+text = "Astros Fishing"
+
+[node name="from_fishing" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 1, 16)

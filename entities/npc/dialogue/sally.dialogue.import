@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://ben3xt748ee03"
+path="res://.godot/imported/sally.dialogue-bc2f3f2538ca6e36bc1ddab9759d73d1.tres"
+
+[deps]
+
+source_file="res://entities/npc/dialogue/sally.dialogue"
+dest_files=["res://.godot/imported/sally.dialogue-bc2f3f2538ca6e36bc1ddab9759d73d1.tres"]
+
+[params]
+
+defaults=true

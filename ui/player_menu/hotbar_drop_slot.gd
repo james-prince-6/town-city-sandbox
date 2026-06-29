@@ -13,7 +13,13 @@ var slot_index: int = 0
 
 func setup(index: int) -> void:
 	slot_index = index
-	custom_minimum_size = Vector2(64, 64)
+	# A cream cell that stretches to fill the ink hotbar bar (matches the HUD hotbar look).
+	custom_minimum_size = Vector2(0, 58)
+	size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var cell := StyleBoxFlat.new()
+	cell.bg_color = Color(0.906, 0.882, 0.831, 1.0)
+	cell.set_corner_radius_all(2)
+	add_theme_stylebox_override("panel", cell)
 	mouse_filter = Control.MOUSE_FILTER_STOP   # required to receive drops
 	tooltip_text = "Hotbar slot %d\nDrag an item here to assign it." % (index + 1)
 	if not Hotbar.slots_changed.is_connected(_refresh):

@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://c0pbdk3j1musr"
+path="res://.godot/imported/barry.dialogue-78acdda5a5ff503213a1c8f8ef70f6f6.tres"
+
+[deps]
+
+source_file="res://entities/npc/dialogue/barry.dialogue"
+dest_files=["res://.godot/imported/barry.dialogue-78acdda5a5ff503213a1c8f8ef70f6f6.tres"]
+
+[params]
+
+defaults=true

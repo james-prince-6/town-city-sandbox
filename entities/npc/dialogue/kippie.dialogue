@@ -1,0 +1,31 @@
+# Kippie Kip — wacky, high-energy arcade owner; 90s hippie vibe. GREYBOX (M-B): an
+# enthusiastic greeting + hub. His "Spirits Up" morale-beat hook (Beat 2c) is authored in M-F.
+
+~ start
+if not GameState.get_flag("met_kippie")
+	do GameState.set_flag("met_kippie")
+	=> greeting
+else
+	=> hub
+
+~ greeting
+Kippie: [#gesture=cheer] Heyyy, a new face! Far out, man — welcome to Kippie's!
+Kippie: [#gesture=talk] Nobody's been comin' by lately. Everyone's too bummed to play. That's backwards, baby!
+=> hub
+
+~ hub
+% Kippie: [#gesture=cheer] What's the move, champ?
+% Kippie: [#gesture=talk] You feelin' the good vibes yet?
+- What is this place?
+	=> about
+- Catch you later.
+	=> bye
+
+~ about
+Kippie: [#gesture=cheer] Best little arcade this side of the mountain! High scores, good times, zero bad vibes.
+=> hub
+
+~ bye
+% Kippie: [#gesture=wave] Stay groovy!
+% Kippie: [#gesture=cheer] Come back and beat that high score!
+=> END

@@ -19,7 +19,7 @@
 class_name Minigame
 extends CanvasLayer
 
-const Glass = preload("res://ui/glass_style.gd")
+const Flat = preload("res://ui/ui_style.gd")
 
 ## Emitted exactly once when the game ends — either naturally ("Done"/timeout)
 ## or early via Escape. `reward` is the money the manager should grant.
@@ -85,7 +85,7 @@ func _make_backdrop() -> Control:
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
 	dim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(dim)
-	Glass.frost(dim)
+	Flat.frost(dim)
 	return dim
 
 ## Standard centered column with the title at the top. Returns the VBox so the
@@ -96,7 +96,7 @@ func _make_column(parent: Control) -> VBoxContainer:
 	parent.add_child(center)
 
 	var panel := PanelContainer.new()
-	Glass.apply(panel, 18, 22)
+	Flat.apply(panel, 18, 22)
 	center.add_child(panel)
 
 	var vbox := VBoxContainer.new()

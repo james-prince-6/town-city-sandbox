@@ -1,4 +1,4 @@
-[gd_resource type="QuadMesh" load_steps=5 format=3 uid="uid://h41fuxldpf1u"]
+[gd_resource type="QuadMesh" format=3 uid="uid://h41fuxldpf1u"]
 
 [ext_resource type="Shader" uid="uid://0fijvq5fdcep" path="res://addons/MarchingSquaresTerrain/resources/shaders/mst_grass.gdshader" id="1_jmvec"]
 [ext_resource type="Texture2D" uid="uid://cxvnfgy865wsk" path="res://addons/MarchingSquaresTerrain/resources/plugin_materials/grass_leaf_sprite.png" id="2_yr1wv"]

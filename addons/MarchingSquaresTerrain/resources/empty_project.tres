@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="MarchingSquaresTexturePreset" load_steps=19 format=3 uid="uid://db4scsn2nqqyu"]
+[gd_resource type="Resource" script_class="MarchingSquaresTexturePreset" format=3 uid="uid://db4scsn2nqqyu"]
 
 [ext_resource type="Script" uid="uid://dqeuj3gddfm65" path="res://addons/MarchingSquaresTerrain/editor/tools/scripts/marching_squares_texture_names.gd" id="1_p1dug"]
 [ext_resource type="Texture2D" uid="uid://cxvnfgy865wsk" path="res://addons/MarchingSquaresTerrain/resources/plugin_materials/grass_leaf_sprite.png" id="2_shyxq"]

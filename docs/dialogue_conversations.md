@@ -1,5 +1,29 @@
 # Conversations (deeper, BG3-lite)
 
+> ⚠ **SUPERSEDED (2026-06-28).** This document describes an **earlier, custom `.tres` dialogue
+> system** (`DialogueResource` / `DialogueChoice` / `ConditionalDialogue`, `mira_*.tres`) that has
+> since been **replaced by Nathan Hoad's Dialogue Manager addon**. Conversations are now authored as
+> **`.dialogue`** files (one per NPC, under `entities/npc/dialogue/`) and opened via the **`Dialogue`**
+> wrapper autoload — `Dialogue.start_dialogue(resource, speaker, title)` — which fronts the addon's
+> `DialogueManager`. For the current authoring flow see the HOW-TO at the top of
+> `global/npc/npc_definition.gd` and any existing `*.dialogue` file (e.g.
+> `entities/npc/dialogue/marlo.dialogue`). The conceptual goals below (reactive greetings, per-line
+> gestures, conditions/effects) still hold — only the **authoring format** changed. Kept for
+> historical context; **do not author new dialogue from this doc.**
+>
+> **Presentation rebuilt (Town City "sticker" look).** The on-screen panel is now
+> `ui/dialog/dialogue_balloon.gd` — a code-built CanvasLayer in the flat sticker style (cream
+> bottom box, bobbing speaker portrait, dark name plate, numbered reply list with caret +
+> selection highlight; all StyleBoxes inline). It still drives the conversation entirely through
+> the addon: `Dialogue` (`ui/dialog/dialogue.gd`) instances the balloon and calls
+> `balloon.start(resource, cue, [{"speaker": …}])`, and the balloon advances ONLY via
+> `resource.get_next_dialogue_line(next_id, states)` (so the addon emits `got_dialogue` per line
+> and `dialogue_ended` at the end). The text reveal reuses the addon's `DialogueLabel` for its
+> **typewriter** + inline `[speed=…]`/`[wait=…]` pacing. The cinematic-lite camera fix:
+> `dialogue.gd._begin_cinematic()` now frees any `Camera3D` orphaned when a prior conversation's
+> ease-back tween was killed mid-flight (before its `_restore_player_cam` callback could free it),
+> so starting a new conversation during the ease-back no longer leaks a camera.
+
 The dialogue system extended for richer, more reactive conversations. Still 100% data-driven
 (`.tres`), still the one `DialogueManager` autoload — `start_dialogue(resource, speaker)`.
 

@@ -55,11 +55,63 @@ func _ready() -> void:
 	_seed_slot_if_known(2, &"iron_sword")
 	_seed_slot_if_known(3, &"bow")
 
+	# Keep the hotbar in step with the bag (player request):
+	#  - a newly ACQUIRED item drops into the first free slot, so fresh gear/consumables
+	#    are usable straight away (item_gained only fires on add(), so loading a save never
+	#    reshuffles the layout);
+	#  - an item that RUNS OUT (count hits 0) vanishes from the hotbar, mirroring the bag,
+	#    which erases 0-count entries.
+	# Connected AFTER seeding so the four seed tools don't get double-placed.
+	Inventory.item_gained.connect(_on_item_gained)
+	Inventory.item_changed.connect(_on_item_changed)
+
 ## Helper for _ready(): place `id` into slot `i`, but only when the Inventory
 ## database can resolve it to a real Item. Keeps the startup seeding safe.
 func _seed_slot_if_known(i: int, id: StringName) -> void:
 	if Inventory.get_item(id) != null:
 		slots[i] = id
+
+# --- Bag sync (auto place new items / drop emptied ones) --------------------
+
+## A freshly-acquired item that isn't already on the hotbar drops into the first empty slot,
+## so new gear/consumables are immediately usable. If the hotbar is full it just stays in the
+## bag. Only GAINS trigger this (via Inventory.item_gained), so a save restore never reshuffles.
+func _on_item_gained(id: StringName, _amount: int) -> void:
+	if id == &"" or _is_on_hotbar(id):
+		return
+	var free: int = _first_empty_slot()
+	if free == -1:
+		return
+	slots[free] = id
+	slots_changed.emit()
+
+## When an item runs out (count reaches 0) it disappears from the hotbar, mirroring the bag
+## (which erases 0-count entries). Clears every slot holding that id; emits once if anything
+## changed. Non-zero counts are ignored, so partial use leaves the slot in place.
+func _on_item_changed(id: StringName, new_count: int) -> void:
+	if new_count > 0:
+		return
+	var changed := false
+	for i in SLOT_COUNT:
+		if slots[i] == id:
+			slots[i] = &""
+			changed = true
+	if changed:
+		slots_changed.emit()
+
+## True if `id` already occupies any hotbar slot (so we don't add a duplicate).
+func _is_on_hotbar(id: StringName) -> bool:
+	for s in slots:
+		if s == id:
+			return true
+	return false
+
+## The index of the first empty slot, or -1 when the hotbar is full.
+func _first_empty_slot() -> int:
+	for i in SLOT_COUNT:
+		if slots[i] == &"":
+			return i
+	return -1
 
 # --- Slot contents ---------------------------------------------------------
 

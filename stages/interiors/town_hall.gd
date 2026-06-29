@@ -55,9 +55,10 @@ func _furnish_reception() -> void:
 	place(KIT + "desk.fbx", Vector3(0.0, 0.0, 6.8), 180.0)
 	place(KIT + "desk.fbx", Vector3(2.4, 0.0, 6.8), 180.0)
 
-	# Mira works the counter — reuse her existing NPCDefinition; she stands behind the desk
-	# facing north (yaw 180) toward anyone who walks up.
-	place_npc("res://global/npc/definitions/mira.tres", Vector3(0.0, 0.0, 7.9), 180.0)
+	# Mayor Orbo works the hall — the story spine and the player's first goal stands behind
+	# the desk facing north (yaw 180) toward anyone who walks up. (Was placeholder Mira; the
+	# v1 cast migration, M-B, put Orbo here so "talk to the Mayor" has a real giver.)
+	place_npc("res://global/npc/definitions/orbo.tres", Vector3(0.0, 0.0, 7.9), 180.0)
 	# A clerk's chair tucked beside her as set dressing.
 	place(KIT + "chairDesk.fbx", Vector3(1.4, 0.0, 7.7), 0.0)
 

@@ -1,6 +1,6 @@
 # Town City — Architecture Guide
 
-A first-person 3D action-RPG in **Godot 4.5 / GDScript**. You run a small business in a town:
+A first-person 3D action-RPG in **Godot 4.7 / GDScript**. You run a small business in a town:
 gather ingredients, brew/craft/cook goods in machines, sell them to NPCs, take on quests, and
 build reputation — and increasingly **fight** (first-person melee + ranged + throwables) through
 monster-filled dungeons, with minigames on the side. All progress persists to save files.
@@ -40,33 +40,58 @@ Every stateful autoload exposes `capture_state() -> Dictionary` / `restore_state
 Registered in `project.godot` under `[autoload]`, **in dependency order** (a system that connects to
 another's signals in `_ready()` must load *after* it). Current order and responsibilities:
 
+The list has grown well past the original handful; the current `project.godot` order (verified) is:
+
 | # | Autoload | File | Responsibility |
 |---|---|---|---|
-| 1 | `GameState` | `global/systems/game_state.gd` | Money, day counter, story flags. `add_money/spend_money/set_flag/get_flag`. Signals `money_changed`, `day_changed`. |
+| 1 | `GameState` | `global/systems/game_state.gd` | Money, day counter, story flags. `add_money/spend_money/set_flag/get_flag`. Signals `money_changed`, `day_changed`, **`flag_changed(flag_name, value)`** (emitted by `set_flag`; drives the quest tracker — §5). |
 | 2 | `Inventory` | `global/systems/inventory.gd` | What the player carries (`id -> count`). Loads `Item` `.tres` from `global/items/resources/`. `add/remove/count_of/has/get_item`. Signal `item_changed`. |
-| 3 | `SceneManager` | `global/systems/scene_manager.gd` | Scene transitions that place the player at a named `Marker3D` spawn point. Signal `scene_loaded`. |
-| 4 | `DialogueManager` | `ui/dialog/dialogue_manager.tscn` | The one dialogue system. `start_dialogue(DialogueResource)`. Signals `dialogue_started/ended`. (Registered as the **scene**, not the script — it needs its UI nodes.) |
-| 5 | `InteractionUI` | `ui/interactions/interaction_prompt.tscn` | The floating "[E] …" prompt. |
-| 6 | `InventoryUI` | `ui/inventory/inventory_ui.tscn` | Bag panel (toggle **I**). |
-| 7 | `Clock` | `global/systems/clock.gd` | Time of day (hour/minute), advances real-time, rolls `GameState.day` at midnight. Auto-pauses in menus/dialogue. Signals `time_changed`, `day_started`. |
-| 8 | `PlayerStats` | `global/systems/player_stats.gd` | Health + regenerating stamina. `take_damage/heal/use_stamina/reset`. Signals `health_changed/stamina_changed/died`. |
-| 9 | `Hotbar` | `global/systems/hotbar.gd` | 8 equip slots of item ids + selection. `select/get_selected_item`. Signals `slots_changed/selection_changed`. |
-| 10 | `Reputation` | `global/systems/reputation.gd` | Per-NPC score (-100..100) and tier (Hostile→Beloved). `get/add/set_reputation/get_tier`. |
-| 11 | `QuestSystem` | `global/systems/quest_system.gd` | Loads `Quest` `.tres` from `global/quests/resources/`. Tracks active/completed, auto-progresses `COLLECT_ITEM` objectives off `Inventory.item_changed`, applies rewards on completion. |
-| 12 | `CraftingSystem` | `global/systems/crafting_system.gd` | Loads `Recipe` `.tres` from `global/crafting/recipes/`. Per-machine brew state keyed by `machine_id`, **timed in game-minutes** so brews continue while you're away. |
-| 13 | `HUD` | `ui/hud/hud.tscn` | Health/stamina bars, money, day+time, hotbar strip. Pure view. |
-| 14 | `QuestLog` | `ui/quest_log/quest_log.tscn` | Active-quest overlay (toggle **J**), non-blocking. |
-| 15 | `BrewingUI` | `ui/crafting/brewing_ui.tscn` | Brewing menu (opened by a machine). Blocking. |
-| 16 | `SaveManager` | `global/systems/save_manager.gd` | Gathers every system's snapshot into one save file. **F5** save / **F9** load. |
-| 17 | `ShopSystem` | `global/systems/shop_system.gd` | Pricing (off `Item.base_value`), buy/sell, reputation-adjusted prices. |
-| 18 | `ShopUI` | `ui/shop/shop_ui.tscn` | Buy/sell menu (opened by a shopkeeper). Blocking. |
-| 19 | `PauseMenu` | `ui/pause/pause_menu.gd` | **Esc** pause overlay (Resume/Settings/Quit). Fully pauses (tree + Clock). Code-built. |
-| 20 | `DeathScreen` | `ui/death/death_screen.gd` | "You Died" overlay on `PlayerStats.died`; respawns at nearest `respawn_point` (or the player's start). |
-| 21 | `MinigameManager` | `global/minigames/minigame_manager.gd` | Opens a minigame (pauses world), pays out `GameState.add_money` on finish. |
+| 3 | `HouseUpgrades` | `global/systems/house_upgrades.gd` | Persistent player-house upgrade levels; drives the upgradeable house interior (`UpgradeUI`). |
+| 4 | `SceneManager` | `global/systems/scene_manager.gd` | Scene transitions that place the player at a named `Marker3D` spawn point. Signal `scene_loaded`. |
+| 5 | `InputDevice` | `global/systems/input_device.gd` | Tracks the active input device (KBM vs gamepad) so prompts/keycaps show the right glyphs. |
+| 6 | `DialogueManager` | `addons/dialogue_manager/dialogue_manager.gd` | **Nathan Hoad's Dialogue Manager** addon — parses/runs `.dialogue` files. |
+| 7 | `Dialogue` | `ui/dialog/dialogue.gd` | Game-facing wrapper over the addon: `Dialogue.start_dialogue(DialogueResource, speaker, title)` — adds the cinematic-lite camera, per-line `[#gesture=…]`, the compat `dialogue_started/ended` signals + `is_active`. Balloon: `ui/dialog/dialogue_balloon.tscn` (code-built, §5). |
+| 8 | `InteractionUI` | `ui/interactions/interaction_prompt.tscn` | The floating "[E] …" prompt. |
+| 9 | `InventoryUI` | `ui/inventory/inventory_ui.tscn` | Legacy bag panel (toggle **I**); the full bag now lives in `PlayerMenu`'s Inventory tab. |
+| 10 | `ItemThumbnail` | `ui/thumbnails/item_thumbnail.gd` | Renders item `world_model`s to thumbnail textures for the menus/HUD. |
+| 11 | `Clock` | `global/systems/clock.gd` | Time of day (hour/minute), advances real-time, rolls `GameState.day` at midnight. Auto-pauses in menus/dialogue (the blocking-menu wiring is deferred via `_wire_blocking_menus` so later autoloads exist first). Signals `time_changed`, `day_started`. |
+| 12 | `ScreenFade` | `global/ui/screen_fade.gd` | Full-screen fade-to-black transition helper (used around scene changes). |
+| 13 | `AreaTitleCard` | `global/ui/area_title_card.gd` | "Now entering …" area title card on scene/area entry. |
+| 14 | `PlayerStats` | `global/systems/player_stats.gd` | Health + regenerating stamina. `take_damage/heal/use_stamina/reset`. Signals `health_changed/stamina_changed/died`. |
+| 15 | `Hotbar` | `global/systems/hotbar.gd` | 8 equip slots of item ids + selection. `select/get_selected_item`. Signals `slots_changed/selection_changed`. |
+| 16 | `Reputation` | `global/systems/reputation.gd` | Per-NPC score (-100..100) and tier (Hostile→Beloved). `get/add/set_reputation/get_tier`; tier gates (`is_at_least/is_at_most`) drive shop discounts + dialogue branches. |
+| 17 | `QuestSystem` | `global/systems/quest_system.gd` | Loads `Quest` `.tres` from `global/quests/resources/`. Tiered (Main/Side/Task), multi-stage + timed tasks; auto-progresses `COLLECT_ITEM` objectives off `Inventory.item_changed`, applies rewards on completion. |
+| 18 | `Progression` | `global/systems/progression.gd` | Use-based skill XP/levels (Melee/Ranged/Magic) + perks; `get_skill_xp`, cooldown/damage multipliers. (The old `get_xp()` is an inert shim — read per-skill XP instead.) |
+| 19 | `Bartending` | `global/systems/bartending.gd` | State for the bartending minigame shift (orders/score). |
+| 20 | `NPCMoods` | `global/npc/npc_moods.gd` | Per-NPC mood state that nudges dialogue/ambience. |
+| 21 | `CraftingSystem` | `global/systems/crafting_system.gd` | Loads `Recipe` `.tres` from `global/crafting/recipes/`. Per-machine brew state keyed by `machine_id`, **timed in game-minutes** so brews continue while you're away. |
+| 22 | `HUD` | `ui/hud/hud.tscn` | Sticker-style combat HUD: HP/SP/MP meters, money, day+time, hotbar strip, crosshair/damage feedback. Pure view. |
+| 23 | `QuestLog` | `ui/quest_log/quest_log.tscn` | Active-quest overlay (toggle **J**), non-blocking. |
+| 24 | `QuestTracker` | `ui/hud/quest_tracker.gd` | Always-on top-left panel featuring the player's tracked (or auto-picked) quest; refreshes on `GameState.flag_changed` + quest/inventory signals (§5). |
+| 25 | `BrewingUI` | `ui/crafting/brewing_ui.tscn` | Brewing menu (opened by a machine). Blocking. |
+| 26 | `SaveManager` | `global/systems/save_manager.gd` | Gathers every system's snapshot into one save file. **F5** save / **F9** load. |
+| 27 | `ShopSystem` | `global/systems/shop_system.gd` | Pricing (off `Item.base_value`), buy/sell, reputation-adjusted prices. |
+| 28 | `ShopUI` | `ui/shop/shop_ui.tscn` | Buy/sell menu (opened by a shopkeeper). Blocking. |
+| 29 | `PauseMenu` | `ui/pause/pause_menu.gd` | **Esc** pause overlay (Resume / Settings sliders / Controls / Quit). Fully pauses (tree + Clock). Code-built. |
+| 30 | `DeathScreen` | `ui/death/death_screen.gd` | "You Died" overlay on `PlayerStats.died`; deducts real per-skill use-XP and respawns at nearest `respawn_point` (or the player's start). |
+| 31 | `MinigameManager` | `global/minigames/minigame_manager.gd` | Opens a minigame (pauses world), pays out `GameState.add_money` on finish. |
+| 32 | `SkillTreeUI` | `ui/progression/skill_tree_ui.tscn` | Skill/perk tree overlay (key **K**). Blocking. |
+| 33 | `CombatFeel` | `global/combat/combat_feel.gd` | Combat juice: hitstop, screen shake, impact SFX. |
+| 34 | `UISound` | `global/ui/ui_sound.gd` | Shared UI click/hover SFX. |
+| 35 | `MenuManager` | `global/ui/menu_manager.gd` | Coordinates the blocking menus (one-open-at-a-time, open/close routing). |
+| 36 | `CraftingUI` | `ui/crafting/crafting_ui.tscn` | Crafting/recipe menu. Blocking. |
+| 37 | `PlayerMenu` | `ui/player_menu/player_menu.tscn` | The big tabbed player menu (6 tabs — §5). Blocking. |
+| 38 | `UpgradeUI` | `ui/house/upgrade_ui.gd` | House-upgrade purchase menu (reads `HouseUpgrades`). Blocking. |
+| 39 | `MainMenu` | `ui/main_menu/main_menu.gd` | Title screen (New/Continue/Quit) — bright cartoon style. |
+| 40 | `SaveSlotMenu` | `ui/save_menu/save_slot_menu.gd` | Save-slot picker (Continue-gating). |
+| 41 | `NotificationFeed` | `ui/notifications/notification_feed.gd` | Corner toast feed (pickups, quest updates). |
+| 42 | `FirstRunPanel` | `ui/hud/first_run_panel.gd` | One-time onboarding panel on a fresh game. |
+| 43 | `AmbientAudio` | `global/systems/ambient_audio.gd` | Mood-based music/ambience crossfade (`assets/audio/{music,ambient}/<mood>.ogg`). |
 
-**Two ordering constraints worth remembering:** `Clock` connects to `DialogueManager`/`InventoryUI`
-signals, so it's listed after them; `QuestSystem` connects to `Inventory.item_changed`, so it's after
-`Inventory`. UIs that read a system come after it.
+**Ordering constraints worth remembering:** `Clock` connects to `DialogueManager`/`InventoryUI`
+signals, so it's listed after them (and defers its blocking-menu wiring so the later menu autoloads
+exist first); `QuestSystem` connects to `Inventory.item_changed`, so it's after `Inventory`. UIs that
+read a system come after it.
 
 ---
 
@@ -81,13 +106,17 @@ files and edited in the Inspector. Systems that own a catalog scan a folder at s
 | `Item` | `global/items/item.gd` | `global/items/resources/` | id, display_name, description, `category` (INGREDIENT/DRINK/TOOL/MATERIAL/MISC/FOOD), icon, max_stack, base_value, **`world_model`** (§6). |
 | `ToolItem` | `entities/items/tool_item.gd` | same folder | `extends Item`. Adds `tool_type` (PICKAXE/HATCHET/LADLE/WEAPON/NONE), power, stamina_cost, damage. |
 | `Recipe` / `RecipeIngredient` | `global/crafting/` | `global/crafting/recipes/` | inputs[], output_id, output_count, `brew_minutes` (game-minutes), machine_type. |
-| `Quest` / `QuestObjective` | `global/quests/` | `global/quests/resources/` | objectives[] (`COLLECT_ITEM` auto-tracked, or `REACH_FLAG`), rewards[] (reuse `DialogueEffect`). |
-| `DialogueResource` / `DialogueChoice` | `ui/dialog/` | referenced, not scanned | A node in a dialogue tree: lines[], choices[], `on_enter_effects[]`. Choices branch via `next_dialogue`. |
-| `DialogueEffect` / `DialogueCondition` | `ui/dialog/` | embedded in dialogues/quests | The **shared consequence/gate system**: an effect `apply()`s (set flag, give/take item, change rep, money, start/complete quest); a condition `is_met()` gates a choice. Used by both dialogue *and* quest rewards. |
+| `Quest` / `QuestObjective` | `global/quests/` | `global/quests/resources/` | objectives[] (`COLLECT_ITEM` auto-tracked, or `REACH_FLAG`), rewards[] (`GameEffect`, `global/quests/game_effect.gd`). |
+| `DialogueResource` (compiled `.dialogue`) | `entities/npc/dialogue/*.dialogue` | referenced by `NPCDefinition.dialogue`, not scanned | A **Dialogue Manager** script file: cues (`~ name`), lines (`Speaker: text [#gesture=…]`), choices (`- …`), branches (`=> cue`), gates (`if …`) and mutations (`do …`). One file per NPC. |
+| `GameEffect` | `global/quests/game_effect.gd` | embedded in quest `rewards[]` | A quest **consequence**: `apply()`s a flag / give-take item / reputation / money / start-complete quest. (Dialogue consequences & gates are written *inline* in `.dialogue` as `do …` / `if …`, not as resources.) |
 | `ShopInventory` | `global/shop/shop_inventory.gd` | assigned to a `Shopkeeper` | stock[], markups, `buy_categories`, optional `reputation_npc`. |
 
-The `DialogueEffect`/`DialogueCondition` pair is the key reuse: "choices that matter" and "quest
-rewards" are the same data type, so you author consequences in the Inspector without scripting.
+Quest rewards use `GameEffect` resources; dialogue consequences/gates are written inline in the
+`.dialogue` file (`do QuestSystem.start_quest(…)`, `if Reputation.is_at_least(…)`). Both drive the
+same autoloads (`GameState`, `Inventory`, `Reputation`, `QuestSystem`), so a "choice that matters"
+and a "quest reward" hit the same systems by two authoring routes. *(History: an earlier custom
+`DialogueResource`/`DialogueChoice`/`DialogueEffect` `.tres` system was replaced by the Dialogue
+Manager addon — see `docs/dialogue_conversations.md`, now superseded.)*
 
 ---
 
@@ -130,19 +159,76 @@ So **anything** becomes interactable just by implementing `get_interaction_promp
 ## 5. UI layer
 
 UIs are `CanvasLayer` autoloads, `process_mode = ALWAYS`, view-only (they read systems and rebuild
-on signals; they own no game state). Z-order is the `layer` property:
+on signals; they own no game state). Z-order is the `layer` property — roughly: HUD + the
+QuestTracker/QuestLog overlays sit low (5–6), blocking menus above (9–10), and the dialogue balloon
+on top of everything.
 
-| Layer | UI |
-|---|---|
-| 5 | HUD |
-| 6 | QuestLog (non-blocking overlay) |
-| 9 | ShopUI, BrewingUI (blocking menus) |
-| 10 | InventoryUI (blocking) |
-| 11 | DialogueManager (on top of everything) |
+### The design language: Town City "sticker" theme (the old "glass" UI is RETIRED)
+
+The frosted-glass look is **gone**. The whole UI now uses one flat **"sticker"** language: cream
+panels, a crisp **3px ink outline**, gently rounded corners, **no shadow / no blur / no shader**, and
+restrained colour — **HP red / SP green / MP purple**, with **gold** reserved for titles and
+affirmative buttons.
+
+- **Project theme.** `res://ui/town_city_theme.tres` is the **project default theme**
+  (`project.godot` → `gui/theme/custom`). It supersedes the old `ui/theme/ui_theme.tres`. Most surfaces
+  get their look just by being under the default theme — no per-node styling.
+- **Fonts** (in the theme): `ui/fonts/ChakraPetch-SemiBold.ttf` for display/headings/buttons, and
+  `ui/fonts/SpaceGrotesk-Bold.ttf` for body — the variable Space Grotesk TTF is pinned to weight 700
+  via a `FontVariation` (`font_body`) in the theme.
+- **Code helper.** `ui/ui_style.gd` (preloaded as `const Flat`) is the drop-in replacement for the
+  retired `ui/glass_style.gd`. It keeps the **same entry points/signatures** so a caller only repoints
+  its preload: `apply(panel[, corner, border])` makes a cream sticker box, `frost(rect)` turns a
+  full-screen `ColorRect` into a flat ink wash, `make_frost()` builds a fresh ink-wash backdrop. (The
+  old glass-rim `border` arg is now reused as content padding; the outline is always a fixed 3px ink
+  line.) `glass_style.gd` is **kept but unused** — the only thing that still touches the glass shader
+  is the `stages/dev/shader_showcase.gd` demo. No production UI references glass anymore.
+- **Type-variation kit.** The theme ships a set of named `theme_type_variation`s so code-built nodes
+  match the authored ones without hard-coded colours: `MenuWindow`, `Card` / `CardLocked`, `Chip`,
+  `QuestTab` / `QuestCard`, `HotbarOuter`, `IconWell`, `Keycap`, `BarOuter`, `MeterHP` / `MeterSP` /
+  `MeterMP`, `SlotButton`, `TabButton`, `ButtonPrimary` (gold) / `ButtonDanger` (red outline),
+  `Title` / `TitleGold` / `Subtitle` / `Display` / `DisplayGold` / `Dim` / `Gold`, and the state
+  chips `StateReady` (green) / `StateShortfall` (red).
+- **Reusable templates.** `ui/menu_window.tscn` (the standard outlined menu window frame) and
+  `ui/list_card.tscn` (a list row card) are the building blocks the menus instance.
+
+### The rebuilt menus
+
+All built to a high-fidelity design (source of truth: `docs/design/handoff_town_city_ui/*.dc.html`):
+
+- **HUD** (`ui/hud/hud.gd` + `hud.tscn`) — HP/SP/MP meters, money, day+time, hotbar strip, crosshair.
+- **Player Menu** (`ui/player_menu/player_menu.gd` + `player_menu.tscn`) — one window, **6 tabs**:
+  Inventory / Skills / Crafting / Quests / Reputation / Map. The Inventory tab uses category-**coloured**
+  item cards (`ui/player_menu/inventory_slot.gd`) with three colour schemes — **A "Vivid"**,
+  **B "Muted" (default)**, **C "Tint"**. The Quests tab has the **Track / Tracked** toggle (below).
+- **Shop** (`ui/shop/shop_ui.gd`) — Buy/Sell toggle + list + detail/cart + quantity stepper.
+- **Pause** (`ui/pause/pause_menu.gd`) — cursor list + Settings sliders + Controls.
+- **Main Menu** (`ui/main_menu/main_menu.gd`) — bright cartoon title screen.
+- **Dialogue balloon** (`ui/dialog/dialogue_balloon.gd`) — bottom box + portrait + numbered choice
+  rows; still drives Nathan Hoad's Dialogue Manager underneath.
+
+### Quest tracking (the `tracked_quest` flag flow)
+
+The HUD **QuestTracker** (`ui/hud/quest_tracker.gd`, autoload §2 #24) features the single most-important
+active quest top-left. The player picks which one from the Player Menu's **Quests** tab via a
+**Track / Tracked** toggle that writes the `GameState` flag **`&"tracked_quest"`**:
+
+- An **empty** value → the tracker **auto-picks** the top active quest by tier (Main → Side → Task,
+  first active within a tier).
+- A **quest id** → that quest is featured (as long as it's still active).
+- The sentinel **`&"__none__"`** (written when the player un-tracks the featured quest) → the bar is
+  **hidden**.
+
+`GameState.set_flag()` emits **`flag_changed(flag_name, value)`**; the tracker connects to it and
+**live-refreshes** the moment the flag changes (it ignores every flag except `tracked_quest`). It also
+redraws on `QuestSystem` quest signals and `Inventory.item_changed` (for live collect counts like
+"Gather lava ash (2/5)"). It is a pure view — it owns no state.
+
+### Blocking-menu / input conventions
 
 **Blocking menus** emit `opened`/`closed`; the player connects each to `_on_menu_opened/_closed`,
 which set `is_menu_open` (→ `_is_ui_blocking()`), stop movement, and free the mouse. To add a new
-blocking menu, follow that two-line pattern in `player.gd`.
+blocking menu, follow that two-line pattern in `player.gd` (and let `MenuManager` route one-open-at-a-time).
 
 **Input note (a real bug we hit):** dialogue advances on **`ui_accept` / left-click**, *not* the
 `interact` (E) key — because E *opens* dialogue, and reusing it to advance made the closing press
@@ -336,8 +422,9 @@ and add it to `_save_targets`.
   and an existing `output_id`.
 - **A quest:** a `Quest` `.tres` in `global/quests/resources/`; start it from a dialogue choice's
   `START_QUEST` effect.
-- **A branching dialogue:** chain `DialogueResource` `.tres`; gate choices with `DialogueCondition`,
-  attach consequences with `DialogueEffect`. (See `entities/npc/dialogue/marlo_*.tres`.)
+- **A branching dialogue:** write a `.dialogue` file (Nathan Hoad's Dialogue Manager) under
+  `entities/npc/dialogue/` and point an `NPCDefinition.dialogue` at it. Branch with `=> cue`, gate
+  with `if …`, attach consequences with `do …`. (See `entities/npc/dialogue/*.dialogue`.)
 - **An NPC / shopkeeper:** instance `npc.tscn` (or `shopkeeper.tscn`), set `npc_name`/`npc_id`, assign
   `dialogue` (or `shop`).
 - **A harvestable:** inherit `harvestable.tscn`, set required tool/durability/drop.
@@ -379,6 +466,6 @@ assets/           models (Kenney + custom), materials, shaders, textures
 docs/             this file + adding_content.md + KENNEY_ASSETS.md
 ```
 
-Still TODO at the systems level: real death/respawn, NPC schedules off the `Clock`, a save-slot menu,
-minigames, and the big one — placing all this content into the actual `stages/` scenes (the
-content/world-building pass).
+The original systems-level TODOs — death/respawn, `Clock`-driven NPC schedules, a save-slot menu,
+minigames — have all since shipped (see §2 / §6.x). The standing work is content: keeping the
+`stages/` scenes populated and tuned as systems grow.

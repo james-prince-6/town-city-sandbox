@@ -1,9 +1,14 @@
-[gd_scene load_steps=5 format=3 uid="uid://bcr1tt3rsc0n"]
+[gd_scene load_steps=7 format=3 uid="uid://bcr1tt3rsc0n"]
 
 [ext_resource type="Script" path="res://entities/critters/critter.gd" id="1_critter"]
 [ext_resource type="Script" path="res://components/health.gd" id="2_health"]
+[ext_resource type="Script" path="res://components/hurt_box.gd" id="3_hurtbox"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_critter"]
+radius = 0.4
+height = 1.2
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_hurt"]
 radius = 0.4
 height = 1.2
 
@@ -23,3 +28,10 @@ mesh = SubResource("CapsuleMesh_critter")
 [node name="Health" type="Node" parent="."]
 script = ExtResource("2_health")
 max_health = 30.0
+
+[node name="HurtBox" type="Area3D" parent="."]
+script = ExtResource("3_hurtbox")
+team = 1
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="HurtBox"]
+shape = SubResource("CapsuleShape3D_hurt")

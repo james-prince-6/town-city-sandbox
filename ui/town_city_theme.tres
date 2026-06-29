@@ -1,0 +1,581 @@
+; =============================================================
+;  Town City — JSR UI Theme  (locked palette: HUD + menu kit)
+;  Flat sticker style: cream panels, ink outlines, NO shadows.
+;  Color is reserved — health red, stamina green, mana purple,
+;  sun + quest/level titles gold. Everything else cream / ink.
+;
+;  FONTS:
+;    Chakra Petch SemiBold  -> display (clock, money, titles, hotbar)
+;    Space Grotesk Bold     -> readout / body   (variable TTF; pinned
+;                              to weight 700 via the font_body variation)
+;
+;  Built from the design package, with three local fixes:
+;   - font_body FontVariation pins Space Grotesk to wght 700 (the raw
+;     variable TTF imports at a light default and looked thin).
+;   - the gold quest-tab stylebox is sb_qtab (the design reused the id
+;     "sb_tab" for two different boxes — a collision).
+;   - hotbar ink frame thickened + selected cell gets a gold outline
+;     (per playtest feedback).
+; =============================================================
+[gd_resource type="Theme" load_steps=34 format=3]
+
+[ext_resource type="FontFile" path="res://ui/fonts/ChakraPetch-SemiBold.ttf" id="1_chakra"]
+[ext_resource type="FontFile" path="res://ui/fonts/SpaceGrotesk-Bold.ttf" id="2_space"]
+
+; Space Grotesk ships as a VARIABLE font; pin it to weight 700 (Bold) so body text
+; reads with the intended heft. 2003265652 is the 'wght' OpenType tag as a 32-bit int.
+[sub_resource type="FontVariation" id="font_body"]
+base_font = ExtResource("2_space")
+variation_opentype = {
+2003265652: 700.0
+}
+
+; ---- cream panel, 3px ink border, radius 5, no shadow ----
+[sub_resource type="StyleBoxFlat" id="sb_panel"]
+bg_color = Color(0.906, 0.882, 0.831, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.055, 0.051, 0.071, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+content_margin_left = 12.0
+content_margin_top = 6.0
+content_margin_right = 12.0
+content_margin_bottom = 6.0
+
+; ---- chip / toast (radius 4) ----
+[sub_resource type="StyleBoxFlat" id="sb_chip"]
+bg_color = Color(0.906, 0.882, 0.831, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.055, 0.051, 0.071, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+content_margin_left = 9.0
+content_margin_top = 3.0
+content_margin_right = 9.0
+content_margin_bottom = 3.0
+
+; ---- quest tab (GOLD, top corners only, no bottom border) ----
+[sub_resource type="StyleBoxFlat" id="sb_qtab"]
+bg_color = Color(0.784, 0.580, 0.118, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 0
+border_color = Color(0.055, 0.051, 0.071, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+content_margin_left = 11.0
+content_margin_top = 3.0
+content_margin_right = 11.0
+content_margin_bottom = 3.0
+
+; ---- quest card (cream, top-left square to meet tab) ----
+[sub_resource type="StyleBoxFlat" id="sb_card"]
+bg_color = Color(0.906, 0.882, 0.831, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.055, 0.051, 0.071, 1)
+corner_radius_top_left = 0
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 13.0
+content_margin_top = 11.0
+content_margin_right = 13.0
+content_margin_bottom = 11.0
+
+; ---- hotbar outer (ink; the gaps between cells show this) ----
+[sub_resource type="StyleBoxFlat" id="sb_hotbar"]
+bg_color = Color(0.055, 0.051, 0.071, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 5.0
+content_margin_top = 5.0
+content_margin_right = 5.0
+content_margin_bottom = 5.0
+
+; ---- hotbar cell idle ----
+[sub_resource type="StyleBoxFlat" id="sb_cell"]
+bg_color = Color(0.906, 0.882, 0.831, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+; ---- hotbar cell selected / focused (brighter + gold outline) ----
+[sub_resource type="StyleBoxFlat" id="sb_cell_sel"]
+bg_color = Color(0.984, 0.973, 0.941, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.784, 0.580, 0.118, 1)
+corner_radius_top_left = 2
+corner_radius_top_right = 2
+corner_radius_bottom_right = 2
+corner_radius_bottom_left = 2
+
+; ---- keycap (dark) ----
+[sub_resource type="StyleBoxFlat" id="sb_keycap"]
+bg_color = Color(0.133, 0.122, 0.102, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+content_margin_left = 6.0
+content_margin_right = 6.0
+content_margin_top = 2.0
+content_margin_bottom = 2.0
+
+; ---- stat bar: icon compartment (ink) ----
+[sub_resource type="StyleBoxFlat" id="sb_iconwell"]
+bg_color = Color(0.055, 0.051, 0.071, 1)
+
+; ---- stat bar outer (cream, 3px ink border, radius 5, NO content margin) ----
+[sub_resource type="StyleBoxFlat" id="sb_bar"]
+bg_color = Color(0.906, 0.882, 0.831, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.055, 0.051, 0.071, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+
+; ---- stat bar track (translucent cream) ----
+[sub_resource type="StyleBoxFlat" id="sb_track"]
+bg_color = Color(0.906, 0.882, 0.831, 0.45)
+
+; ---- stat bar fills ----
+[sub_resource type="StyleBoxFlat" id="sb_fill_hp"]
+bg_color = Color(0.937, 0.325, 0.251, 1)
+
+[sub_resource type="StyleBoxFlat" id="sb_fill_sp"]
+bg_color = Color(0.357, 0.639, 0.416, 1)
+
+[sub_resource type="StyleBoxFlat" id="sb_fill_mp"]
+bg_color = Color(0.545, 0.435, 0.769, 1)
+
+; ============ MENU KIT ============
+[sub_resource type="StyleBoxFlat" id="sb_window"]
+bg_color = Color(0.906, 0.882, 0.831, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.055, 0.051, 0.071, 1)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+content_margin_left = 18.0
+content_margin_top = 18.0
+content_margin_right = 18.0
+content_margin_bottom = 18.0
+
+[sub_resource type="StyleBoxFlat" id="sb_listcard"]
+bg_color = Color(0.906, 0.882, 0.831, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.055, 0.051, 0.071, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+content_margin_left = 10.0
+content_margin_top = 9.0
+content_margin_right = 10.0
+content_margin_bottom = 9.0
+
+[sub_resource type="StyleBoxFlat" id="sb_cardlocked"]
+bg_color = Color(0.906, 0.882, 0.831, 0.5)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.416, 0.396, 0.361, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+content_margin_left = 10.0
+content_margin_top = 9.0
+content_margin_right = 10.0
+content_margin_bottom = 9.0
+
+[sub_resource type="StyleBoxFlat" id="sb_btn"]
+bg_color = Color(0.906, 0.882, 0.831, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.055, 0.051, 0.071, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+content_margin_left = 14.0
+content_margin_top = 7.0
+content_margin_right = 14.0
+content_margin_bottom = 7.0
+
+[sub_resource type="StyleBoxFlat" id="sb_btn_hover"]
+bg_color = Color(0.984, 0.973, 0.941, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.055, 0.051, 0.071, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+content_margin_left = 14.0
+content_margin_top = 7.0
+content_margin_right = 14.0
+content_margin_bottom = 7.0
+
+[sub_resource type="StyleBoxFlat" id="sb_btn_focus"]
+bg_color = Color(0.984, 0.973, 0.941, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.784, 0.580, 0.118, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+content_margin_left = 14.0
+content_margin_top = 7.0
+content_margin_right = 14.0
+content_margin_bottom = 7.0
+
+[sub_resource type="StyleBoxFlat" id="sb_btn_primary"]
+bg_color = Color(0.784, 0.580, 0.118, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.055, 0.051, 0.071, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="sb_btn_primary_hover"]
+bg_color = Color(0.871, 0.659, 0.196, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.055, 0.051, 0.071, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="sb_btn_danger"]
+bg_color = Color(0.906, 0.882, 0.831, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.937, 0.325, 0.251, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+content_margin_left = 16.0
+content_margin_top = 8.0
+content_margin_right = 16.0
+content_margin_bottom = 8.0
+
+; ---- menu tab (cream, idle) ----
+[sub_resource type="StyleBoxFlat" id="sb_tab"]
+bg_color = Color(0.906, 0.882, 0.831, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.055, 0.051, 0.071, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+content_margin_left = 6.0
+content_margin_top = 8.0
+content_margin_right = 6.0
+content_margin_bottom = 8.0
+
+; ---- menu tab (cream-bright, selected) ----
+[sub_resource type="StyleBoxFlat" id="sb_tab_sel"]
+bg_color = Color(0.984, 0.973, 0.941, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.784, 0.580, 0.118, 1)
+corner_radius_top_left = 5
+corner_radius_top_right = 5
+corner_radius_bottom_right = 5
+corner_radius_bottom_left = 5
+content_margin_left = 6.0
+content_margin_top = 8.0
+content_margin_right = 6.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="sb_lineedit"]
+bg_color = Color(0.984, 0.973, 0.941, 1)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.055, 0.051, 0.071, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+content_margin_left = 8.0
+content_margin_top = 6.0
+content_margin_right = 8.0
+content_margin_bottom = 6.0
+
+[sub_resource type="StyleBoxFlat" id="sb_slider_groove"]
+bg_color = Color(0.792, 0.749, 0.675, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="sb_slider_fill"]
+bg_color = Color(0.784, 0.580, 0.118, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="sb_scroll"]
+bg_color = Color(0.055, 0.051, 0.071, 0.18)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="sb_grabber"]
+bg_color = Color(0.055, 0.051, 0.071, 0.6)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="sb_grabber_hl"]
+bg_color = Color(0.055, 0.051, 0.071, 0.85)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[resource]
+default_font = SubResource("font_body")
+default_font_size = 15
+
+; base Label = Space Grotesk, ink text
+Label/fonts/font = SubResource("font_body")
+Label/font_sizes/font_size = 15
+Label/colors/font_color = Color(0.133, 0.122, 0.102, 1)
+
+PanelContainer/styles/panel = SubResource("sb_panel")
+Panel/styles/panel = SubResource("sb_panel")
+
+; ProgressBar base (background = track, fill set per-variation below)
+ProgressBar/styles/background = SubResource("sb_track")
+ProgressBar/styles/fill = SubResource("sb_fill_hp")
+
+; scrollbars (cream sticker)
+HScrollBar/styles/scroll = SubResource("sb_scroll")
+HScrollBar/styles/grabber = SubResource("sb_grabber")
+HScrollBar/styles/grabber_highlight = SubResource("sb_grabber_hl")
+HScrollBar/styles/grabber_pressed = SubResource("sb_grabber_hl")
+VScrollBar/styles/scroll = SubResource("sb_scroll")
+VScrollBar/styles/grabber = SubResource("sb_grabber")
+VScrollBar/styles/grabber_highlight = SubResource("sb_grabber_hl")
+VScrollBar/styles/grabber_pressed = SubResource("sb_grabber_hl")
+
+; ---------------- TYPE VARIATIONS ----------------
+Display/base_type = "Label"
+Display/fonts/font = ExtResource("1_chakra")
+Display/colors/font_color = Color(0.133, 0.122, 0.102, 1)
+
+DisplayGold/base_type = "Label"
+DisplayGold/fonts/font = ExtResource("1_chakra")
+DisplayGold/colors/font_color = Color(0.784, 0.580, 0.118, 1)
+
+Dim/base_type = "Label"
+Dim/fonts/font = SubResource("font_body")
+Dim/colors/font_color = Color(0.416, 0.396, 0.361, 1)
+
+Gold/base_type = "Label"
+Gold/fonts/font = SubResource("font_body")
+Gold/colors/font_color = Color(0.784, 0.580, 0.118, 1)
+
+Chip/base_type = "PanelContainer"
+Chip/styles/panel = SubResource("sb_chip")
+
+QuestTab/base_type = "PanelContainer"
+QuestTab/styles/panel = SubResource("sb_qtab")
+
+QuestCard/base_type = "PanelContainer"
+QuestCard/styles/panel = SubResource("sb_card")
+
+HotbarOuter/base_type = "PanelContainer"
+HotbarOuter/styles/panel = SubResource("sb_hotbar")
+
+IconWell/base_type = "PanelContainer"
+IconWell/styles/panel = SubResource("sb_iconwell")
+
+Keycap/base_type = "PanelContainer"
+Keycap/styles/panel = SubResource("sb_keycap")
+
+; hotbar cell button: idle cream / selected (pressed,hover,focus) bright + gold outline
+SlotButton/base_type = "Button"
+SlotButton/styles/normal = SubResource("sb_cell")
+SlotButton/styles/hover = SubResource("sb_cell_sel")
+SlotButton/styles/pressed = SubResource("sb_cell_sel")
+SlotButton/styles/focus = SubResource("sb_cell_sel")
+SlotButton/styles/disabled = SubResource("sb_cell")
+SlotButton/fonts/font = ExtResource("1_chakra")
+SlotButton/font_sizes/font_size = 16
+SlotButton/colors/font_color = Color(0.416, 0.396, 0.361, 1)
+SlotButton/colors/font_hover_color = Color(0.133, 0.122, 0.102, 1)
+SlotButton/colors/font_pressed_color = Color(0.133, 0.122, 0.102, 1)
+SlotButton/colors/font_focus_color = Color(0.133, 0.122, 0.102, 1)
+
+MeterHP/base_type = "ProgressBar"
+MeterHP/styles/background = SubResource("sb_track")
+MeterHP/styles/fill = SubResource("sb_fill_hp")
+
+MeterSP/base_type = "ProgressBar"
+MeterSP/styles/background = SubResource("sb_track")
+MeterSP/styles/fill = SubResource("sb_fill_sp")
+
+MeterMP/base_type = "ProgressBar"
+MeterMP/styles/background = SubResource("sb_track")
+MeterMP/styles/fill = SubResource("sb_fill_mp")
+
+BarOuter/base_type = "PanelContainer"
+BarOuter/styles/panel = SubResource("sb_bar")
+
+; ---------------- MENU KIT VARIATIONS ----------------
+; base Button (sticker) — plain buttons inherit this
+Button/styles/normal = SubResource("sb_btn")
+Button/styles/hover = SubResource("sb_btn_hover")
+Button/styles/pressed = SubResource("sb_btn_hover")
+Button/styles/focus = SubResource("sb_btn_focus")
+Button/styles/disabled = SubResource("sb_btn")
+Button/fonts/font = ExtResource("1_chakra")
+Button/font_sizes/font_size = 14
+Button/colors/font_color = Color(0.133, 0.122, 0.102, 1)
+Button/colors/font_hover_color = Color(0.133, 0.122, 0.102, 1)
+Button/colors/font_pressed_color = Color(0.133, 0.122, 0.102, 1)
+Button/colors/font_focus_color = Color(0.133, 0.122, 0.102, 1)
+Button/colors/font_disabled_color = Color(0.416, 0.396, 0.361, 1)
+
+ButtonPrimary/base_type = "Button"
+ButtonPrimary/styles/normal = SubResource("sb_btn_primary")
+ButtonPrimary/styles/hover = SubResource("sb_btn_primary_hover")
+ButtonPrimary/styles/pressed = SubResource("sb_btn_primary_hover")
+ButtonPrimary/styles/focus = SubResource("sb_btn_primary_hover")
+ButtonPrimary/fonts/font = ExtResource("1_chakra")
+ButtonPrimary/colors/font_color = Color(0.102, 0.078, 0.027, 1)
+ButtonPrimary/colors/font_hover_color = Color(0.102, 0.078, 0.027, 1)
+ButtonPrimary/colors/font_pressed_color = Color(0.102, 0.078, 0.027, 1)
+ButtonPrimary/colors/font_focus_color = Color(0.102, 0.078, 0.027, 1)
+
+ButtonDanger/base_type = "Button"
+ButtonDanger/styles/normal = SubResource("sb_btn_danger")
+ButtonDanger/styles/hover = SubResource("sb_btn_hover")
+ButtonDanger/styles/pressed = SubResource("sb_btn_hover")
+ButtonDanger/styles/focus = SubResource("sb_btn_danger")
+ButtonDanger/fonts/font = ExtResource("1_chakra")
+ButtonDanger/colors/font_color = Color(0.937, 0.325, 0.251, 1)
+ButtonDanger/colors/font_hover_color = Color(0.133, 0.122, 0.102, 1)
+
+TabButton/base_type = "Button"
+TabButton/styles/normal = SubResource("sb_tab")
+TabButton/styles/hover = SubResource("sb_tab_sel")
+TabButton/styles/pressed = SubResource("sb_tab_sel")
+TabButton/styles/focus = SubResource("sb_tab_sel")
+TabButton/fonts/font = ExtResource("1_chakra")
+TabButton/colors/font_color = Color(0.416, 0.396, 0.361, 1)
+TabButton/colors/font_hover_color = Color(0.133, 0.122, 0.102, 1)
+TabButton/colors/font_pressed_color = Color(0.133, 0.122, 0.102, 1)
+TabButton/colors/font_focus_color = Color(0.133, 0.122, 0.102, 1)
+
+MenuWindow/base_type = "PanelContainer"
+MenuWindow/styles/panel = SubResource("sb_window")
+
+Card/base_type = "PanelContainer"
+Card/styles/panel = SubResource("sb_listcard")
+
+CardLocked/base_type = "PanelContainer"
+CardLocked/styles/panel = SubResource("sb_cardlocked")
+
+Title/base_type = "Label"
+Title/fonts/font = ExtResource("1_chakra")
+Title/font_sizes/font_size = 26
+Title/colors/font_color = Color(0.133, 0.122, 0.102, 1)
+
+TitleGold/base_type = "Label"
+TitleGold/fonts/font = ExtResource("1_chakra")
+TitleGold/font_sizes/font_size = 26
+TitleGold/colors/font_color = Color(0.784, 0.580, 0.118, 1)
+
+Subtitle/base_type = "Label"
+Subtitle/fonts/font = ExtResource("1_chakra")
+Subtitle/font_sizes/font_size = 16
+Subtitle/colors/font_color = Color(0.133, 0.122, 0.102, 1)
+
+StateReady/base_type = "Label"
+StateReady/fonts/font = ExtResource("1_chakra")
+StateReady/colors/font_color = Color(0.357, 0.639, 0.416, 1)
+
+StateShortfall/base_type = "Label"
+StateShortfall/fonts/font = ExtResource("1_chakra")
+StateShortfall/colors/font_color = Color(0.937, 0.325, 0.251, 1)
+
+LineEdit/styles/normal = SubResource("sb_lineedit")
+LineEdit/styles/focus = SubResource("sb_lineedit")
+LineEdit/fonts/font = SubResource("font_body")
+LineEdit/colors/font_color = Color(0.133, 0.122, 0.102, 1)
+LineEdit/colors/caret_color = Color(0.133, 0.122, 0.102, 1)
+
+HSlider/styles/slider = SubResource("sb_slider_groove")
+HSlider/styles/grabber_area = SubResource("sb_slider_fill")
+HSlider/styles/grabber_area_highlight = SubResource("sb_slider_fill")

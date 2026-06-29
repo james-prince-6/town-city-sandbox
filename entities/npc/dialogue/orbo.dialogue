@@ -1,0 +1,37 @@
+# Orbo Orland — Mayor of Town City and the spine of the "Help the Town" arc. GREYBOX (M-B):
+# a first-meeting greeting that frames the town's slump and sets the met_orbo flag the
+# getting_started quest watches, then a small hub. The full Beat-1 questline dialogue (the
+# errand hub, the finale gate, the hand-off to Sally) is authored in M-F.
+
+~ start
+if not GameState.get_flag("met_orbo")
+	do GameState.set_flag("met_orbo")
+	do QuestSystem.mark_flag("met_orbo")
+	do QuestSystem.start_quest("help_the_town")
+	=> greeting
+else
+	=> hub
+
+~ greeting
+Mayor Orbo: [#gesture=wave] Welcome, welcome! New blood in Town City — and not a moment too soon.
+Mayor Orbo: [#gesture=talk] Times are hard, friend. The mine's gone quiet, and the whole town feels it.
+Mayor Orbo: [#gesture=talk] Get yourself set up at George's store, then come find me. I could use a pair of willing hands.
+=> hub
+
+~ hub
+% Mayor Orbo: [#gesture=talk] What can I do for you?
+% Mayor Orbo: [#gesture=idle] Plenty to be done around here. Where were we?
+- Tell me about the town's troubles.
+	=> troubles
+- I'll be on my way.
+	=> bye
+
+~ troubles
+Mayor Orbo: [#gesture=look] The mine is the heart of Town City, and something has driven the miners out of it.
+Mayor Orbo: [#gesture=talk] Lend a hand around town while I see what can be done. We'll set this right together.
+=> hub
+
+~ bye
+% Mayor Orbo: [#gesture=wave] Take care now.
+% Mayor Orbo: [#gesture=wave] The town thanks you.
+=> END

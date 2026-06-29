@@ -1,109 +1,99 @@
 # hud.gd
 # Autoload singleton (registered as "HUD", pointing at hud.tscn).
 #
-# The always-on heads-up display. Like InventoryUI it owns NO game state of its
-# own — it is a pure VIEW. It listens to the gameplay autoloads (PlayerStats,
-# GameState, Clock, Hotbar, Inventory) and redraws whatever they tell it. If you
-# want to change a value, change it on those systems; the HUD will follow.
+# The always-on heads-up display in the Town City sticker style. Like InventoryUI it
+# owns NO game state of its own — it is a pure VIEW. It listens to the gameplay
+# autoloads (PlayerStats, GameState, Clock, Hotbar, Inventory) and redraws whatever
+# they tell it. To change a value, change it on those systems; the HUD follows.
 #
-# It sits on CanvasLayer layer 5, deliberately BELOW the bag (InventoryUI, layer
-# 10) and dialogue, so a full-screen menu draws over it. process_mode = ALWAYS so
-# the bars/clock stay readable even while the game is paused by a menu.
+# Layout (see hud.tscn):
+#   - top-left info strip: clock + day + money
+#   - three stat bars (HP red / SP green / MP purple), each with an ink icon well
+#   - one unified hotbar pinned bottom-centre; the selected cell brightens
+#   - a centre crosshair, plus damage-flash + low-stat vignette overlays
 #
-# Layout: health/stamina/money pinned to the top-left, the day + time clock to the
-# top-right, and a centred strip of hotbar slots along the bottom.
+# It sits on CanvasLayer layer 5, deliberately BELOW the bag (PlayerMenu) and dialogue,
+# so a full-screen menu draws over it. process_mode = ALWAYS so the bars/clock stay
+# readable even while the game is paused by a menu.
 
 extends CanvasLayer
 
-const Glass = preload("res://ui/glass_style.gd")
+# --- Scene node references (unique names in hud.tscn) ----------------------
+@onready var health_bar: ProgressBar = %HealthBar
+@onready var stamina_bar: ProgressBar = %StaminaBar
+@onready var mana_bar: ProgressBar = %ManaBar
+@onready var money_label: Label = %Money
+@onready var clock_label: Label = %Clock
+@onready var day_label: Label = %Day
+# The whole unified hotbar bar (toggled for the suppression feature); cells live in the strip.
+@onready var hotbar_panel: PanelContainer = %Hotbar
+@onready var hotbar_strip: HBoxContainer = %HotbarStrip
 
-# --- Scene node references -------------------------------------------------
-# These come from hud.tscn. The hotbar slot widgets themselves are NOT in the
-# scene — we build them in code (one per Hotbar.SLOT_COUNT) and parent them to
-# this container, so the slot count can change without editing the scene.
-@onready var health_bar: ProgressBar = $TopLeft/HealthBar
-@onready var stamina_bar: ProgressBar = $TopLeft/StaminaBar
-@onready var mana_bar: ProgressBar = $TopLeft/ManaBar
-@onready var money_label: Label = $TopLeft/MoneyLabel
-@onready var clock_label: Label = $TopRight/ClockLabel
-@onready var hotbar_strip: HBoxContainer = $BottomCenter/HotbarStrip
-
-# Combat feedback overlays (added to hud.tscn). The crosshair is static; the flash
-# and vignette are driven by health_changed below.
+# Combat feedback overlays. The crosshair dot is flashed on a confirmed hit; the flash
+# and vignettes are driven by the stat signals below.
 @onready var damage_flash: ColorRect = $DamageFlash
 @onready var low_health_vignette: ColorRect = $LowHealthVignette
-# Warm (yellow/orange) edge vignette driven by LOW STAMINA, kept distinct from the
-# red low-health one. Looked up by node path so the HUD is safe if the scene lacks it.
 @onready var stamina_warning_vignette: ColorRect = get_node_or_null("StaminaWarningVignette")
-# The crosshair centre dot, flashed white + scaled on a confirmed hit.
 @onready var crosshair_dot: ColorRect = get_node_or_null("Crosshair/Dot")
 
-# Built once in _ready: one PanelContainer per hotbar slot. Index lines up with
-# Hotbar.slots, so _refresh_slot(i) knows exactly which widget to redraw. Each slot is its own
-# frosted-glass box (see _make_empty_slot).
-var _slot_widgets: Array[PanelContainer] = []
+# Built once in _ready: one cell Button per hotbar slot. Index lines up with Hotbar.slots,
+# so _refresh_slot(i) knows exactly which widget to redraw.
+var _slot_widgets: Array[Button] = []
+
+# Size of a single hotbar cell (matches the locked design).
+const CELL_SIZE: Vector2 = Vector2(56, 52)
+# Pixel size of the item thumbnail inside a cell.
+const CELL_ICON: float = 38.0
 
 # --- Combat-feedback tuning ------------------------------------------------
-
-## Below this fraction of max health the low-health vignette starts to show; it
-## ramps from invisible at the threshold to full at 0 health.
 const LOW_HEALTH_FRACTION: float = 0.25
-## How red the vignette gets at zero health (shader `intensity`, 0..1).
 const VIGNETTE_MAX_INTENSITY: float = 0.9
-## Peak alpha of the red damage flash when a hit lands.
 const DAMAGE_FLASH_ALPHA: float = 0.45
-## Base colour of the "player took damage" flash (alpha applied separately).
 const DAMAGE_FLASH_COLOR: Color = Color(0.8, 0.0, 0.0)
-
-## Below this fraction of max stamina the warning vignette starts to show; it ramps
-## from invisible at the threshold to full at empty. Mirrors LOW_HEALTH_FRACTION.
 const LOW_STAMINA_FRACTION: float = 0.25
-## How strong the stamina vignette gets at zero stamina (kept gentler than health).
 const STAMINA_VIGNETTE_MAX_INTENSITY: float = 0.6
 
-# Last health value we saw, so we can tell a hit (drop) apart from healing/respawn.
-# -1 means "no reading yet" — the first health_changed just records the baseline.
+# Last health value we saw, so we can tell a hit (drop) from healing/respawn.
 var _last_health: float = -1.0
-# Active flash tween, kept so a fresh hit can cancel the previous fade. Shared by
-# the red damage flash, the white crit flash and the gold kill flash (one at a time).
 var _flash_tween: Tween = null
-# Active crosshair hit-marker tween, kept so rapid hits restart the pop cleanly.
 var _crosshair_tween: Tween = null
 
 # --- Block feedback --------------------------------------------------------
-# While the player blocks, the stamina bar tints (and pulses) so it's clear the drain
-# is from guarding — blue normally, red when nearly out (about to guard-break).
 const BLOCK_BAR_COLOR: Color = Color(0.45, 0.75, 1.0)
 const BLOCK_BAR_LOW_COLOR: Color = Color(1.0, 0.4, 0.3)
-## Below this stamina fraction the blocking tint turns to the red "about to break" warning.
 const BLOCK_LOW_FRACTION: float = 0.25
-# Cached player so we don't search the tree every frame.
 var _player_ref: Node = null
 
+# --- Hotbar visibility (jobs / minigames can hide the bottom bar) ----------
+# shown = (NOT suppressed) OR the menu is open.
+var _hotbar_suppressed: bool = false
+var _menu_open: bool = false
+
+
 func _ready() -> void:
-	# Draw above the world but below the bag/dialogue, and keep ticking while a
-	# menu pauses the rest of the tree.
+	# Draw above the world but below the bag/dialogue, and keep ticking while a menu pauses.
 	layer = 5
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 	_build_hotbar_slots()
 	_connect_signals()
 	_pull_initial_values()
+	# PlayerMenu loads AFTER the HUD, so wire its open/close on the next idle frame.
+	_connect_player_menu.call_deferred()
+	_update_hotbar_visibility()
+
 
 # --- Setup -----------------------------------------------------------------
 
-# Creates the fixed set of empty hotbar slot widgets once. Their contents are
-# filled in later by _refresh_slot().
 func _build_hotbar_slots() -> void:
-	# A little gap between slots so each glass box reads as its own separate piece.
-	hotbar_strip.add_theme_constant_override("separation", 8)
+	for c in hotbar_strip.get_children():
+		c.queue_free()
+	_slot_widgets.clear()
 	for i in Hotbar.SLOT_COUNT:
-		var slot := _make_empty_slot(i)
-		hotbar_strip.add_child(slot)
-		_slot_widgets.append(slot)
+		var cell := _make_cell(i)
+		hotbar_strip.add_child(cell)
+		_slot_widgets.append(cell)
 
-# Subscribe to every system the HUD mirrors. We never poll in _process; each
-# system pushes us a signal when its value changes.
 func _connect_signals() -> void:
 	PlayerStats.health_changed.connect(_on_health_changed)
 	PlayerStats.stamina_changed.connect(_on_stamina_changed)
@@ -115,9 +105,6 @@ func _connect_signals() -> void:
 	Hotbar.selection_changed.connect(_on_selection_changed)
 	Inventory.item_changed.connect(_on_item_changed)
 
-# These autoloads almost certainly emitted their "changed" signals during their
-# own _ready, BEFORE this HUD existed to hear them. So we read the current value
-# of each one directly to start fully in sync.
 func _pull_initial_values() -> void:
 	_on_health_changed(PlayerStats.health, PlayerStats.max_health)
 	_on_stamina_changed(PlayerStats.stamina, PlayerStats.max_stamina)
@@ -127,98 +114,13 @@ func _pull_initial_values() -> void:
 	_refresh_all_slots()
 	_refresh_selection()
 
+
 # --- Stat bars -------------------------------------------------------------
 
 func _on_health_changed(current: float, maximum: float) -> void:
 	health_bar.max_value = maximum
 	health_bar.value = current
 	_update_combat_feedback(current, maximum)
-
-# --- Combat feedback (crosshair / damage flash / low-health vignette) -------
-
-# Reacts to every health change: pulses a red flash on a DROP (a hit), and keeps
-# the edge vignette's strength in sync with how low health currently is.
-func _update_combat_feedback(current: float, maximum: float) -> void:
-	# A drop versus our last reading means the player took damage — flash. The very
-	# first call (baseline) and any heal/respawn (rise) must NOT flash.
-	if _last_health >= 0.0 and current < _last_health:
-		_play_damage_flash()
-	_last_health = current
-
-	_update_low_health_vignette(current, maximum)
-
-# Fades a full-screen red overlay in fast, then back out, so a hit reads as a
-# brief pulse. A new hit restarts the pulse from the top.
-func _play_damage_flash() -> void:
-	if _flash_tween and _flash_tween.is_valid():
-		_flash_tween.kill()
-	# Set the FULL colour (not just alpha) so a previous crit/kill flash that left the
-	# rect tinted white/gold can't bleed into this red one.
-	damage_flash.color = Color(DAMAGE_FLASH_COLOR.r, DAMAGE_FLASH_COLOR.g, DAMAGE_FLASH_COLOR.b, DAMAGE_FLASH_ALPHA)
-	# Tween must keep running while the tree is paused (e.g. dying mid-pause), and
-	# use real time so the pulse length is independent of Engine.time_scale.
-	_flash_tween = create_tween()
-	_flash_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	_flash_tween.tween_property(damage_flash, "color:a", 0.0, 0.35)
-
-# --- Outgoing-hit feedback (crosshair / crit / kill flashes) ----------------
-# These are driven by CombatFeel when the PLAYER lands a blow (the inverse of the
-# damage flash above, which fires when the player is hurt). All are guarded no-ops
-# if their target node is missing, so CombatFeel can call them blind.
-
-## Pops the crosshair dot to white and 1.3x scale, then settles back over 0.15s, as
-## a confirmed hit-marker. No-op if the dot node is absent.
-func _flash_crosshair() -> void:
-	if not is_instance_valid(crosshair_dot):
-		return
-	if _crosshair_tween and _crosshair_tween.is_valid():
-		_crosshair_tween.kill()
-	# Grow from the centre so the pop is symmetric.
-	crosshair_dot.pivot_offset = crosshair_dot.size * 0.5
-	crosshair_dot.color = Color(1, 1, 1, 1)
-	crosshair_dot.scale = Vector2(1.3, 1.3)
-	_crosshair_tween = create_tween()
-	_crosshair_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	_crosshair_tween.set_parallel(true)
-	_crosshair_tween.tween_property(crosshair_dot, "scale", Vector2(1, 1), 0.15)
-	_crosshair_tween.tween_property(crosshair_dot, "color", Color(1, 1, 1, 0.85), 0.15)
-
-## A short, weighty WHITE full-screen flash for a critical hit. Reuses the damage
-## flash rect/tween (so it can't stack with a red flash) tinted white.
-func show_crit_flash() -> void:
-	if _flash_tween and _flash_tween.is_valid():
-		_flash_tween.kill()
-	damage_flash.color = Color(1, 1, 1, 0.25)
-	_flash_tween = create_tween()
-	_flash_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	_flash_tween.tween_property(damage_flash, "color:a", 0.0, 0.1)
-
-## A golden flash on a kill: fast in, slow out over ~0.3s for a satisfying confirm.
-## Reuses the damage flash rect/tween tinted gold.
-func show_kill_flash() -> void:
-	if _flash_tween and _flash_tween.is_valid():
-		_flash_tween.kill()
-	damage_flash.color = Color(1.0, 0.85, 0.1, 0.0)
-	_flash_tween = create_tween()
-	_flash_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
-	# Fast in...
-	_flash_tween.tween_property(damage_flash, "color:a", 0.3, 0.05)
-	# ...then a slower fade out.
-	_flash_tween.tween_property(damage_flash, "color:a", 0.0, 0.25)
-
-# Drives the vignette shader: clear until health drops below LOW_HEALTH_FRACTION
-# of max, then ramps up to VIGNETTE_MAX_INTENSITY as health approaches zero.
-func _update_low_health_vignette(current: float, maximum: float) -> void:
-	var mat := low_health_vignette.material as ShaderMaterial
-	if mat == null:
-		return
-	var fraction: float = current / maximum if maximum > 0.0 else 0.0
-	var intensity: float = 0.0
-	if fraction < LOW_HEALTH_FRACTION:
-		# 0 at the threshold, 1 at empty.
-		var t: float = 1.0 - (fraction / LOW_HEALTH_FRACTION)
-		intensity = clampf(t, 0.0, 1.0) * VIGNETTE_MAX_INTENSITY
-	mat.set_shader_parameter("intensity", intensity)
 
 func _on_stamina_changed(current: float, maximum: float) -> void:
 	stamina_bar.max_value = maximum
@@ -228,8 +130,70 @@ func _on_mana_changed(current: float, maximum: float) -> void:
 	mana_bar.max_value = maximum
 	mana_bar.value = current
 
-# Per-frame: tint/pulse the stamina bar while the player is blocking so it reads as a
-# guard drain. Returns to plain white the moment blocking stops.
+
+# --- Combat feedback (crosshair / damage flash / low-stat vignettes) -------
+
+func _update_combat_feedback(current: float, maximum: float) -> void:
+	if _last_health >= 0.0 and current < _last_health:
+		_play_damage_flash()
+	_last_health = current
+	_update_low_health_vignette(current, maximum)
+
+func _play_damage_flash() -> void:
+	if _flash_tween and _flash_tween.is_valid():
+		_flash_tween.kill()
+	damage_flash.color = Color(DAMAGE_FLASH_COLOR.r, DAMAGE_FLASH_COLOR.g, DAMAGE_FLASH_COLOR.b, DAMAGE_FLASH_ALPHA)
+	_flash_tween = create_tween()
+	_flash_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_flash_tween.tween_property(damage_flash, "color:a", 0.0, 0.35)
+
+## Pops the crosshair dot to white + 1.3x scale, then settles back, as a hit-marker.
+func _flash_crosshair() -> void:
+	if not is_instance_valid(crosshair_dot):
+		return
+	if _crosshair_tween and _crosshair_tween.is_valid():
+		_crosshair_tween.kill()
+	crosshair_dot.pivot_offset = crosshair_dot.size * 0.5
+	crosshair_dot.color = Color(1, 1, 1, 1)
+	crosshair_dot.scale = Vector2(1.3, 1.3)
+	_crosshair_tween = create_tween()
+	_crosshair_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_crosshair_tween.set_parallel(true)
+	_crosshair_tween.tween_property(crosshair_dot, "scale", Vector2(1, 1), 0.15)
+	_crosshair_tween.tween_property(crosshair_dot, "color", Color(0.957, 0.945, 0.91, 0.9), 0.15)
+
+## A short WHITE full-screen flash for a critical hit (reuses the damage flash rect/tween).
+func show_crit_flash() -> void:
+	if _flash_tween and _flash_tween.is_valid():
+		_flash_tween.kill()
+	damage_flash.color = Color(1, 1, 1, 0.25)
+	_flash_tween = create_tween()
+	_flash_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_flash_tween.tween_property(damage_flash, "color:a", 0.0, 0.1)
+
+## A golden flash on a kill: fast in, slow out.
+func show_kill_flash() -> void:
+	if _flash_tween and _flash_tween.is_valid():
+		_flash_tween.kill()
+	damage_flash.color = Color(1.0, 0.85, 0.1, 0.0)
+	_flash_tween = create_tween()
+	_flash_tween.set_pause_mode(Tween.TWEEN_PAUSE_PROCESS)
+	_flash_tween.tween_property(damage_flash, "color:a", 0.3, 0.05)
+	_flash_tween.tween_property(damage_flash, "color:a", 0.0, 0.25)
+
+func _update_low_health_vignette(current: float, maximum: float) -> void:
+	var mat := low_health_vignette.material as ShaderMaterial
+	if mat == null:
+		return
+	var fraction: float = current / maximum if maximum > 0.0 else 0.0
+	var intensity: float = 0.0
+	if fraction < LOW_HEALTH_FRACTION:
+		var t: float = 1.0 - (fraction / LOW_HEALTH_FRACTION)
+		intensity = clampf(t, 0.0, 1.0) * VIGNETTE_MAX_INTENSITY
+	mat.set_shader_parameter("intensity", intensity)
+
+
+# Per-frame: stamina warning vignette + block tint on the stamina bar.
 func _process(_delta: float) -> void:
 	_update_stamina_vignette()
 	if not is_instance_valid(_player_ref):
@@ -240,13 +204,9 @@ func _process(_delta: float) -> void:
 		return
 	var frac: float = stamina_bar.value / stamina_bar.max_value if stamina_bar.max_value > 0.0 else 0.0
 	var base: Color = BLOCK_BAR_LOW_COLOR if frac < BLOCK_LOW_FRACTION else BLOCK_BAR_COLOR
-	# Gentle pulse so it draws the eye while guarding.
 	var pulse: float = 0.78 + 0.22 * sin(Time.get_ticks_msec() * 0.012)
 	stamina_bar.modulate = Color(base.r * pulse, base.g * pulse, base.b * pulse, 1.0)
 
-# Warm edge vignette that ramps in as stamina runs low (below LOW_STAMINA_FRACTION),
-# independent of the red health one so the two warnings never get confused. Driven
-# per-frame off the bar's current value (the source of truth the HUD already mirrors).
 func _update_stamina_vignette() -> void:
 	if not is_instance_valid(stamina_warning_vignette):
 		return
@@ -257,19 +217,19 @@ func _update_stamina_vignette() -> void:
 	var fraction: float = stamina_bar.value / maximum if maximum > 0.0 else 0.0
 	var intensity: float = 0.0
 	if fraction < LOW_STAMINA_FRACTION:
-		# 0 at the threshold, 1 at empty.
 		var t: float = 1.0 - (fraction / LOW_STAMINA_FRACTION)
 		intensity = clampf(t, 0.0, 1.0) * STAMINA_VIGNETTE_MAX_INTENSITY
 	mat.set_shader_parameter("intensity", intensity)
 
+
 # --- Money -----------------------------------------------------------------
 
 func _on_money_changed(new_amount: int) -> void:
-	money_label.text = "$%d" % new_amount
+	# The "$" sign is a static label in the info strip; this is just the number.
+	money_label.text = str(new_amount)
+
 
 # --- Clock (day + time) ----------------------------------------------------
-# Both the day and the time live on this one label, so either signal just
-# rebuilds the whole string from the current GameState.day and Clock time.
 
 func _on_time_changed(_hour: int, _minute: int) -> void:
 	_refresh_clock_label()
@@ -278,10 +238,10 @@ func _on_day_changed(_new_day: int) -> void:
 	_refresh_clock_label()
 
 func _refresh_clock_label() -> void:
-	clock_label.text = "%s  Day %d  %s" % [_time_of_day_glyph(Clock.hour), GameState.day, Clock.get_time_string()]
+	clock_label.text = "%s %s" % [_time_of_day_glyph(Clock.hour), Clock.get_time_string()]
+	day_label.text = "DAY %d" % GameState.day
 
-# A tiny time-of-day tag prepended to the clock so the period reads at a glance.
-# ASCII only (the default UI font has no emoji glyphs, which would render as boxes).
+# A tiny ASCII time-of-day tag (the UI fonts have no emoji glyphs).
 func _time_of_day_glyph(hour: int) -> String:
 	if hour >= 5 and hour < 7:
 		return "(*)"   # sunrise
@@ -291,19 +251,43 @@ func _time_of_day_glyph(hour: int) -> String:
 		return "(~)"   # dusk
 	return "(C)"       # night
 
-# --- Hotbar ----------------------------------------------------------------
 
-# A hotbar slot's item id changed: redraw every slot (cheap, only 8) so a moved
-# item leaves its old slot and appears in its new one.
+# --- Hotbar visibility -----------------------------------------------------
+
+func set_hotbar_suppressed(suppressed: bool) -> void:
+	_hotbar_suppressed = suppressed
+	_update_hotbar_visibility()
+
+func _update_hotbar_visibility() -> void:
+	if hotbar_panel != null:
+		hotbar_panel.visible = (not _hotbar_suppressed) or _menu_open
+
+func _connect_player_menu() -> void:
+	var pm: Node = get_node_or_null("/root/PlayerMenu")
+	if pm == null:
+		return
+	if pm.has_signal("opened") and not pm.opened.is_connected(_on_menu_opened_hud):
+		pm.opened.connect(_on_menu_opened_hud)
+	if pm.has_signal("closed") and not pm.closed.is_connected(_on_menu_closed_hud):
+		pm.closed.connect(_on_menu_closed_hud)
+
+func _on_menu_opened_hud() -> void:
+	_menu_open = true
+	_update_hotbar_visibility()
+
+func _on_menu_closed_hud() -> void:
+	_menu_open = false
+	_update_hotbar_visibility()
+
+
+# --- Hotbar cells ----------------------------------------------------------
+
 func _on_slots_changed() -> void:
 	_refresh_all_slots()
 
-# The highlighted slot moved.
 func _on_selection_changed(_index: int) -> void:
 	_refresh_selection()
 
-# An item count changed in the bag. If that item sits in a hotbar slot, its "xN"
-# count needs updating.
 func _on_item_changed(id: StringName, _new_count: int) -> void:
 	for i in _slot_widgets.size():
 		if Hotbar.slots[i] == id:
@@ -313,81 +297,68 @@ func _refresh_all_slots() -> void:
 	for i in _slot_widgets.size():
 		_refresh_slot(i)
 
-# Rebuilds the contents of a single slot widget: icon-or-name plus count, or
-# empty if the slot holds no id.
+# Rebuilds the contents of one cell: thumbnail + count, keeping the persistent slot number.
 func _refresh_slot(index: int) -> void:
-	var slot := _slot_widgets[index]
-	# Clear out whatever the slot showed before, but KEEP the persistent slot-number
-	# hint (added once in _make_empty_slot) so it isn't rebuilt every refresh.
-	for child in slot.get_children():
+	var cell := _slot_widgets[index]
+	for child in cell.get_children():
 		if child.name == "SlotNumber":
 			continue
 		child.queue_free()
 
 	var id: StringName = Hotbar.slots[index]
 	if id == &"":
-		return # Empty slot: leave it blank.
+		return
 
-	# A fixed-size square content area so the slot stays SQUARE (the PanelContainer sizes to this
-	# plus its glass margins). The old vertical stack of icon-over-count made the slot taller.
+	# Square content area so the thumbnail sits centred; count overlays the corner.
 	var content := Control.new()
-	content.custom_minimum_size = Vector2(40, 40)
+	content.set_anchors_preset(Control.PRESET_FULL_RECT)
 	content.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	slot.add_child(content)
+	cell.add_child(content)
 
-	# 3D thumbnail (or 2D icon / name fallback), filling the square content area.
-	var visual: Control = ItemThumbnail.make_visual(id, 40.0)
-	visual.set_anchors_preset(Control.PRESET_FULL_RECT)
+	var visual: Control = ItemThumbnail.make_visual(id, CELL_ICON)
+	visual.position = (CELL_SIZE - Vector2(CELL_ICON, CELL_ICON)) * 0.5
 	content.add_child(visual)
 
-	# Count overlaid in the bottom-right corner — anchored (not laid out), so it never changes the
-	# square content size.
 	var count_label := Label.new()
+	count_label.theme_type_variation = &"Dim"
 	count_label.text = "x%d" % Inventory.count_of(id)
 	count_label.add_theme_font_size_override("font_size", 11)
 	count_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	count_label.set_anchors_preset(Control.PRESET_BOTTOM_RIGHT)
 	count_label.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 	count_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
-	count_label.offset_right = -1.0
+	count_label.offset_right = -2.0
 	count_label.offset_bottom = -1.0
 	content.add_child(count_label)
 
-# Highlights the currently selected slot and un-highlights the rest. We do this
-# by toggling each slot's modulate so it works without a custom theme/StyleBox.
+# Marks the selected cell: SlotButton's pressed style brightens it and adds the gold
+# outline. No scaling — that overflowed the cell into the ink frame and read as broken.
 func _refresh_selection() -> void:
 	for i in _slot_widgets.size():
-		var selected := (i == Hotbar.selected_index)
-		# Selected slot is bright and slightly enlarged; others are dimmed.
-		_slot_widgets[i].modulate = Color(1, 1, 1, 1) if selected else Color(0.6, 0.6, 0.6, 1)
-		_slot_widgets[i].scale = Vector2(1.1, 1.1) if selected else Vector2(1, 1)
+		var cell := _slot_widgets[i]
+		cell.button_pressed = (i == Hotbar.selected_index)
 
-# --- Slot widget factory ---------------------------------------------------
+# Builds one hotbar cell. SlotButton variation gives the cream/bright sticker look.
+func _make_cell(index: int) -> Button:
+	var cell := Button.new()
+	cell.theme_type_variation = &"SlotButton"
+	cell.toggle_mode = true
+	cell.custom_minimum_size = CELL_SIZE
+	# Selection is driven by the Hotbar autoload (number keys / scroll), not by focusing
+	# the HUD — so cells don't take focus and steal it from gameplay.
+	cell.focus_mode = Control.FOCUS_NONE
+	cell.clip_contents = true
+	cell.pivot_offset = CELL_SIZE * 0.5
+	cell.tooltip_text = "Slot %d" % (index + 1)
+	cell.pressed.connect(func() -> void: Hotbar.select(index))
 
-# Builds one empty hotbar slot frame. The slot number (1..8) is shown faintly in
-# the corner so the player learns the number-key bindings.
-func _make_empty_slot(index: int) -> PanelContainer:
-	var slot := PanelContainer.new()
-	slot.custom_minimum_size = Vector2(64, 64)
-	# Pivot in the centre so the "selected" scale grows evenly from the middle.
-	slot.pivot_offset = slot.custom_minimum_size * 0.5
-	slot.tooltip_text = "Slot %d" % (index + 1)
-	# Each slot is its own frosted-glass box (rim + blurred game view behind it).
-	Glass.apply(slot, 12, 12)
-
-	# Faint keyboard-binding hint (1..8) in the bottom-right corner, so the player
-	# learns the hotbar number keys with zero extra UI footprint. Added once and
-	# preserved across refreshes (see _refresh_slot); it sits behind any item visual,
-	# so it shows clearly on empty slots and is unobtrusive when a slot is filled.
+	# Faint slot-number hint (1..8), top-left, kept across refreshes.
 	var number_label := Label.new()
 	number_label.name = "SlotNumber"
+	number_label.theme_type_variation = &"Dim"
 	number_label.text = str(index + 1)
-	number_label.add_theme_font_size_override("font_size", 11)
-	number_label.modulate = Color(1, 1, 1, 0.5)
+	number_label.add_theme_font_size_override("font_size", 10)
 	number_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# PanelContainer stretches its children to fill (it ignores child anchors), so we
-	# pin the digit to the bottom-right corner via TEXT alignment instead.
-	number_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	number_label.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
-	slot.add_child(number_label)
-	return slot
+	number_label.position = Vector2(5, 2)
+	cell.add_child(number_label)
+	return cell

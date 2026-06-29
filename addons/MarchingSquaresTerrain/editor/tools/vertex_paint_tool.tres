@@ -1,4 +1,4 @@
-[gd_resource type="Resource" script_class="MarchingSquaresTool" load_steps=5 format=3 uid="uid://bhf01bmk6l3gv"]
+[gd_resource type="Resource" script_class="MarchingSquaresTool" format=3 uid="uid://bhf01bmk6l3gv"]
 
 [ext_resource type="Script" uid="uid://brkjbcthwswel" path="res://addons/MarchingSquaresTerrain/editor/tools/scripts/marching_squares_tool.gd" id="1_7okwl"]
 [ext_resource type="Script" uid="uid://b6jopat61dbd3" path="res://addons/MarchingSquaresTerrain/editor/tools/scripts/marching_squares_tool_attribute_settings.gd" id="1_rbatu"]

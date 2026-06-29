@@ -17,7 +17,7 @@
 
 extends CanvasLayer
 
-const Glass = preload("res://ui/glass_style.gd")
+const Flat = preload("res://ui/ui_style.gd")
 
 ## Emitted when the menu opens / closes. The player listens so it can stop moving and
 ## free the mouse (same pattern as ShopUI / BrewingUI).
@@ -89,7 +89,7 @@ func _build_ui() -> void:
 	_panel.set_anchors_preset(Control.PRESET_CENTER)
 	_panel.custom_minimum_size = Vector2(440, 520)
 	_panel.position = Vector2(-220, -260)
-	Glass.apply(_panel, 18, 22)
+	Flat.apply(_panel, 18, 22)
 	add_child(_panel)
 
 	var margin := MarginContainer.new()
@@ -148,7 +148,7 @@ func _rebuild() -> void:
 # Buy button (when can_buy), or a disabled button explaining why it's locked.
 func _make_row(def: UpgradeDef) -> Control:
 	var panel := PanelContainer.new()
-	Glass.apply(panel, 10, 12)
+	Flat.apply(panel, 10, 12)
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 4)
 	panel.add_child(box)

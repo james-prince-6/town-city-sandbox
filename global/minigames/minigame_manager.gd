@@ -73,6 +73,10 @@ func play(minigame_scene: PackedScene) -> void:
 	if Clock:
 		Clock.pause()
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
+	# Hide the bottom hotbar behind the minigame overlay (restored in _on_finished).
+	var hud := get_node_or_null("/root/HUD")
+	if hud != null and hud.has_method("set_hotbar_suppressed"):
+		hud.set_hotbar_suppressed(true)
 
 # --- Daily gate helpers ----------------------------------------------------
 
@@ -102,3 +106,6 @@ func _on_finished(score: int, reward: int) -> void:
 	if Clock:
 		Clock.resume()
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
+	var hud := get_node_or_null("/root/HUD")
+	if hud != null and hud.has_method("set_hotbar_suppressed"):
+		hud.set_hotbar_suppressed(false)

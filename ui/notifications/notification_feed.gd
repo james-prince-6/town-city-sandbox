@@ -19,7 +19,7 @@
 #
 # Every quest/reputation handler is purely additive: it connects GUARDED through
 # the tree (get_node_or_null) so this view stays safe even if an optional autoload
-# isn't registered yet, and routes through the same notify()/Glass toast stack.
+# isn't registered yet, and routes through the same notify()/Flat toast stack.
 #
 # Toasts stack newest-on-top in a VBoxContainer. Each one fades itself out after a few
 # seconds and frees, so the feed naturally trims back to empty when things go quiet. We
@@ -30,7 +30,7 @@
 
 extends CanvasLayer
 
-const Glass = preload("res://ui/glass_style.gd")
+const Flat = preload("res://ui/ui_style.gd")
 
 ## How long a toast stays fully visible before it begins to fade, in seconds.
 const HOLD_SECONDS: float = 2.2
@@ -316,7 +316,7 @@ func _make_toast(text: String, color: Color, font_size: int = TOAST_FONT_SIZE) -
 	panel.size_flags_horizontal = Control.SIZE_SHRINK_END
 
 	# Frosted-glass backing (no dark box); the border width doubles as the text padding.
-	Glass.apply(panel, 8, 10)
+	Flat.apply(panel, 8, 10)
 
 	var label := Label.new()
 	label.text = text

@@ -92,6 +92,9 @@ func _throw_from_camera(player: Node, scene: PackedScene, throw_speed: float, ar
 
 	# Add to the live scene first, THEN place it (global_position needs the tree).
 	var world: Node = SceneManager.current_world()
+	if world == null:
+		thrown.queue_free()  # world is tearing down mid-throw; don't deref null or leak the orphan
+		return null
 	world.add_child(thrown)
 	thrown.global_position = spawn_pos
 

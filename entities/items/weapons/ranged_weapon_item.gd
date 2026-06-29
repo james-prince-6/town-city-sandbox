@@ -50,16 +50,21 @@ func use(player: Node) -> void:
 		push_warning("RangedWeaponItem '%s' has no projectile_scene; nothing to fire." % str(id))
 		return
 
-	# Cooldown gate, shortened by the Ranged-branch Quick Draw skill. Progression clamps
-	# the multiplier so the cooldown can never drop below 30% of the weapon's base.
+	# A wand (mana_cost > 0) trains + reads the MAGIC skill; a bow trains + reads RANGED. The
+	# Mana Surge magic perk lowers the effective mana cost (use-based rework, D1).
+	var is_magic: bool = mana_cost > 0.0
+	var effective_mana: float = mana_cost * Progression.mana_cost_mult()
+
+	# Cooldown gate, shortened by the relevant skill's level (faster draw / faster casting).
+	# Progression clamps the multiplier so cooldown never drops below 30% of the weapon's base.
 	var now: int = Time.get_ticks_msec()
-	var effective_cooldown: float = cooldown * Progression.ranged_cooldown_mult()
+	var effective_cooldown: float = cooldown * (Progression.magic_cooldown_mult() if is_magic else Progression.ranged_cooldown_mult())
 	if now - _last_shot_ms < int(effective_cooldown * 1000.0):
 		return
 
 	# Peek mana BEFORE spending anything so a failed cast never half-charges the player
 	# (consumes stamina but not mana). For a normal bow mana_cost is 0, so this is a no-op.
-	if mana_cost > 0.0 and PlayerStats.mana < mana_cost:
+	if is_magic and PlayerStats.mana < effective_mana:
 		return
 
 	# Optional stamina gate (use_stamina returns true for cost <= 0).
@@ -68,7 +73,7 @@ func use(player: Node) -> void:
 
 	# Optional mana gate (use_mana returns true for cost <= 0). Already peeked above, so a
 	# wand only reaches here when it can afford the cast.
-	if not PlayerStats.use_mana(mana_cost):
+	if not PlayerStats.use_mana(effective_mana):
 		return
 
 	var camera: Camera3D = player.get_camera()
@@ -77,6 +82,8 @@ func use(player: Node) -> void:
 
 	_last_shot_ms = now
 	CombatFeel.play_bow()
+	# Train Magic (wand) or Ranged (bow) on every committed shot (resource-gated, no free grind).
+	Progression.register_use(Progression.SKILL_MAGIC if is_magic else Progression.SKILL_RANGED)
 
 	# Spawn the arrow into the live scene at the camera, aimed down camera forward (-z).
 	var forward: Vector3 = -camera.global_transform.basis.z
@@ -97,10 +104,10 @@ func use(player: Node) -> void:
 	# arrow everything it needs to deal damage and move. The Piercing Shot perk makes the
 	# arrow pass through enemies instead of stopping at the first.
 	var is_crit: bool = randf() < Progression.crit_chance()
-	var final_damage: float = damage * Progression.ranged_damage_mult()
+	var final_damage: float = damage * (Progression.magic_damage_mult() if is_magic else Progression.ranged_damage_mult())
 	if is_crit:
 		final_damage *= 2.0
-	var piercing: bool = Progression.has_perk(&"piercing_shot")
+	var piercing: bool = Progression.has_perk(&"piercing_shot") or (is_magic and Progression.has_perk(&"arcane_pierce"))
 	if arrow.has_method("setup"):
 		arrow.setup(final_damage, damage_type, player, forward * projectile_speed, is_crit, knockback, piercing)
 	else:

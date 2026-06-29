@@ -1,0 +1,33 @@
+# Sally Steelfield — strong, fast adventurer who clears the dungeons; runs the Adventurers
+# Guild end of the story. GREYBOX (M-B): a blunt greeting + hub. Her Beat-3 "To the Source"
+# dungeon hand-off (she sends you in — decision D4, no companion AI) is authored in M-F.
+
+~ start
+if not GameState.get_flag("met_sally")
+	do GameState.set_flag("met_sally")
+	do QuestSystem.mark_flag("met_sally")
+	=> greeting
+else
+	=> hub
+
+~ greeting
+Sally: [#gesture=idle] So you're the newcomer everyone's on about.
+Sally: [#gesture=talk] Good. I don't need a babysitter — but I'll always take a sharp blade. We'll see what you're made of.
+=> hub
+
+~ hub
+% Sally: [#gesture=idle] Speak.
+% Sally: [#gesture=talk] Need something, or just admiring the steel?
+- What's the Guild about?
+	=> guild
+- Later.
+	=> bye
+
+~ guild
+Sally: [#gesture=talk] We go where the trouble is. Right now that's underground, in the mine. When the Mayor gives the word, that's where we're headed.
+=> hub
+
+~ bye
+% Sally: [#gesture=idle] Don't die out there.
+% Sally: [#gesture=wave] Stay sharp.
+=> END

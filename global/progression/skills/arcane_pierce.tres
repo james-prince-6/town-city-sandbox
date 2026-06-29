@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="Skill" load_steps=2 format=3]
+
+; MAGIC perk (use-based rework, D1). Spells punch through their target like a piercing arrow.
+; Combat checks Progression.has_perk(&"arcane_pierce") on the wand-cast path.
+
+[ext_resource type="Script" path="res://global/progression/skill.gd" id="1_skill"]
+
+[resource]
+script = ExtResource("1_skill")
+id = &"arcane_pierce"
+display_name = "Arcane Pierce"
+description = "Your spells punch clean through their target and keep flying."
+branch = 3
+max_rank = 1
+cost = 2
+required_level = 4
+prerequisite = &""
+prerequisite_rank = 1
+is_perk = true
+stat_per_rank = {}

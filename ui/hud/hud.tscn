@@ -1,19 +1,25 @@
 [gd_scene load_steps=5 format=3 uid="uid://crepc2svamqom"]
 
+; =============================================================
+;  Town City — HUD  (Town City sticker design language)
+;  Autoload (HUD -> this scene). Pure view: mirrors PlayerStats,
+;  GameState, Clock, Hotbar, Inventory. Top-left = info strip +
+;  three stat bars; bottom-centre = unified hotbar; centre dot.
+;  Hotbar cells are built in code (hud.gd) so SLOT_COUNT can vary.
+; =============================================================
+
 [ext_resource type="Script" uid="uid://3y2h481n1aue" path="res://ui/hud/hud.gd" id="1_hud"]
 
 [sub_resource type="Shader" id="Shader_vignette"]
-code = "// Cheap radial vignette: tints only the screen EDGES red, leaving the centre
-// clear. `intensity` (0..1) is driven from hud.gd as health drops below 25%.
+code = "// Cheap radial vignette: tints only the screen EDGES, leaving the centre
+// clear. `intensity` (0..1) is driven from hud.gd as a stat drops low.
 shader_type canvas_item;
 
 uniform float intensity : hint_range(0.0, 1.0) = 0.0;
 uniform vec4 tint : source_color = vec4(0.7, 0.0, 0.0, 1.0);
 
 void fragment() {
-	// Distance from screen centre, 0 at middle -> ~0.7 at the corners.
 	float d = distance(UV, vec2(0.5));
-	// Ramp that stays clear in the middle and rises toward the edges.
 	float edge = smoothstep(0.25, 0.75, d);
 	COLOR = vec4(tint.rgb, edge * intensity);
 }
@@ -24,8 +30,6 @@ shader = SubResource("Shader_vignette")
 shader_parameter/intensity = 0.0
 shader_parameter/tint = Color(0.7, 0, 0, 1)
 
-; Reuses the same edge-vignette shader as the health one, but tinted warm
-; yellow/orange so a low-stamina warning never reads as a low-HEALTH (red) one.
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_stamina"]
 shader = SubResource("Shader_vignette")
 shader_parameter/intensity = 0.0
@@ -35,54 +39,214 @@ shader_parameter/tint = Color(1.0, 0.6, 0.05, 1)
 layer = 5
 script = ExtResource("1_hud")
 
+; ===================== TOP-LEFT STACK =====================
 [node name="TopLeft" type="VBoxContainer" parent="."]
-offset_left = 16.0
-offset_top = 16.0
-offset_right = 216.0
-offset_bottom = 96.0
+custom_minimum_size = Vector2(212, 0)
+offset_left = 22.0
+offset_top = 20.0
+offset_right = 234.0
+offset_bottom = 220.0
 mouse_filter = 2
+theme_override_constants/separation = 5
+
+; --- info strip: time + day + money ---
+[node name="InfoStrip" type="PanelContainer" parent="TopLeft"]
+layout_mode = 2
+size_flags_horizontal = 0
+
+[node name="HB" type="HBoxContainer" parent="TopLeft/InfoStrip"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Clock" type="Label" parent="TopLeft/InfoStrip/HB"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Display"
+theme_override_font_sizes/font_size = 16
+text = "7:00"
+
+[node name="Day" type="Label" parent="TopLeft/InfoStrip/HB"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"Dim"
+theme_override_font_sizes/font_size = 11
+text = "DAY 1"
+
+[node name="VSep" type="ColorRect" parent="TopLeft/InfoStrip/HB"]
+custom_minimum_size = Vector2(2, 15)
+layout_mode = 2
+size_flags_vertical = 4
+color = Color(0.055, 0.051, 0.071, 0.25)
+
+[node name="MoneySign" type="Label" parent="TopLeft/InfoStrip/HB"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_type_variation = &"Dim"
+theme_override_font_sizes/font_size = 16
+text = "$"
+
+[node name="Money" type="Label" parent="TopLeft/InfoStrip/HB"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_type_variation = &"Display"
+theme_override_font_sizes/font_size = 16
+text = "0"
+
+; --- HP bar ---
+[node name="BarHP" type="PanelContainer" parent="TopLeft"]
+clip_contents = true
+layout_mode = 2
+theme_type_variation = &"BarOuter"
+
+[node name="HB" type="HBoxContainer" parent="TopLeft/BarHP"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="IconWell" type="PanelContainer" parent="TopLeft/BarHP/HB"]
+custom_minimum_size = Vector2(22, 0)
+layout_mode = 2
+theme_type_variation = &"IconWell"
+
+[node name="C" type="CenterContainer" parent="TopLeft/BarHP/HB/IconWell"]
+layout_mode = 2
+
+[node name="Glyph" type="Label" parent="TopLeft/BarHP/HB/IconWell/C"]
+layout_mode = 2
+theme_type_variation = &"Display"
+theme_override_colors/font_color = Color(0.937, 0.325, 0.251, 1)
+theme_override_font_sizes/font_size = 13
+text = "H"
+
+[node name="HealthBar" type="ProgressBar" parent="TopLeft/BarHP/HB"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_type_variation = &"MeterHP"
+value = 100.0
+show_percentage = false
+
+; --- SP bar ---
+[node name="BarSP" type="PanelContainer" parent="TopLeft"]
+clip_contents = true
+layout_mode = 2
+theme_type_variation = &"BarOuter"
+
+[node name="HB" type="HBoxContainer" parent="TopLeft/BarSP"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="IconWell" type="PanelContainer" parent="TopLeft/BarSP/HB"]
+custom_minimum_size = Vector2(22, 0)
+layout_mode = 2
+theme_type_variation = &"IconWell"
+
+[node name="C" type="CenterContainer" parent="TopLeft/BarSP/HB/IconWell"]
+layout_mode = 2
+
+[node name="Glyph" type="Label" parent="TopLeft/BarSP/HB/IconWell/C"]
+layout_mode = 2
+theme_type_variation = &"Display"
+theme_override_colors/font_color = Color(0.357, 0.639, 0.416, 1)
+theme_override_font_sizes/font_size = 13
+text = "S"
+
+[node name="StaminaBar" type="ProgressBar" parent="TopLeft/BarSP/HB"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_type_variation = &"MeterSP"
+value = 100.0
+show_percentage = false
+
+; --- MP bar ---
+[node name="BarMP" type="PanelContainer" parent="TopLeft"]
+clip_contents = true
+layout_mode = 2
+theme_type_variation = &"BarOuter"
+
+[node name="HB" type="HBoxContainer" parent="TopLeft/BarMP"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="IconWell" type="PanelContainer" parent="TopLeft/BarMP/HB"]
+custom_minimum_size = Vector2(22, 0)
+layout_mode = 2
+theme_type_variation = &"IconWell"
+
+[node name="C" type="CenterContainer" parent="TopLeft/BarMP/HB/IconWell"]
+layout_mode = 2
+
+[node name="Glyph" type="Label" parent="TopLeft/BarMP/HB/IconWell/C"]
+layout_mode = 2
+theme_type_variation = &"Display"
+theme_override_colors/font_color = Color(0.545, 0.435, 0.769, 1)
+theme_override_font_sizes/font_size = 13
+text = "M"
+
+[node name="ManaBar" type="ProgressBar" parent="TopLeft/BarMP/HB"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 18)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_type_variation = &"MeterMP"
+value = 100.0
+show_percentage = false
+
+; ===================== UNIFIED HOTBAR =====================
+[node name="Hotbar" type="PanelContainer" parent="."]
+unique_name_in_owner = true
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_top = -78.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_type_variation = &"HotbarOuter"
+
+[node name="HotbarStrip" type="HBoxContainer" parent="Hotbar"]
+unique_name_in_owner = true
+layout_mode = 2
 theme_override_constants/separation = 4
 
-[node name="HealthBar" type="ProgressBar" parent="TopLeft"]
-custom_minimum_size = Vector2(200, 18)
-layout_mode = 2
-value = 100.0
-show_percentage = false
-
-[node name="StaminaBar" type="ProgressBar" parent="TopLeft"]
-custom_minimum_size = Vector2(200, 18)
-layout_mode = 2
-value = 100.0
-show_percentage = false
-
-[node name="ManaBar" type="ProgressBar" parent="TopLeft"]
-custom_minimum_size = Vector2(200, 18)
-layout_mode = 2
-self_modulate = Color(0.5, 0.7, 1, 1)
-value = 100.0
-show_percentage = false
-
-[node name="MoneyLabel" type="Label" parent="TopLeft"]
-layout_mode = 2
-text = "$0"
-
-[node name="TopRight" type="VBoxContainer" parent="."]
-anchors_preset = 1
-anchor_left = 1.0
-anchor_right = 1.0
-offset_left = -216.0
-offset_top = 16.0
-offset_right = -16.0
-offset_bottom = 48.0
-grow_horizontal = 0
+; ===================== CENTRE CROSSHAIR =====================
+[node name="Crosshair" type="ColorRect" parent="."]
+custom_minimum_size = Vector2(9, 9)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -4.5
+offset_top = -4.5
+offset_right = 4.5
+offset_bottom = 4.5
 mouse_filter = 2
-alignment = 1
+color = Color(0.055, 0.051, 0.071, 1)
 
-[node name="ClockLabel" type="Label" parent="TopRight"]
-layout_mode = 2
-text = "Day 1  7:00 AM"
-horizontal_alignment = 2
+[node name="Dot" type="ColorRect" parent="Crosshair"]
+custom_minimum_size = Vector2(5, 5)
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -2.5
+offset_top = -2.5
+offset_right = 2.5
+offset_bottom = 2.5
+mouse_filter = 2
+color = Color(0.957, 0.945, 0.91, 0.9)
 
+; ===================== OVERLAYS =====================
 [node name="LowHealthVignette" type="ColorRect" parent="."]
 material = SubResource("ShaderMaterial_vignette")
 anchors_preset = 15
@@ -111,44 +275,3 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 color = Color(0.8, 0, 0, 0)
-
-[node name="Crosshair" type="Control" parent="."]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-
-[node name="Dot" type="ColorRect" parent="Crosshair"]
-custom_minimum_size = Vector2(4, 4)
-layout_mode = 1
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -2.0
-offset_top = -2.0
-offset_right = 2.0
-offset_bottom = 2.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-color = Color(1, 1, 1, 0.85)
-
-[node name="BottomCenter" type="CenterContainer" parent="."]
-anchors_preset = 12
-anchor_top = 1.0
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_top = -178.0
-grow_horizontal = 2
-grow_vertical = 0
-mouse_filter = 2
-
-[node name="HotbarStrip" type="HBoxContainer" parent="BottomCenter"]
-layout_mode = 2
-theme_override_constants/separation = 8

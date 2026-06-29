@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://b8nnne5hd27fc"]
+[gd_scene load_steps=14 format=3 uid="uid://b8nnne5hd27fc"]
 
 ; ARCADE INTERIOR TEMPLATE — a blank room to build the arcade in. Floor + 4 walls + a
 ; ceiling light, a player, a PlayerSpawn marker, and a "Leave" door that returns to the
@@ -8,6 +8,9 @@
 
 [ext_resource type="PackedScene" uid="uid://cppmnlasls1hp" path="res://entities/player/player.tscn" id="1_player"]
 [ext_resource type="PackedScene" uid="uid://sbccd4at7sdl" path="res://global/teleport area/teleport_raycast.tscn" id="2_leave"]
+[ext_resource type="PackedScene" path="res://entities/npc/npc.tscn" id="10_npc"]
+[ext_resource type="Resource" path="res://global/npc/definitions/kippie.tres" id="11_kippie"]
+[ext_resource type="PackedScene" path="res://entities/props/arcade_cabinet.tscn" id="12_cab"]
 
 [sub_resource type="Environment" id="Env_1"]
 background_mode = 1
@@ -108,10 +111,21 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 5)
 [node name="Player" parent="." instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.5, 5)
 
+[node name="Kippie" parent="." instance=ExtResource("10_npc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 1.5)
+definition = ExtResource("11_kippie")
+
+[node name="Cabinet1" parent="." instance=ExtResource("12_cab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 0, -3)
+
+[node name="Cabinet2" parent="." instance=ExtResource("12_cab")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 0, 0)
+
 [node name="Leave" parent="." instance=ExtResource("2_leave")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, -7.2)
 target_scene_path = "res://stages/overworld/town_template.tscn"
 prompt_text = "Leave"
+target_spawn_point = &"from_arcade"
 
 [node name="CollisionShape3D" parent="Leave" index="0"]
 shape = SubResource("Leave_shape")
