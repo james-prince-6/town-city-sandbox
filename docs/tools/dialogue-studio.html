@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Help the Town — Dialogue Studio</title>
+<style>
+:root{ color-scheme: light;
+  --bg:#f6f4ef; --panel:#ffffff; --ink:#23201b; --muted:#7a7368; --line:#e3ddd2;
+  --accent:#b5651d; --accent2:#3a6ea5; --good:#2e7d4f; --good-bg:#e7f3ec;
+  --chip:#f0ece3; --mono:"SFMono-Regular",Consolas,"Liberation Mono",Menlo,monospace;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+.wrap{max-width:920px;margin:0 auto;padding:18px 16px 80px}
+h1{font-size:21px;margin:0 0 2px}
+.sub{color:var(--muted);font-size:13px;margin:0 0 12px}
+.how{background:#fff7ec;border:1px solid #f0dcc0;border-radius:10px;padding:11px 14px;margin-bottom:14px;font-size:13.5px}
+.how b{color:var(--accent)}
+.how ol{margin:6px 0 0;padding-left:20px}
+.how li{margin:2px 0}
+.bar{position:sticky;top:0;z-index:5;background:var(--bg);padding:10px 0;border-bottom:1px solid var(--line);margin-bottom:8px}
+.bar .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.progress{flex:1 1 170px;min-width:150px}
+.progress .track{height:8px;background:var(--chip);border-radius:6px;overflow:hidden}
+.progress .fill{height:100%;background:var(--good);width:0;transition:width .25s}
+.progress .lbl{font-size:12px;color:var(--muted);margin-top:3px}
+button{font:inherit;cursor:pointer;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:5px 10px;border-radius:7px}
+button:hover{border-color:var(--accent)}
+button.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:7px;overflow:hidden}
+.seg button{border:none;border-radius:0;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:none}
+.seg button.on{background:var(--accent);color:#fff}
+.tips{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:0 14px;margin-bottom:14px}
+.tips summary{cursor:pointer;padding:11px 0;font-weight:600}
+.tips ul{margin:0 0 12px;padding-left:20px;font-size:13.5px}
+.tips li{margin:4px 0}
+.beat-h{font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);margin:20px 0 8px;border-bottom:2px solid var(--line);padding-bottom:4px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+.card.done{border-color:var(--good);background:var(--good-bg)}
+.card .top{display:flex;align-items:flex-start;gap:10px}
+.card h3{font-size:16px;margin:0;flex:1}
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0 9px}
+.chip{background:var(--chip);border-radius:20px;padding:2px 9px;font-size:11.5px;color:var(--muted)}
+.chip.file{font-family:var(--mono);color:var(--accent2)}
+.chip.opt{background:#fff3e0;color:#9a6a1f}
+.field{margin:8px 0}
+.field .k{font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:2px}
+.changes{margin:0;padding-left:18px;font-size:13.5px;color:#4a4439}
+.changes li{margin:1px 0}
+textarea{width:100%;min-height:120px;font:14px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding:10px;border:1px solid var(--line);border-radius:8px;resize:vertical;background:#fffdf9;color:var(--ink)}
+textarea:focus{outline:none;border-color:var(--accent)}
+.actions{display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap}
+.saved{font-size:12px;color:var(--muted);margin-left:auto}
+.statusbtn{display:flex;align-items:center;gap:6px;border:1px solid var(--line);padding:4px 9px;border-radius:7px;font-size:13px}
+.statusbtn.done{background:var(--good);color:#fff;border-color:var(--good)}
+.hidden{display:none !important}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:20px;z-index:20}
+.modal .box{background:var(--panel);border-radius:12px;max-width:820px;width:100%;max-height:86vh;display:flex;flex-direction:column;overflow:hidden}
+.modal .box header{padding:12px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px}
+.modal .box header h3{margin:0;flex:1;font-size:16px}
+.modal textarea{flex:1;border:none;border-radius:0;min-height:360px;font-family:var(--mono);font-size:12.5px}
+.tiny{font-size:12px;color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Help the Town — Dialogue Studio</h1>
+  <p class="sub">Write each conversation in plain English. I'll turn it into the game's <span style="font-family:var(--mono)">.dialogue</span> code and write it into the files for you.</p>
+
+  <div class="how">
+    <b>How this works</b>
+    <ol>
+      <li>For each card, write what happens / what people say — <b>in plain English, your voice</b>. No syntax, no flags.</li>
+      <li>Hit <b>Copy brief for Claude</b> on a card (or <b>Copy ready cards</b> up top for a batch).</li>
+      <li>Paste it into the chat. I'll write the <span style="font-family:var(--mono)">.dialogue</span> code and save it into the repo.</li>
+    </ol>
+  </div>
+
+  <div class="bar">
+    <div class="row">
+      <div class="progress">
+        <div class="track"><div class="fill" id="fill"></div></div>
+        <div class="lbl" id="plbl">0 / 0 marked ready</div>
+      </div>
+      <div class="seg" id="statusFilter">
+        <button data-f="all" class="on">All</button>
+        <button data-f="todo">Unfinished</button>
+        <button data-f="done">Ready</button>
+      </div>
+      <div class="seg" id="beatFilter">
+        <button data-b="all" class="on">All beats</button>
+        <button data-b="1">B1</button>
+        <button data-b="2">B2</button>
+        <button data-b="3">B3</button>
+        <button data-b="4">B4</button>
+      </div>
+      <button id="exportBtn" class="primary">Copy ready cards →</button>
+      <button id="saveDrafts" title="Download all your drafts as a file you can carry to another device">⬇ Save drafts</button>
+      <button id="loadDrafts" title="Load drafts from a saved file (e.g. on another device)">⬆ Load drafts</button>
+      <input id="loadFile" type="file" accept="application/json,.json" class="hidden">
+    </div>
+  </div>
+
+  <details class="tips">
+    <summary>💡 Tips for describing a conversation</summary>
+    <ul>
+      <li><b>Just write what each character says</b>, in their voice. I'll format it, add the camera/gestures, and split it into the game's nodes.</li>
+      <li><b>Note any player choices</b> — e.g. "Player can say: 'I'll take the shift' or 'Maybe later'" — and what each leads to. Optional; skip if it's a straight conversation.</li>
+      <li><b>You can ignore the mechanics.</b> Each card already lists "What should change in-game" (rewards, unlocks, flags) — I'll wire those in. Only mention them if you want something different.</li>
+      <li><b>Don't worry about length or polish.</b> A few sentences of intent is enough; bullet points are fine.</li>
+      <li>The grey starter text is just a suggestion — rewrite it however you like, or clear it and start fresh.</li>
+    </ul>
+  </details>
+
+  <div id="list"></div>
+</div>
+
+<div class="modal hidden" id="modal">
+  <div class="box">
+    <header><h3 id="modalTitle">Briefs for Claude</h3><button id="copyAll" class="primary">Copy</button><button id="closeModal">Close</button></header>
+    <textarea id="exportText" readonly></textarea>
+  </div>
+</div>
+
+<script>
+const CONVOS = [
+ { id:"orbo_first", beat:1, char:"Orbo Orland", short:"First meeting", file:"orbo.dialogue", opt:false,
+   where:"First time you talk to Orbo at Town Hall (new game). Plays once.",
+   purpose:"Welcome the player, set up the town's slump, start the quest, and send them to George.",
+   changes:["Remembers you've met Orbo","Starts the “Help the Town” quest"],
+   wiring:['do GameState.set_flag("met_orbo")','do QuestSystem.mark_flag("met_orbo")','do QuestSystem.start_quest("help_the_town")'],
+   starter:"Orbo greets the newcomer warmly — delighted to have new blood in town. In a line or two he explains times are hard: the mine's gone quiet and the whole town feels it. He asks the player to get set up at George's store and then come back to him — he could use a willing pair of hands. Warm, hopeful, a little weary."},
+
+ { id:"george_first", beat:1, char:"George Coral", short:"First meeting + starter gear", file:"george.dialogue (NEW)", opt:false,
+   where:"At the General Store, after Orbo sends you (first visit).",
+   purpose:"Meet George, get your basic starter tools and a little money, then head back to Orbo.",
+   changes:["Remembers you've met George","Gives basic starter tools (pickaxe, axe, sword, bow)","Gives a little starting money"],
+   wiring:['do GameState.set_flag("met_george")','do QuestSystem.mark_flag("met_george")','do Inventory.add("pickaxe_basic",1)','do Inventory.add("axe_basic",1)','do Inventory.add("sword_basic",1)','do Inventory.add("bow_basic",1)','do GameState.add_money(25)','NOTE: confirm starter-tool item ids in the item database'],
+   starter:"George is quiet, kind, a touch shy. He welcomes the player, clocks that Orbo sent them, and hands over a basic kit — pickaxe, axe, sword, bow — plus a few coins to start. He tells them to come back any time they've got materials to sell, and to head back to Orbo now."},
+
+ { id:"orbo_hub", beat:1, char:"Orbo Orland", short:"Assign the errands (hub)", file:"orbo.dialogue", opt:false,
+   where:"Back at Town Hall after you've met George.",
+   purpose:"Orbo gives you the three errands (any order). George's restock + Barry's shift are required; the morale one is a bonus.",
+   changes:["Opens the errand hub (Beat 2)"],
+   wiring:['do GameState.set_flag("hub_assigned")'],
+   starter:"Orbo, pleased the player's settled in, asks them to lend a hand to three of the town's folk: George needs his shelves restocked, Barry's short a bartender, and morale is low all over. Any order. He says to come back once George and Barry are sorted."},
+
+ { id:"george_2a_offer", beat:2, char:"George Coral", short:"2a — Bare Shelves (offer)", file:"george.dialogue (NEW)", opt:false,
+   where:"At the store once the hub is assigned.",
+   purpose:"George asks you to gather materials in the wild area and bring them back.",
+   changes:["Marks the restock errand as started"],
+   wiring:['do GameState.set_flag("errand_restock_started")'],
+   starter:"George, a bit embarrassed, admits his shelves are bare — folks stopped bringing materials once the wilds got rough. If the player's heading out anyway, he'd pay fair for wood, ore, or herbs brought back."},
+
+ { id:"george_2a_turnin", beat:2, char:"George Coral", short:"2a — Bare Shelves (turn-in)", file:"george.dialogue (NEW)", opt:false,
+   where:"Back at the store holding the materials.",
+   purpose:"Hand over the materials: George restocks, pays you, unlocks a recipe, warms to you. One of the two REQUIRED errands.",
+   changes:["Pays you money","Raises George's reputation","Unlocks a basic crafting recipe","Marks the restock errand DONE (counts toward the finale gate)"],
+   wiring:['(take the delivered items — Inventory.remove ...)','do GameState.add_money(60)','do Reputation.add_reputation("george",10)','do GameState.set_flag("recipe_unlocked_basic")','do GameState.set_flag("errand_restock_done")','do QuestSystem.mark_flag("errand_restock_done")'],
+   starter:"George lights up at the haul — that'll fill the shelves nicely. Grateful and a little more open now, he pays the player and presses a crafting recipe on them too: “You've earned it.”"},
+
+ { id:"barry_2b_offer", beat:2, char:"Barry Barnson", short:"2b — Last Call (offer)", file:"barry.dialogue", opt:false,
+   where:"At The Flaming Pebble once the hub is assigned.",
+   purpose:"Barry offers a bartending shift. Taking it starts the bartending mini-game. One of the two REQUIRED errands.",
+   changes:["Marks that Barry offered you the job (then the shift itself runs the mini-game)"],
+   wiring:['do GameState.set_flag("errand_bartending_offered")'],
+   starter:"Barry's gruff and blunt: his bartender quit, the place is full of glum out-of-work miners, and he needs someone to pour drinks and keep the bar clean. He'll cut the player in — “don't water the beer.” Give the player a choice: take the shift now, or come back later."},
+
+ { id:"barry_2b_after", beat:2, char:"Barry Barnson", short:"2b — after the shift + cave rumor", file:"barry.dialogue", opt:false,
+   where:"Talk to Barry after finishing a shift.",
+   purpose:"Barry pays a compliment, warms to you, and drops a rumor about the caves that foreshadows the finale.",
+   changes:["Raises Barry's reputation","Marks that you've heard the cave rumor"],
+   wiring:['do Reputation.add_reputation("barry",10)','do GameState.set_flag("heard_cave_rumor")'],
+   starter:"Barry, grudgingly impressed (“Not bad at all”), leans in: the miners talk, and something came up out of the deep caves — whatever drove them out isn't natural. If the player wants the real trouble, it's down there."},
+
+ { id:"kippie_2c", beat:2, char:"Kippie Kip", short:"2c — Spirits Up (arcade)", file:"kippie.dialogue", opt:true,
+   where:"At Kippie Arcade once the hub is assigned. OPTIONAL (or do Droghnaut's instead).",
+   purpose:"Optional morale beat — play an arcade game and beat a score to lift spirits.",
+   changes:["On beating the score: marks the morale errand done, a little money + Kippie reputation"],
+   wiring:['do GameState.set_flag("errand_morale_done")','do QuestSystem.mark_flag("errand_morale_done")','do GameState.add_money(20)','do Reputation.add_reputation("kippie",8)'],
+   starter:"Kippie's all 90s-hippie energy: nobody's been coming by because everyone's too bummed, and that's backwards, baby. He invites the player to knock out a high score with him and get the good vibes flowing again."},
+
+ { id:"droghnaut_2c", beat:2, char:"Droghnaut", short:"2c — Spirits Up (fishing)", file:"droghnaut.dialogue", opt:true,
+   where:"At Astros Fishing Friends once the hub is assigned. OPTIONAL (alternative to Kippie).",
+   purpose:"Optional morale beat — fish a while / land a few to lift spirits.",
+   changes:["On landing the catch: marks the morale errand done, a little money + Droghnaut reputation"],
+   wiring:['do GameState.set_flag("errand_morale_done")','do QuestSystem.mark_flag("errand_morale_done")','do GameState.add_money(20)','do Reputation.add_reputation("droghnaut",8)'],
+   starter:"Droghnaut, the gentle alien who keeps fish as friends, says the fish sense the town's sadness. He invites the player to sit and fish with him a while — a calm hour heals more than you'd think. “The fish agree.”"},
+
+ { id:"orbo_finale", beat:3, char:"Orbo Orland", short:"Beat 3 — send to Sally", file:"orbo.dialogue", opt:false,
+   where:"Back at Town Hall once both required errands (restock + bartending) are done.",
+   purpose:"Orbo opens the finale: the caves are the real problem; he sends you to Sally at the Guild.",
+   changes:["Unlocks the finale / the trip to Sally"],
+   wiring:['(only when errand_restock_done AND errand_bartending_done)','do GameState.set_flag("finale_unlocked")'],
+   starter:"Orbo, moved by how much the player's done, gets serious: they both know the real trouble's down in the caves, and the idle mine is the root of it all. He's asked Sally at the Guild to take the player down there. End this, and the town's back on its feet."},
+
+ { id:"sally_sendoff", beat:3, char:"Sally Steelfield", short:"Beat 3 — dungeon send-off", file:"sally.dialogue", opt:false,
+   where:"At the Adventurers Guild once Orbo has sent you.",
+   purpose:"Sally sizes you up and sends you into the dungeon SOLO (she's not a companion). Opens the dungeon.",
+   changes:["Opens the dungeon entrance"],
+   wiring:['do GameState.set_flag("dungeon_unlocked")'],
+   starter:"Sally's tough and gruff: she doesn't need a babysitter but she'll take a sharp blade. She tells the player to hit hard and not die — she's not carrying them out. She splits off (“I'll take the far tunnel”) so the player goes in alone, and sends them down."},
+
+ { id:"sally_postclear", beat:3, char:"Sally Steelfield", short:"Beat 3 — after the clear", file:"sally.dialogue", opt:false,
+   where:"After the dungeon is cleared — Sally turns up to congratulate you.",
+   purpose:"She congratulates you (you never saw her fight — she took the other tunnel), says the breach is stemmed, sends you back to Orbo. Sets up her mentor role.",
+   changes:["Raises Sally's reputation"],
+   wiring:['do Reputation.add_reputation("sally",15)'],
+   starter:"Sally's genuinely impressed — the player actually did it. She implies she took the other tunnel, says that thing won't crawl up here again soon, and tells them Orbo will want to see them. “We'll make a real adventurer of you yet.”"},
+
+ { id:"orbo_wrap", beat:4, char:"Orbo Orland", short:"Beat 4 — Town thanks you", file:"orbo.dialogue", opt:false,
+   where:"Back at Town Hall after the dungeon.",
+   purpose:"The payoff: mine reopens, town recovers, Orbo thanks you and gives you your place in town. Completes the quest. Plant a faint, unexplained flicker of unease — foreshadow ONLY (do not reveal Orbo opened the gate).",
+   changes:["Gives a big money reward","Raises Orbo's reputation","Marks the town as saved","Completes the “Help the Town” quest"],
+   wiring:['do GameState.add_money(150)','do Reputation.add_reputation("orbo",20)','do GameState.set_flag("town_saved")','do QuestSystem.complete_quest("help_the_town")'],
+   starter:"Orbo is overjoyed: the mine's open, the store's stocked, the Pebble's full, folks are smiling — all thanks to the player. They're not the newcomer anymore; they're one of the town now. At the very end, a small flicker of unease — he glances toward the caves, almost says something, then lets it go: “I've a feeling this is only the start of your story here.”"},
+
+ { id:"han_tease", beat:4, char:"Han de Seciro", short:"Beat 4 — cryptic tease (optional)", file:"han.dialogue (NEW)", opt:true,
+   where:"At the edge of the celebration after the town's saved. OPTIONAL.",
+   purpose:"Optional hook for the bigger story: a single cryptic line from Han, the mysterious out-of-towner. Reveals nothing.",
+   changes:["Marks that you've seen Han (a tease for the larger story)"],
+   wiring:['do GameState.set_flag("seen_han")'],
+   starter:"Han watches the celebration from the edge, talking almost to himself: so the little gate is closed again — how quaint. They have no idea what's still on the other side. “…Soon.” He knows far more than the town does, and explains none of it."}
+];
+
+const KEY=(id,suf)=>"htt_dlg::"+id+"::"+suf;
+function load(id,suf,dflt){ try{const v=localStorage.getItem(KEY(id,suf)); return v===null?dflt:v;}catch(e){return dflt;} }
+function save(id,suf,val){ try{localStorage.setItem(KEY(id,suf),val);}catch(e){} }
+
+let statusFilter="all", beatFilter="all";
+function beatName(b){ return {1:"Beat 1 — New in Town",2:"Beat 2 — Lend a Hand (hub)",3:"Beat 3 — To the Source",4:"Beat 4 — Town City Thanks You"}[b]; }
+function esc(s){ return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+
+function copyText(txt,btn){
+  const done=()=>{const o=btn.textContent;btn.textContent="Copied ✓";setTimeout(()=>btn.textContent=o,1200);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(done,()=>fallback(txt,done));}
+  else fallback(txt,done);
+}
+function fallback(txt,cb){const t=document.createElement("textarea");t.value=txt;document.body.appendChild(t);t.select();try{document.execCommand("copy");}catch(e){}document.body.removeChild(t);cb&&cb();}
+
+function briefFor(c){
+  const fileClean=c.file.replace(" (NEW)","");
+  let s="### Dialogue to write — "+c.id+"\n";
+  s+="Character: "+c.char+" · Beat "+c.beat+(c.opt?" · OPTIONAL":"")+"\n";
+  s+="File: entities/npc/dialogue/"+fileClean+(c.file.indexOf("(NEW)")>=0?"  (new file)":"")+"\n";
+  s+="When: "+c.where+"\n";
+  s+="Should change in-game: "+c.changes.join("; ")+"\n";
+  s+="[exact effects for Claude: "+c.wiring.join("; ")+"]\n\n";
+  s+="What happens (my words):\n"+load(c.id,"plain",c.starter).trim()+"\n";
+  return s;
+}
+
+function render(){
+  const list=document.getElementById("list"); list.innerHTML="";
+  let shown=0; const byBeat={};
+  CONVOS.forEach(c=>{(byBeat[c.beat]=byBeat[c.beat]||[]).push(c);});
+  Object.keys(byBeat).sort().forEach(b=>{
+    if(beatFilter!=="all"&&beatFilter!==String(b))return;
+    const vis=byBeat[b].filter(c=>{const d=load(c.id,"done","0")==="1"; if(statusFilter==="todo"&&d)return false; if(statusFilter==="done"&&!d)return false; return true;});
+    if(!vis.length)return;
+    const h=document.createElement("div");h.className="beat-h";h.textContent=beatName(Number(b));list.appendChild(h);
+    vis.forEach(c=>{shown++;list.appendChild(cardFor(c));});
+  });
+  if(!shown){const e=document.createElement("p");e.className="tiny";e.textContent="Nothing matches this filter.";list.appendChild(e);}
+  updateProgress();
+}
+
+function cardFor(c){
+  const done=load(c.id,"done","0")==="1";
+  const card=document.createElement("div"); card.className="card"+(done?" done":"");
+  card.innerHTML=`
+    <div class="top">
+      <h3>${esc(c.char)} — ${esc(c.short)}</h3>
+      <button class="statusbtn${done?" done":""}" data-act="status">${done?"✓ Ready":"Mark ready"}</button>
+    </div>
+    <div class="chips">
+      <span class="chip">Beat ${c.beat}</span>
+      <span class="chip file">${esc(c.file)}</span>
+      ${c.opt?'<span class="chip opt">optional</span>':''}
+    </div>
+    <div class="field"><div class="k">When it happens</div><div>${esc(c.where)}</div></div>
+    <div class="field"><div class="k">What it's for</div><div>${esc(c.purpose)}</div></div>
+    <div class="field"><div class="k">What should change in-game (I'll wire this)</div><ul class="changes">${c.changes.map(x=>"<li>"+esc(x)+"</li>").join("")}</ul></div>
+    <div class="field"><div class="k">Write it in plain English</div><textarea data-act="text" spellcheck="true"></textarea></div>
+    <div class="actions">
+      <button data-act="copy" class="primary">Copy brief for Claude</button>
+      <button data-act="reset">Reset starter</button>
+      <span class="saved" data-act="saved"></span>
+    </div>`;
+  const ta=card.querySelector("textarea"); ta.value=load(c.id,"plain",c.starter);
+  const saved=card.querySelector('[data-act="saved"]');
+  ta.addEventListener("input",()=>{save(c.id,"plain",ta.value);saved.textContent="saved";setTimeout(()=>saved.textContent="",900);});
+  card.querySelector('[data-act="copy"]').addEventListener("click",e=>copyText(briefFor(c),e.target));
+  card.querySelector('[data-act="reset"]').addEventListener("click",()=>{if(confirm("Reset this box to the suggested starter text? Your writing here will be lost.")){ta.value=c.starter;save(c.id,"plain",c.starter);}});
+  card.querySelector('[data-act="status"]').addEventListener("click",()=>{const nd=!(load(c.id,"done","0")==="1");save(c.id,"done",nd?"1":"0");render();});
+  return card;
+}
+
+function updateProgress(){
+  const total=CONVOS.length, done=CONVOS.filter(c=>load(c.id,"done","0")==="1").length;
+  document.getElementById("fill").style.width=(total?Math.round(done/total*100):0)+"%";
+  document.getElementById("plbl").textContent=done+" / "+total+" marked ready";
+}
+
+document.querySelectorAll("#statusFilter button").forEach(b=>b.addEventListener("click",()=>{statusFilter=b.dataset.f;document.querySelectorAll("#statusFilter button").forEach(x=>x.classList.toggle("on",x===b));render();}));
+document.querySelectorAll("#beatFilter button").forEach(b=>b.addEventListener("click",()=>{beatFilter=b.dataset.b;document.querySelectorAll("#beatFilter button").forEach(x=>x.classList.toggle("on",x===b));render();}));
+
+document.getElementById("exportBtn").addEventListener("click",()=>{
+  const ready=CONVOS.filter(c=>load(c.id,"done","0")==="1");
+  const use=ready.length?ready:CONVOS;
+  const header=ready.length
+    ? "Please turn these "+ready.length+" conversation brief(s) into their .dialogue files and write them into the repo:\n\n"
+    : "(No cards marked Ready yet — here are ALL of them. Mark cards Ready to send just those.)\n\nPlease turn these conversation briefs into their .dialogue files:\n\n";
+  document.getElementById("modalTitle").textContent=ready.length?("Briefs for Claude — "+ready.length+" ready card(s)"):"Briefs for Claude — all cards";
+  document.getElementById("exportText").value=header+use.map(briefFor).join("\n");
+  document.getElementById("modal").classList.remove("hidden");
+});
+document.getElementById("closeModal").addEventListener("click",()=>document.getElementById("modal").classList.add("hidden"));
+document.getElementById("copyAll").addEventListener("click",e=>copyText(document.getElementById("exportText").value,e.target));
+document.getElementById("modal").addEventListener("click",e=>{if(e.target.id==="modal")e.target.classList.add("hidden");});
+
+// --- Portable drafts: export/import as a JSON file, so writing carries between devices ---
+document.getElementById("saveDrafts").addEventListener("click",()=>{
+  const data={_type:"htt-dialogue-drafts",_saved:new Date().toISOString(),drafts:{}};
+  CONVOS.forEach(c=>{ data.drafts[c.id]={plain:load(c.id,"plain",c.starter),done:load(c.id,"done","0")}; });
+  const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+  const a=document.createElement("a"); a.href=URL.createObjectURL(blob);
+  a.download="dialogue-drafts.json"; document.body.appendChild(a); a.click();
+  setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove();},500);
+});
+document.getElementById("loadDrafts").addEventListener("click",()=>document.getElementById("loadFile").click());
+document.getElementById("loadFile").addEventListener("change",ev=>{
+  const f=ev.target.files[0]; if(!f){return;}
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const data=JSON.parse(r.result); const d=data.drafts||data; let n=0;
+      Object.keys(d).forEach(id=>{ const rec=d[id]||{}; if(rec.plain!==undefined){save(id,"plain",rec.plain);n++;} if(rec.done!==undefined){save(id,"done",String(rec.done));} });
+      render(); alert("Loaded drafts for "+n+" conversation(s).");
+    }catch(e){ alert("Couldn't read that file — is it a dialogue-drafts.json export from this Studio?"); }
+    ev.target.value="";
+  };
+  r.readAsText(f);
+});
+
+render();
+</script>
+</body>
+</html>

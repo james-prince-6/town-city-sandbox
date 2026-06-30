@@ -4,21 +4,19 @@
 # Run headless:
 #   blender --background "<...>_CCGOE.blend" --python tools/blender/goe_bake_character.py
 #
-# Why this exists / the ARP gotchas it works around (all were dead-ends until handled):
-#   * The rig ships with data.pose_position = 'REST' -> the armature is FROZEN at rest and
-#     ignores every bone transform and action. Must flip to 'POSE'.  (This was the big one.)
-#   * The deform bones (root.x, arm_stretch.l, ...) are constraint-slaves of the control rig
-#     AND have locked rot/loc channels -> direct keyframes are ignored. Strip constraints +
-#     unlock channels so our baked keys actually pose them.
-#   * Hundreds of drivers make the glTF exporter segfault -> clear all anim/drivers first.
-#   * The deform skeleton is FLAT (every bone parented to c_traj), so there is no usable
-#     chain for runtime retargeting -> we fully BAKE absolute per-bone world poses instead.
-# Retarget math: per frame, set each mapped bone's WORLD rotation = mixamo bone's world
-# delta-from-rest applied onto the GoE bone's rest (rig-agnostic), via Blender's own
-# pose_bone.matrix setter (exact FK). In-place (no root translation); game code moves the body.
+# ARP gotchas handled (each was a dead end — see docs/goe_character_pipeline.md §5):
+#   * armature.data.pose_position ships as 'REST' -> rig FROZEN, ignores transforms/actions.
+#   * deform bones are constraint-slaves + have locked rot/loc channels -> strip + unlock.
+#   * hundreds of drivers -> glTF exporter segfaults -> clear all anim/drivers first.
+#   * deform skeleton is FLAT (all bones under c_traj) -> re-parent into an anatomical chain.
+#   * bone custom-shape meshes (incl. a stray Icosphere) get dragged into the export -> clear
+#     custom shapes + delete no-material/primitive meshes before exporting.
+# Retarget: (1) align the SOURCE's whole body frame (up+facing) to the GoE rig so everything is
+# in one world frame; (2) legs/spine/head use a rest-relative world frame-delta; (3) the ARM
+# bones are REST-ALIGNED (the GoE arm's reference rest is rotated to the source's T-pose dir)
+# so the same world-delta works despite the Mixamo T-pose vs GoE A-pose mismatch. In-place.
 #
-# To bake the MALE (or any new character): point Blender at its .blend and set ARM_NAME +
-# OUT below (e.g. "MaleR_Rig" / goe_male_base.glb). The bone names are shared across GoE rigs.
+# Bake the MALE / a new character: set ARM_NAME + OUT (bone names are shared across GoE rigs).
 import bpy, math, os
 from mathutils import Quaternion, Matrix, Vector
 
@@ -35,9 +33,9 @@ MAP = {
     "Hips": "root.x",
     "Spine": "spine_01.x", "Spine1": "spine_02.x", "Spine2": "spine_03.x",
     "Neck": "neck.x", "Head": "head.x",
-    "LeftShoulder": "shoulder.l", "LeftArm": "arm_stretch.l",
+    "LeftArm": "arm_stretch.l",
     "LeftForeArm": "forearm_stretch.l", "LeftHand": "hand.l",
-    "RightShoulder": "shoulder.r", "RightArm": "arm_stretch.r",
+    "RightArm": "arm_stretch.r",
     "RightForeArm": "forearm_stretch.r", "RightHand": "hand.r",
     "LeftUpLeg": "thigh_stretch.l", "LeftLeg": "leg_stretch.l",
     "LeftFoot": "foot.l", "LeftToeBase": "toes_01.l",
@@ -84,6 +82,35 @@ for pb in arp.pose.bones:
     pb.lock_location = (False, False, False); pb.lock_scale = (False, False, False)
 w("unlocked all pose-bone channels")
 
+# The deform bones are FLAT (each parented to a control bone like c_traj), so they don't
+# follow each other — rotating the shoulder leaves the elbow behind and the mesh stretches.
+# Re-parent the locomotion bones into a proper anatomical chain (keeping rest positions) so
+# children follow their parents under normal FK.
+CHAIN = {
+    "spine_01.x": "root.x", "spine_02.x": "spine_01.x", "spine_03.x": "spine_02.x",
+    "neck.x": "spine_03.x", "head.x": "neck.x",
+    "shoulder.l": "spine_03.x", "arm_stretch.l": "shoulder.l",
+    "forearm_stretch.l": "arm_stretch.l", "hand.l": "forearm_stretch.l",
+    "shoulder.r": "spine_03.x", "arm_stretch.r": "shoulder.r",
+    "forearm_stretch.r": "arm_stretch.r", "hand.r": "forearm_stretch.r",
+    # NOTE: shoulder.l/.r stay at rest (not in MAP) so the clavicle doesn't swing the arm;
+    # arm_stretch still parents through it, which is anatomically fine.
+    "thigh_stretch.l": "root.x", "leg_stretch.l": "thigh_stretch.l",
+    "foot.l": "leg_stretch.l", "toes_01.l": "foot.l",
+    "thigh_stretch.r": "root.x", "leg_stretch.r": "thigh_stretch.r",
+    "foot.r": "leg_stretch.r", "toes_01.r": "foot.r",
+}
+vl.objects.active = arp; arp.select_set(True)
+bpy.ops.object.mode_set(mode='EDIT')
+eb = arp.data.edit_bones
+nrep = 0
+for child, par in CHAIN.items():
+    if child in eb and par in eb:
+        eb[child].use_connect = False
+        eb[child].parent = eb[par]; nrep += 1
+bpy.ops.object.mode_set(mode='OBJECT')
+w("re-parented %d locomotion bones into a chain" % nrep)
+
 for pb in arp.pose.bones:
     pb.rotation_mode = 'QUATERNION'
     pb.matrix_basis = Matrix()
@@ -109,6 +136,14 @@ aw = arp.matrix_world
 aw_q = aw.to_quaternion(); aw_qinv = aw_q.inverted()
 aw_inv3 = aw.inverted().to_3x3()
 root_rest_arm = L["root.x"].translation.copy()
+
+# Only the arm-chain bones get rest-aligned to the source T-pose direction (see bake_clip):
+# their GoE A-pose rest differs too much from the Mixamo T-pose for the plain world-delta.
+# Legs/spine/head match closely, so they stay on the plain rest (RWq).
+REST_ALIGN = {"arm_stretch.l", "arm_stretch.r", "forearm_stretch.l", "forearm_stretch.r",
+              "hand.l", "hand.r"}
+AP2MX = {ap: mx for mx, ap in MAP.items()}
+rel_rest_q = {b.name: BoneRel[b.name].to_quaternion() for b in arp.data.bones}
 
 def depth(ap):
     b = arp.data.bones.get(ap); d = 0
@@ -144,12 +179,30 @@ def facing(obj, lname, rname):
     right.normalize()
     f = Vector((0, 0, 1)).cross(right); f.z = 0; f.normalize(); return f
 
+def _rest_head(obj, bone):
+    b = obj.data.bones.get(bone)
+    return (obj.matrix_world @ b.matrix_local).translation
+
+def _body_basis(up, right):
+    z = up.normalized()
+    y = z.cross(right.normalized()).normalized()   # forward
+    x = y.cross(z).normalized()                     # right (re-orthogonalized)
+    m = Matrix.Identity(3)
+    m.col[0] = x; m.col[1] = y; m.col[2] = z
+    return m
+
 def bake_clip(name, fbx):
     mixarm, created = import_fbx(os.path.join(ANIM, fbx))
-    af = facing(arp, "shoulder.l", "shoulder.r")
-    mf = facing(mixarm, "mixamorig:LeftShoulder", "mixamorig:RightShoulder")
-    ang = math.atan2(af.y, af.x) - math.atan2(mf.y, mf.x)
-    mixarm.rotation_euler = (0, 0, mixarm.rotation_euler.z + ang)
+    # Align the SOURCE's whole body frame (up + facing) to the GoE rig, so the retarget happens
+    # in one consistent world frame. The Mixamo FBX imports tilted/rotated vs the GoE rig; the
+    # rest-relative world-delta is immune to that, but the arm rest-alignment is NOT — without
+    # this, aligned arms come out 90 deg off (horizontal).
+    up_g = (_rest_head(arp, "head.x") - _rest_head(arp, "root.x"))
+    right_g = (_rest_head(arp, "shoulder.l") - _rest_head(arp, "shoulder.r"))
+    up_s = (_rest_head(mixarm, "mixamorig:Head") - _rest_head(mixarm, "mixamorig:Hips"))
+    right_s = (_rest_head(mixarm, "mixamorig:LeftShoulder") - _rest_head(mixarm, "mixamorig:RightShoulder"))
+    R = _body_basis(up_g, right_g) @ _body_basis(up_s, right_s).transposed()
+    mixarm.matrix_world = R.to_4x4() @ mixarm.matrix_world
     vl.update()
 
     src = mixarm.animation_data.action
@@ -164,6 +217,20 @@ def bake_clip(name, fbx):
         if mx == "Hips": mix_hip_restZ = mw.translation.z
     hb = mixarm.pose.bones.get("mixamorig:Hips")
     ratio = (root_restZ / mix_hip_restZ) if mix_hip_restZ else 1.0
+
+    # REST MATCHING (ARMS ONLY): align each arm bone's reference rest to the SOURCE bone's rest
+    # direction, so a plain world-delta works on them despite the Mixamo T-pose vs GoE A-pose
+    # mismatch (that mismatch was the whole arm problem). Root/spine/legs/head already match and
+    # their bone Y-axes aren't limb directions, so we leave those on the plain rest (RWq).
+    # The skin bind stays the A-pose; this only changes how the arm delta is computed.
+    _YA = Vector((0.0, 1.0, 0.0))
+    aligned_rest_q = dict(RWq)
+    for _ap in REST_ALIGN:
+        _mx = AP2MX.get(_ap)
+        if _mx is None or _mx not in mix_rest_wq: continue
+        src_dir = (mix_rest_wq[_mx] @ _YA).normalized()
+        goe_dir = (RWq[_ap] @ _YA).normalized()
+        aligned_rest_q[_ap] = goe_dir.rotation_difference(src_dir) @ RWq[_ap]
 
     act = bpy.data.actions.new(name); act.use_fake_user = True
     arp.animation_data_create(); arp.animation_data.action = act
@@ -181,6 +248,7 @@ def bake_clip(name, fbx):
     level_keys = sorted(levels)
     aw_inv = aw.inverted()
 
+    YV = Vector((0.0, 1.0, 0.0))   # Blender bones point +Y down the bone
     for f in range(f0, f1 + 1):
         scene.frame_set(f)
         # In-place locomotion: rotation only, every bone keeps its natural (rest-following)
@@ -191,7 +259,7 @@ def bake_clip(name, fbx):
                 apb = arp.pose.bones.get(ap)
                 if mpb is None or apb is None: continue
                 Mp = (mixarm.matrix_world @ mpb.matrix).to_quaternion()
-                tgt = Mp @ mix_rest_wq[mx].inverted() @ RWq[ap]   # world-delta retarget (rotation)
+                tgt = Mp @ mix_rest_wq[mx].inverted() @ aligned_rest_q[ap]  # rest-aligned world delta
                 cur = aw @ apb.matrix                             # natural head (parent already posed)
                 M = tgt.to_matrix().to_4x4()
                 M.translation = cur.translation
@@ -207,7 +275,7 @@ def bake_clip(name, fbx):
         except Exception: pass
     try: bpy.data.actions.remove(src)
     except Exception: pass
-    w("baked '%s' frames %d-%d yaw=%.1f ratio=%.3f" % (name, f0, f1, math.degrees(ang), ratio))
+    w("baked '%s' frames %d-%d ratio=%.3f" % (name, f0, f1, ratio))
     return act
 
 baked = [bake_clip(nm, fbx) for nm, fbx in CLIPS.items()]
@@ -255,6 +323,18 @@ def fix_skin():
     w("skin albedo linked: %s" % img.name)
 fix_skin()
 
+# ---- force the skin OPAQUE (GoE materials ship alpha-blended -> transparent holes in-engine) ----
+for o in bpy.data.objects:
+    if o.type != 'MESH': continue
+    for mat in o.data.materials:
+        if not mat or not mat.use_nodes: continue
+        try: mat.blend_method = 'OPAQUE'
+        except Exception: pass
+        _b = next((b for b in mat.node_tree.nodes if b.type == 'BSDF_PRINCIPLED'), None)
+        if _b and _b.inputs['Alpha'].is_linked:
+            for _l in list(_b.inputs['Alpha'].links): mat.node_tree.links.remove(_l)
+            _b.inputs['Alpha'].default_value = 1.0
+
 # ---- 3. keep only Anim* (+Basis) shape keys ----
 for o in bpy.data.objects:
     if o.type != 'MESH' or not o.data.shape_keys: continue
@@ -263,6 +343,19 @@ for o in bpy.data.objects:
             o.shape_key_remove(kb)
 
 # ---- 4. select + export ----
+# DELETE rig helper meshes (control-shape widgets + a stray Icosphere with no material that
+# renders black in-engine). Clear bone custom shapes first (the exporter can drag those in),
+# then remove any mesh with no material or a primitive (sphere/cube/etc.) data name.
+for pb in arp.pose.bones:
+    pb.custom_shape = None
+_PRIM = ("cosphere", "sphere", "cube", "cylinder", "cs_", "circle", "torus", "cone")
+for o in [m for m in bpy.data.objects if m.type == 'MESH']:
+    no_mat = not any(mat is not None for mat in o.data.materials)
+    prim = any(p in o.data.name.lower() or p in o.name.lower() for p in _PRIM)
+    if no_mat or prim:
+        w("deleted helper mesh: %s (data=%s)" % (o.name, o.data.name))
+        bpy.data.objects.remove(o, do_unlink=True)
+
 bpy.ops.object.select_all(action='DESELECT')
 sel = 0
 for o in bpy.data.objects:

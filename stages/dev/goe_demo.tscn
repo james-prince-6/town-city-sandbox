@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" uid="uid://bilv2vi5mfkbf" path="res://stages/dev/goe_demo.gd" id="1"]
 [ext_resource type="PackedScene" uid="uid://dd02c0dn5wqlc" path="res://entities/characters/goe_character.tscn" id="2"]
+[ext_resource type="PackedScene" uid="uid://yt0a4a8sv3km" path="res://assets/models/dev/goe_ual_test.glb" id="3_aw7pj"]
 
 [sub_resource type="Environment" id="env"]
 background_mode = 1
@@ -23,6 +24,7 @@ light_energy = 1.4
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.55, 1.5)
 
 [node name="GoeCharacter" parent="." unique_id=151769814 instance=ExtResource("2")]
+visible = false
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=976393570]
 
@@ -30,3 +32,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.55, 1.5)
 offset_left = 20.0
 offset_top = 18.0
 text = "Expression: neutral"
+
+[node name="goe_ual_test" parent="." unique_id=1146785496 instance=ExtResource("3_aw7pj")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.059760332, 0, -0.0050553083)

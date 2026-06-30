@@ -1,0 +1,62 @@
+{
+  "_type": "htt-dialogue-drafts",
+  "_saved": "2026-06-30T18:23:00.151Z",
+  "drafts": {
+    "orbo_first": {
+      "plain": "\"Well hello there! Its been a while since ive seen a fresh face! Where are you in from?\"\n[player chooses: \"came in from the capital\", \"moving away from home\", \"I dont remember...\"\norbo replies:\n\"Ah the capital, lovely city. Although ours is even more lovely! Well at least it used to be....\"\n\"Off on your own for the first time! Well you picked the right place, this town will welcome you with open arms\"\n\"Oh.... well no worries then, we can talk about that later\"\n\norbo- \"Let me be the first to formally welcome you into our little town. We've been a strong community spanning many generations, lots o' history in this dirt. We are a mining town first and foremost, but as of now the caves are closed. Its a real bummer for all the miners, they spend most of their time drinking at the flaming pebble now. \n\nI need to warn you before you go-- there are dark things lurking outside the town. Its best you stay away, but if you do need to go out there make sure you are fitted with gear. Go talk to George at the general store, Im sure he has some old equiptment laying around you can use. \n\nNow ive got some business to attend to, feel free to stop by with any questions you may have my friend!\n \n\n ",
+      "done": "1"
+    },
+    "george_first": {
+      "plain": "George is happy to finally see a customer!\n\"Hey there buddy! Welcome in!\"\n\"You must be new around here! This is Georges' general, and I am the aformentioned George. I run this shop with my wife, X. I sell all kinds of things, from health potions to ferns! I also buy just about anything, so if youre ever looking to sell come back her! Inventory is a bit low, so I am always looking for suppliers!\"\n\"Orbo said you might ahve something for me\n\"Ah yes! my old adventuring kit! Sadly the misses doesnt let me go out to forage anymore, least not with all these monsters around. Itd be put to better use with you, here you go\"\n\nplayer \"monsters\"?\n\n\"Ah ive said too much! Ask orbo about it, he'll know what to say\"\n\"Take care, come again soon\"\n",
+      "done": "1"
+    },
+    "orbo_hub": {
+      "plain": "Orbo is pleased to see player\n\"Great you got some tools from George! Hes a very kind man, always sharing what little hes got. You know hes been having a very hard time keeping his shelves up, I wouldnt suppose you could give him a hand with that?\"\n\nplayer: \"What about the monsters\"\n\n\"Monsters! Ah its no use keeping it a secret, youll find out eventually. Thats whats been plauging our little community over the past year. We dont know where they came from, but they just keep coming. Had to fully close down the mines, although ive keep the reason secret--dont want to cause too much panic. That george though doesnt keep a tight lid on secerts. Oh well. You know, with all that gear on you look quite a bit like an adventurere. We have had a few move in lately to try to tackle this monster problem. Theyre in it for gold and glory, but what i need is someone who wants to help the town. If you are interested in helping clear out the monsters, give sally a visit at the adventureres guild. They know the caves better than anyone id wager. \n\nThe towns people could also use your help, some new blood is what this community needs. I've heard that Barry has been having trouble serving drinks at the pebble, maybe you could visit and see why? Kippies arcade has also been pretty quiet, are you up for some games? And of course George can use anything you can get him for his store. Quite a lot to be done in our little community, but i feel hopeful for the first time in a while because of you! \"\n\n\n**note if player goes to sally before doing any villager quests, she will say she doesnt trust outsiders. you need to gain reputation in order to be let into the guild. -- hence the caves arent accessable until B3",
+      "done": "1"
+    },
+    "george_2a_offer": {
+      "plain": "\"Welcome back! Are you buyin or sellin? 'fraid I cant sell much to you\"\n\"Unfortualetly you might have noticed that the shelves are pretty bare. I usualy have the freshest and finest producnts.... but those monsters are making it impossible to harvest!\"\n\n\"Hey you look like an honest hard working type-- would you be willing to do me a favor? Could you go down south of town and pick up some wild bitterberry? It tastes gross, but has great healing effects. It looks like a long stem with purple leaves at the end. But be careful- outside of town you never know what might be around the corner.\" ",
+      "done": "1"
+    },
+    "george_2a_turnin": {
+      "plain": "George lights up\n\n\"You did it! Thank the gems that brought you, we may finally be able to turn this place around!\"\n\n\"I really appreciate your efforts, i knew a strong adventurer like you would have no problem there.\"\nGives reward\n\"Hey if youre ever in the mood to make a few bucks, I could always use someone to forage. Stop by again if youre interested-- or if you want to shop of course!\"",
+      "done": "1"
+    },
+    "barry_2b_offer": {
+      "plain": "Berry notices you\n\"what can i get ya pal?\"\nplayer can ask for a drink, or say hows buisness.\nIf asking for a drink, lets have berry try to make one, but fail miserably. Hes super embarassed by it, but he doesnt know how to pour drinks! \"Ah lad, i dont think im cut out for this job..... damn claudia was the one who handled the drinks\" Lets make claudia his ex, who co ran the bar with him\n\"Say, you look mighty nimble, do you want to give it a shot?\" player chooses\n",
+      "done": "1"
+    },
+    "barry_2b_after": {
+      "plain": "if done well:\n\"Well ill be damned, youre a natural kid. Heres your share of the cash, if you ever want to come work a shift youd be doing me a huge favor\" \n\n\"Man things would be so much better if i could just find my special ingreedeint......\" - player askes whats that?-- \"Oh! sorry just mumbling to myself. Its just that I have shaky hands and the only cure i know for it comes from the caves..... but the mayor has them all closed off. No one knows whats up, but if i were to put in my two cents if because of those monsters! Running around all the forest, id wager theyre in the caves as well! Ah hell, i dont want to tango with some monsters anyway. I dont supose youd find your way there, but if you do keep an eye out for steadyshroom, thered be a reward if you did.\" ",
+      "done": "1"
+    },
+    "kippie_2c": {
+      "plain": "When entering the arcade kippie does not notice you and is instead entranced by a game. when you go up to him he is saying things like \"lets go\" \"Oh yeah!\" \"ahhhhhhhhaand thats how its done\"\n\nThen he finally notices you and looks away from the screen, imediatly causing him to lose\n\n\"awwwww man!!! hey brother you better have a good reason for ruining my run! That could have been a record!     ah who am i kidding, i suck!\"\n\"Welcome to kippies arcade! Best arcade in city!\"\n\"Im kippie, owner of kippies, and arcade game master!...... at least in some games! *embarassed\"\n\"Man a lot of these machines havent seen new high scores in years.... itd really cheer us all up if someone were to break them. Maybe you can give them a whirl, but they aint easy. Heres a token on the house, give one a try\"",
+      "done": "1"
+    },
+    "droghnaut_2c": {
+      "plain": "Droghnaut, the gentle alien who keeps fish as friends, says the fish sense the town's sadness. He invites the player to sit and fish with him a while — a calm hour heals more than you'd think. “The fish agree.”",
+      "done": "0"
+    },
+    "orbo_finale": {
+      "plain": "Orbo, moved by how much the player's done, gets serious: they both know the real trouble's down in the caves, and the idle mine is the root of it all. He's asked Sally at the Guild to take the player down there. End this, and the town's back on its feet.",
+      "done": "0"
+    },
+    "sally_sendoff": {
+      "plain": "Sally's tough and gruff: she doesn't need a babysitter but she'll take a sharp blade. She tells the player to hit hard and not die — she's not carrying them out. She splits off (“I'll take the far tunnel”) so the player goes in alone, and sends them down.",
+      "done": "0"
+    },
+    "sally_postclear": {
+      "plain": "Sally's genuinely impressed — the player actually did it. She implies she took the other tunnel, says that thing won't crawl up here again soon, and tells them Orbo will want to see them. “We'll make a real adventurer of you yet.”",
+      "done": "0"
+    },
+    "orbo_wrap": {
+      "plain": "Orbo is overjoyed: the mine's open, the store's stocked, the Pebble's full, folks are smiling — all thanks to the player. They're not the newcomer anymore; they're one of the town now. At the very end, a small flicker of unease — he glances toward the caves, almost says something, then lets it go: “I've a feeling this is only the start of your story here.”",
+      "done": "0"
+    },
+    "han_tease": {
+      "plain": "Han watches the celebration from the edge, talking almost to himself: so the little gate is closed again — how quaint. They have no idea what's still on the other side. “…Soon.” He knows far more than the town does, and explains none of it.",
+      "done": "0"
+    }
+  }
+}
