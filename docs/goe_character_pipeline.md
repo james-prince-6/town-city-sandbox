@@ -57,17 +57,25 @@ The rig is Auto-Rig Pro (names like `spine_01.x`, `arm_stretch.l`), not Mixamo, 
 Godot's standard humanoid retargeting. The BoneMap is built:
 `assets/models/characters/goe/goe_arp_bonemap.tres` (22 core bones → `SkeletonProfileHumanoid`).
 
-**Editor steps (can't be done headlessly — the importer ignores an injected bone map):**
-1. Select `goe_female_base.glb` → **Import** dock → **Advanced…**.
-2. Scene → the `Skeleton3D` node → **Retarget → Bone Map** = `goe_arp_bonemap.tres`; enable
-   **Fix Silhouette**. Reimport. (This renames the model's bones to the humanoid profile.)
-3. The **animations** must be retargeted to the *same* profile: the Mixamo clips in
-   `assets/models/characters/psx/anim/*.fbx` already have a map at
-   `assets/models/characters/psx/mixamo_to_humanoid.tres` — set each Mixamo FBX's Skeleton3D
-   Bone Map to it (or build one shared anim library). Both sides on `SkeletonProfileHumanoid`
-   → the clips play on the GoE model directly.
-4. Add an `AnimationPlayer`/`AnimationTree` to the character (or reuse a retargeted anim
-   library) and play `idle`/`walk`/`run`.
+The runtime is already wired: `entities/characters/goe_animator.gd` (`GoeAnimator`, created by
+`GoeCharacter`) auto-builds an AnimationPlayer — it pulls each clip out of its FBX, keeps only
+the rotation tracks whose bone exists on the model, repoints them at the model's `Skeleton3D`,
+and plays `idle`/`walk`/`run`. It's **defensive**: until the bones match (i.e. until you do the
+reimport below) it builds nothing and leaves the model at rest, so it can't error. **So the
+only thing left is two small editor reimports** (Godot ignores a headlessly-injected bone map,
+so this part is genuinely editor-only):
+
+1. **Model** — select `assets/models/characters/goe/goe_female_base.glb` → **Import** dock →
+   **Advanced…** → in the scene tree pick the `Skeleton3D` node → **Retarget → Bone Map** =
+   `assets/models/characters/goe/goe_arp_bonemap.tres`, **Bone Renamer / Fix Silhouette** on →
+   **Reimport**. (Renames the GoE bones to the humanoid profile + normalizes the rest pose.)
+2. **Clips** — for `assets/models/characters/psx/anim/Idle.fbx`, `Walking (1).fbx`, `Running.fbx`
+   (the 3 `GoeAnimator.clips` defaults): same Advanced flow, set the `Skeleton3D` **Bone Map** =
+   `assets/models/characters/psx/mixamo_to_humanoid.tres` + Fix Silhouette → Reimport. (Add more
+   clips later by extending `GoeAnimator.clips` and reimporting those FBXs the same way.)
+
+That's it — reopen `stages/dev/goe_demo.tscn` (F6); the label flips to "Body anim: walk/idle/run ✓"
+and the character walks. (The label reads "none yet" until the reimports are done.)
 
 > If finger detail is wanted later, extend `goe_arp_bonemap.tres` with the `c_thumb*/index*/…`
 > bones (they're in the skeleton).

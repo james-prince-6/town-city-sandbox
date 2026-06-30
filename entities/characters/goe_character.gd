@@ -11,10 +11,12 @@ extends Node3D
 @export var start_emotion: StringName = &"neutral"
 
 var facial: Node            # GoeFacialController (loaded by path to stay headless-safe)
+var animator: Node          # GoeAnimator (body locomotion via humanoid retarget)
 var skeleton: Skeleton3D
 var _model: Node3D
 
 const FACIAL := preload("res://entities/characters/goe_facial_controller.gd")
+const ANIMATOR := preload("res://entities/characters/goe_animator.gd")
 
 func _ready() -> void:
 	_model = get_node_or_null("Model")
@@ -28,6 +30,19 @@ func _ready() -> void:
 	facial.setup(_model)
 	if start_emotion != &"neutral":
 		facial.set_emotion(start_emotion)
+	# Body locomotion (plays once the model + clips are humanoid-retargeted; inert until then).
+	animator = ANIMATOR.new()
+	animator.name = "Animator"
+	add_child(animator)
+	animator.setup(_model)
+
+## Play a body locomotion clip (idle/walk/run) — no-op until humanoid retarget is applied.
+func play_anim(name: StringName) -> void:
+	if animator: animator.play(name)
+
+## Logical clips that actually built (empty until the retarget reimport is done).
+func built_clips() -> Array:
+	return animator.built_clips() if animator else []
 
 ## Blend the face to a semantic emotion (happy/sad/angry/surprised/…).
 func set_emotion(emotion: StringName, weight: float = 1.0) -> void:
