@@ -227,4 +227,4 @@ block={
 
 [internationalization]
 
-locale/translations_pot_files=PackedStringArray("res://entities/npc/dialogue/ember.dialogue", "res://entities/npc/dialogue/marlo.dialogue", "res://entities/npc/dialogue/mira.dialogue", "res://entities/npc/dialogue/pip.dialogue", "res://entities/npc/dialogue/sela.dialogue", "res://entities/npc/dialogue/barry.dialogue", "res://entities/npc/dialogue/droghnaut.dialogue", "res://entities/npc/dialogue/kippie.dialogue", "res://entities/npc/dialogue/orbo.dialogue", "res://entities/npc/dialogue/sally.dialogue")
+locale/translations_pot_files=PackedStringArray("res://entities/npc/dialogue/ember.dialogue", "res://entities/npc/dialogue/marlo.dialogue", "res://entities/npc/dialogue/mira.dialogue", "res://entities/npc/dialogue/pip.dialogue", "res://entities/npc/dialogue/sela.dialogue", "res://entities/npc/dialogue/barry.dialogue", "res://entities/npc/dialogue/droghnaut.dialogue", "res://entities/npc/dialogue/kippie.dialogue", "res://entities/npc/dialogue/orbo.dialogue", "res://entities/npc/dialogue/sally.dialogue", "res://entities/npc/dialogue/george.dialogue")

@@ -97,14 +97,14 @@ characters; venues = the five v1 interiors. Everything else stays parked (don't 
 
 | # | Decision | Default if unanswered |
 |---|---|---|
-| D1 | **Leveling:** rework to use-based now, or ship the built XP/skill-tree for v1? | **Ship built XP system for v1; defer the use-based rework** (out of this build's scope). Flagged in GDD §5.2. |
+| D1 | **Leveling:** ~~rework to use-based now, or ship the built XP/skill-tree for v1?~~ | ✅ **RESOLVED — use-based is implemented** (2026-06-28; `global/systems/progression.gd`). Four skills (Melee/Ranged/Magic/Survival) rise by use; perk points feed per-skill trees. The old XP/skill-tree model is retired (GDD §5.2, ROADMAP backlog). No longer an open decision; remaining work is tuning the constants in `progression.gd`. |
 | D2 | What's wrong in the caves (questline root cause)? | **Monsters** moved in. |
 | D3 | Hub gate to unlock the finale | **2 of 3** errands. |
 | D4 | Does Sally fight alongside you in the dungeon? | **No** — she sends you in (no companion AI). |
 | D5 | Bartending: flat base wage on top of tips? "Perfect Pour!" flourish? | **Small base wage + tips**; flourish **optional/last**. |
 | D6 | Quest 2c: build light **fishing**, or reuse the existing **arcade** game only? | **Reuse arcade** for v1; stub fishing as a parked activity. |
 
-Surface these early; don't silently make large choices (esp. D1).
+Surface the still-open ones early (D3 hub gate; the dungeon-end boss/objective under D2); don't silently make large choices. (D1 and D4 are now resolved.)
 
 ---
 
@@ -153,8 +153,8 @@ by interacting with the bar station; exit when the shift ends.
   uncleaned messes lower satisfaction / can block a spot.
 - **Shift wrapper:** a timer; pays out total at end; uses `Clock` (pause-aware) and `GameState`.
 - **Progression:** a **Bartending skill** that improves with use (faster pours, wider fill window,
-  bigger tips, more concurrent customers) — **honor D1** (don't entangle with the global XP rework
-  if deferred; a self-contained skill stat is fine). **Bar upgrades** bought via the shop/Barry
+  bigger tips, more concurrent customers) — keep it a **self-contained skill stat**; don't entangle
+  it with the global use-based progression in `progression.gd` (D1, now resolved). **Bar upgrades** bought via the shop/Barry
   (better tap, bigger glass rack, bus tub, crowd capacity) as money sinks.
 - **Save:** persist bartending skill + purchased upgrades (`capture_state`/`restore_state`,
   registered in `SaveManager`).

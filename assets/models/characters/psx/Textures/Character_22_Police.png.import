@@ -3,7 +3,7 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://bdb2ogj0b3lnm"
-path.s3tc="res://.godot/imported/Character_22_Police.png-3831cca34f9144150286bc78bde404df.s3tc.ctex"
+path.s3tc="res://.godot/imported/Character_22_Police.png-a772c729c0bf5c248e0fd03c9c394f4b.s3tc.ctex"
 metadata={
 "imported_formats": ["s3tc_bptc"],
 "vram_texture": true
@@ -11,8 +11,8 @@ metadata={
 
 [deps]
 
-source_file="res://assets/models/characters/psx/textures/Character_22_Police.png"
-dest_files=["res://.godot/imported/Character_22_Police.png-3831cca34f9144150286bc78bde404df.s3tc.ctex"]
+source_file="res://assets/models/characters/psx/Textures/Character_22_Police.png"
+dest_files=["res://.godot/imported/Character_22_Police.png-a772c729c0bf5c248e0fd03c9c394f4b.s3tc.ctex"]
 
 [params]
 

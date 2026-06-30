@@ -10,7 +10,7 @@ func _ready() -> void:
 	$Sun.rotation_degrees = Vector3(-50, -35, 0)
 	await get_tree().process_frame
 	_emos = character.available_emotions()
-	character.play_anim(&"walk")   # body loco (inert until the humanoid retarget reimport is done)
+	character.play_anim(&"walk")   # body loco — baked idle/walk/run clips from the GLB
 	if not _emos.is_empty():
 		character.set_emotion(_emos[0]); _label(_emos[0])
 func _process(d: float) -> void:
@@ -23,5 +23,5 @@ func _process(d: float) -> void:
 func _label(e) -> void:
 	if label == null: return
 	var loco: Array = character.built_clips()
-	var loco_txt := ("walk/idle/run ✓" if not loco.is_empty() else "none yet — do the retarget reimport (docs §5)")
+	var loco_txt := ("walk/idle/run ✓" if not loco.is_empty() else "none — re-run tools/blender/goe_bake_character.py")
 	label.text = "Expression: %s  (%d/%d)\nBody anim: %s" % [str(e), _i + 1, _emos.size(), loco_txt]

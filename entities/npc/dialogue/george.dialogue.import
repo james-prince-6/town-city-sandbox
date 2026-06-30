@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=18
+type="Resource"
+uid="uid://bf2x38wubat5k"
+path="res://.godot/imported/george.dialogue-d5722d24d388a2ebbec3d8bf7fce1de2.tres"
+
+[deps]
+
+source_file="res://entities/npc/dialogue/george.dialogue"
+dest_files=["res://.godot/imported/george.dialogue-d5722d24d388a2ebbec3d8bf7fce1de2.tres"]
+
+[params]
+
+defaults=true

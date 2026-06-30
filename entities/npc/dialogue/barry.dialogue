@@ -1,33 +1,82 @@
-# Barry Barnson — gruff chef/bartender, runs The Flaming Pebble. GREYBOX (M-B): a terse
-# greeting + small hub. His bartending-job offer (Beat 2b — the bartending mini-game hook)
-# is authored in M-F, once the job loop (M-D) exists.
+# Barry Barnson — gruff chef/bartender, runs The Flaming Pebble.
+# Beat 2b "Last Call": his bartender — his ex, CLAUDIA, who handled the drinks — is gone, so he
+# fumbles a pour and offers the player a shift behind the bar (the bartending mini-game). After a
+# good shift he pays out and drops the cave rumor: a "STEADYSHROOM" from the caves calms his shaky
+# hands, hinting the monsters are down in the mayor's closed-off caves.
+#
+# TODO(shift): entering the bar job-station starts the shift (mini-game); a good shift sets the
+#   flag errand_bartending_done (which routes here to ~after_shift). A "did poorly" variant of
+#   ~after_shift can be added later.
+# TODO(item/quest): "steadyshroom" is a new cave reward hook — add the item + a small follow-up
+#   quest when the dungeon is built.
 
 ~ start
 if not GameState.get_flag("met_barry")
 	do GameState.set_flag("met_barry")
 	do QuestSystem.mark_flag("met_barry")
 	=> greeting
+elif GameState.get_flag("errand_bartending_done") and not GameState.get_flag("heard_cave_rumor")
+	=> after_shift
 else
 	=> hub
 
 ~ greeting
-Barry: [#gesture=idle] You lookin' for work or lookin' for a drink?
-Barry: [#gesture=talk] Either way, find a stool. Place has been dead since the miners went idle.
+Barry: [#gesture=idle] ...Huh. New face.
+Barry: [#gesture=talk] Grab a stool. Place has been dead since the miners went idle.
 => hub
 
 ~ hub
-% Barry: [#gesture=idle] What.
-% Barry: [#gesture=talk] Make it quick — I've got a bar to run.
-- Nice place you've got.
-	=> chat
+% Barry: [#gesture=idle] What can I get ya, pal?
+% Barry: [#gesture=talk] What'll it be?
+- I'll take a drink.
+	=> drink_fail
+- Heard you're short a bartender. [if GameState.get_flag("hub_assigned") and not GameState.get_flag("errand_bartending_done")]
+	=> drink_fail
+- How's business?
+	=> biz
 - Just looking around.
 	=> bye
 
-~ chat
-Barry: [#gesture=talk] The Flaming Pebble's been here longer than you've been alive. It'll outlast this slump too.
+~ drink_fail
+Barry: [#gesture=talk] A drink. Right. Comin' right up.
+Barry: [#gesture=idle] ...
+# Barry fumbles the pour, slops it everywhere — mortified.
+Barry: [#gesture=look] ...Ah, lad, I don't think I'm cut out for this part of the job.
+Barry: [#gesture=talk] Damn Claudia was the one who handled the drinks. Ran this place right alongside me, 'til she up and left.
+do GameState.set_flag("errand_bartending_offered")
+Barry: [#gesture=talk] Say... you look mighty nimble. You want to give it a shot?
+- Sure, I'll give it a shot.
+	Barry: [#gesture=talk] Behind the bar, then. Don't break anything I can't replace.
+	# -> stepping behind the bar job-station starts the shift (mini-game).
+	=> END
+- Maybe later.
+	Barry: [#gesture=idle] Bar's not goin' anywhere. Neither am I.
+	=> END
+
+~ biz
+Barry: [#gesture=look] Business? Look around, pal. Bunch of out-of-work miners nursin' one drink all night.
+Barry: [#gesture=talk] Since the mine went quiet, this whole town's been runnin' on fumes.
 => hub
+
+~ after_shift
+Barry: [#gesture=talk] Well, I'll be damned — you're a natural, kid.
+do Reputation.add_reputation("barry", 10)
+Barry: [#gesture=talk] Here's your share of the cash. You ever want to work a shift, you'd be doin' me a huge favor.
+Barry: [#gesture=idle] Man... things'd be so much better if I could just find my special ingredient...
+- What's that?
+	=> steady
+- Special ingredient?
+	=> steady
+
+~ steady
+do GameState.set_flag("heard_cave_rumor")
+Barry: [#gesture=talk] Oh! Sorry — just mumblin' to myself. It's these shaky hands. Only cure I know of comes from the caves.
+Barry: [#gesture=look] But the mayor's got 'em all closed off. Nobody knows what's up... but if I'm puttin' in my two cents? It's those monsters.
+Barry: [#gesture=talk] Runnin' all through the forest like they are, I'd wager they're down in the caves too.
+Barry: [#gesture=idle] Ah, hell — I don't want to tango with monsters anyway. But if you ever find your way down there, keep an eye out for steadyshroom. There'd be a reward in it for ya.
+=> END
 
 ~ bye
 % Barry: [#gesture=idle] Mm.
-% Barry: [#gesture=wave] Don't let the door hit you.
+% Barry: [#gesture=wave] Don't let the door hit ya.
 => END

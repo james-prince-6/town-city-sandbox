@@ -2,11 +2,11 @@
 
 How the new high-detail characters (GoE Character Creator base, Auto-Rig Pro rig with facial
 shape keys) get from Blender into Town City. **Status: one character (base Female) proven
-end-to-end** — exported, imported, skinned, facial expressions working in-engine. Body
-animation via Godot humanoid retargeting is set up and waits on one editor-dock step.
+end-to-end** — exported, imported, skinned, **facial expressions AND body locomotion
+(idle/walk/run) all working in-engine**, no editor steps required.
 
 ## Source & license
-- Source `.blend`s live ONLY in the external library: `OneDrive\Game assets\Male_Female_Basemesh_CCGOE_Bundle_Full\`. **Never commit the raw `.blend`/full texture pack/addon** — the GoE license forbids redistributing source files in a public repo. Only the game-ready exported `.glb` (+ the textures it needs) goes in this repo.
+- Source `.blend`s live ONLY in the external library: `OneDrive\Game assets\Characters\Male_Female_Basemesh_CCGOE_Bundle_Full\Female_Basemesh_CCGOE_Full\Female_Basemesh_CCGOE.blend`. **Never commit the raw `.blend`/full texture pack/addon** — the GoE license forbids redistributing source files in a public repo. Only the game-ready exported `.glb` (+ the textures it needs) goes in this repo (it's gitignored).
 - Blender used: `C:\Users\kingb\Documents\Blender\blender.exe` (4.5.3).
 
 ## 1. Export (Blender → game glTF)
@@ -52,41 +52,49 @@ on its own channel. 20 emotions mapped in `EMOTIONS` (happy/sad/angry/afraid/sur
 disgust/confused/concentrate/excited/pain/scream/glare/frown/flirt/smile/grin/snarl/fear/neutral).
 Drive it from NPC mood/dialogue: `goe_char.set_emotion(&"happy")`.
 
-## 5. Body animation — Godot humanoid retarget (one editor step left)
-The rig is Auto-Rig Pro (names like `spine_01.x`, `arm_stretch.l`), not Mixamo, so we use
-Godot's standard humanoid retargeting. The BoneMap is built:
-`assets/models/characters/goe/goe_arp_bonemap.tres` (22 core bones → `SkeletonProfileHumanoid`).
+## 5. Body animation — Mixamo retargeted + BAKED in Blender (no editor steps)
+The clips are **retargeted and baked onto the GoE deform skeleton in Blender**, so the exported
+GLB carries real `idle`/`walk`/`run` animations on its own AnimationPlayer. Godot just plays
+them — no runtime retarget, no bone map, no Fix Silhouette. (Godot humanoid retargeting was
+tried first and abandoned: Fix Silhouette mangles the ARP rest pose.)
 
-The runtime is already wired: `entities/characters/goe_animator.gd` (`GoeAnimator`, created by
-`GoeCharacter`) auto-builds an AnimationPlayer — it pulls each clip out of its FBX, keeps only
-the rotation tracks whose bone exists on the model, repoints them at the model's `Skeleton3D`,
-and plays `idle`/`walk`/`run`. It's **defensive**: until the bones match (i.e. until you do the
-reimport below) it builds nothing and leaves the model at rest, so it can't error. **So the
-only thing left is two small editor reimports** (Godot ignores a headlessly-injected bone map,
-so this part is genuinely editor-only):
+**Script:** `tools/blender/goe_bake_character.py`. Run:
+`blender --background "<…>_CCGOE.blend" --python tools/blender/goe_bake_character.py`. It imports
+each Mixamo FBX (`assets/models/characters/psx/anim/{Idle,Walking (1),Running}.fbx`), retargets
+its motion onto the ARP deform bones, bakes one action per clip, and re-exports the GLB (skin
+albedo + `Anim*` facial morphs + the 3 baked clips). In-place (no root translation — game code
+drives world movement).
 
-1. **Model** — select `assets/models/characters/goe/goe_female_base.glb` → **Import** dock →
-   **Advanced…** → in the scene tree pick the `Skeleton3D` node → **Retarget → Bone Map** =
-   `assets/models/characters/goe/goe_arp_bonemap.tres`, **Bone Renamer / Fix Silhouette** on →
-   **Reimport**. (Renames the GoE bones to the humanoid profile + normalizes the rest pose.)
-2. **Clips** — for `assets/models/characters/psx/anim/Idle.fbx`, `Walking (1).fbx`, `Running.fbx`
-   (the 3 `GoeAnimator.clips` defaults): same Advanced flow, set the `Skeleton3D` **Bone Map** =
-   `assets/models/characters/psx/mixamo_to_humanoid.tres` + Fix Silhouette → Reimport. (Add more
-   clips later by extending `GoeAnimator.clips` and reimporting those FBXs the same way.)
+**The ARP traps it works around** (each was a dead end until handled — see the script header):
+- `armature.data.pose_position` ships as **`'REST'`**, which *freezes* the rig at rest and
+  ignores all bone transforms/actions. Must set to `'POSE'`. ← the one that cost the most time.
+- Deform bones (`arm_stretch.l`, …) are **constraint-slaves** of the control rig **and** have
+  **locked** rot/loc channels → direct keyframes are silently ignored. Strip constraints + unlock.
+- The rig has hundreds of **drivers** → the glTF exporter segfaults; clear all anim/drivers first.
+- The deform skeleton is **flat** (every bone parented to `c_traj`) → no chain to retarget at
+  runtime, which is why we bake absolute per-bone world poses instead.
 
-That's it — reopen `stages/dev/goe_demo.tscn` (F6); the label flips to "Body anim: walk/idle/run ✓"
-and the character walks. (The label reads "none yet" until the reimports are done.)
+Retarget math: per frame, target world rotation = `mixamo_world @ mixamo_rest⁻¹ @ goe_rest`
+(rig-agnostic delta-from-rest), applied via Blender's own `pose_bone.matrix` setter (exact FK),
+updating once per hierarchy depth level for speed (~30s–6min depending on clip length).
 
-> If finger detail is wanted later, extend `goe_arp_bonemap.tres` with the `c_thumb*/index*/…`
-> bones (they're in the skeleton).
+Runtime: `entities/characters/goe_animator.gd` (`GoeAnimator`, created by `GoeCharacter`) finds
+the GLB's AnimationPlayer and plays clips by name (`play(&"walk")`). Add clips by baking more in
+the Blender step and listing them in `GoeAnimator.clips`.
+
+> **Known polish item:** the legs/torso retarget cleanly; the arms swing but carry a slight
+> bent-elbow / winged-out artifact (GoE A-pose vs Mixamo T-pose forearm roll). Refine the
+> shoulder/arm mapping or add a small per-bone correction if higher arm fidelity is needed.
+> Fingers can be added by extending `MAP` with the `c_*` finger deform bones.
 
 ## 6. NPC integration (next)
 The current NPC/enemy system (`entities/npc/npc.gd` + `npc_animator.gd`) is built around the
-PSX **Mixamo** rig with a custom aim-retarget. The GoE characters use the humanoid-retarget
-path instead, so integration means: give `GoeCharacter` an `AnimationTree` fed by the
-retargeted humanoid clips, and have `npc.gd` drive *it* (idle/walk/run + `set_emotion`) rather
-than `NPCAnimator`. Recommended: start by swapping ONE named NPC's model to `goe_character.tscn`
-and wiring its locomotion + mood→expression, then roll out.
+PSX **Mixamo** rig with a custom aim-retarget. The GoE characters instead carry baked clips and
+play them through `GoeAnimator`, so integration means: have `npc.gd` drive a `GoeCharacter`
+(call `play_anim(&"idle"/"walk"/"run")` from its locomotion state + `set_emotion` from mood)
+instead of `NPCAnimator`. Recommended: swap ONE named NPC's model to `goe_character.tscn`, wire
+its locomotion + mood→expression, then roll out. (For blends between clips later, feed the
+GLB's clips into an `AnimationTree` on `GoeCharacter`.)
 
 ## 7. Performance
 High detail: ~19k-vert body + eyebrows + hair (15–37k) ≈ 50k+ verts/character vs the PSX

@@ -21,10 +21,13 @@ caves.
 This frames the slump up front (jobs/crafting carry the middle) while justifying the **combat +
 dungeon finale** that reopens the mine and lifts the slump.
 
-> **Parked reveal (do NOT pay off in v1):** *why* the monsters surged is a gate to the monsters'
-> world, likely opened by Orbo himself while chasing an economic revival (WORLD_BIBLE §9). The mayor
-> who sends you to fix the crisis may be its unwitting cause. v1 only **foreshadows** this in the
-> wrap (Beat 4) — the reveal belongs to the larger main story (GDD §4.1).
+> **The gate (updated 2026-06-29):** the monsters surged through a **gate to their world**, and v1
+> now **shows that gate** — it's the climax of Beat 3 (the dungeon opens onto it; the player crosses
+> into hell to fight the Balrog). What stays a **parked reveal** is *who opened it*: likely **Orbo
+> himself**, while chasing an economic revival (WORLD_BIBLE §9) — the mayor who sends you to fix the
+> crisis may be its unwitting cause. ▶ Whether v1 reveals that, or only foreshadows it in the Beat 4
+> wrap, is still James's call (the deeper "where they came from / who's behind it" plot remains the
+> larger main story, GDD §4.1).
 
 ## How it threads v1
 
@@ -34,7 +37,7 @@ dungeon finale** that reopens the mine and lifts the slump.
 | 2a. Bare Shelves | exploration, harvest, light combat, crafting | Wild area + George's General Store |
 | 2b. Last Call | the **bartending mini-game** | The Flaming Pebble — Barry |
 | 2c. Spirits Up | light alt-play (arcade *or* fishing) | Kippie Arcade — Kippie / Astros — Droghnaut |
-| 3. To the Source | combat, the procedural dungeon, a boss | Adventurers Guild — Sally; the dungeon |
+| 3. To the Source | combat, the procedural dungeon, hell-gate, a lesser breach-boss | Adventurers Guild — Sally; the dungeon → the gate → hell |
 | 4. Town City Thanks You | dialog, payoff, post-v1 tease | Town Hall — Orbo + cast |
 
 ---
@@ -71,8 +74,10 @@ tools"*). Establishes the slump in two lines so the player understands *why* the
 ## Beat 2 — "Lend a Hand" *(hub · any order)*
 
 Orbo asks you to help three struggling residents. **Do them in any order.** Completing the hub
-lifts town morale and unlocks the finale. **▶ Gate:** require **all 3**, or a threshold (e.g. **2 of
-3**) so the lightest one stays optional — James's call.
+lifts town morale and unlocks the finale. **Gate (decided 2026-06-29):** **2a + 2b are required,
+2c is optional.** The player must do the wild-area restock (combat/craft) **and** the bartending
+shift (the headline mini-game); the lighter morale beat (arcade/fishing) stays an optional
+side-activity. So the finale unlocks once **2a and 2b** are complete, whether or not 2c was done.
 
 ### 2a — "Bare Shelves"
 - **Giver:** George Coral (framed by Orbo). **Where:** George's General Store → the wild area.
@@ -128,14 +133,40 @@ lifts town morale and unlocks the finale. **▶ Gate:** require **all 3**, or a 
 > **Sally:** "So you're the newcomer everyone's on about. Good — I don't need a babysitter, but I'll
 > take a sharp blade. Stick close, hit hard, and don't die. I'm not carrying you out."
 
-### Objectives
+### Objectives (the source — decided 2026-06-29)
 1. Meet Sally at the Adventurers Guild.
 2. Enter the **dungeon** (the single v1 theme), fight through.
-3. Reach and clear **the source of the trouble** (▶ a boss / a monster nest / a blocked passage).
-4. Return to town.
+3. Reach the source: at the dungeon's deepest point, find an **opened gate to hell** — the breach
+   the monsters have been pouring through (this is the gate from WORLD_BIBLE §9, now physically
+   present in v1).
+4. **Step through the gate into hell** (the monsters' realm) — a **short, tightly-scoped** final
+   stretch (a boss approach + arena, not a full extra level — protect the ~1–2hr size).
+5. **Fight and defeat the v1 breach-boss** — a **lesser manifestation / gate-guardian**, NOT the
+   true Balrog. Killing it **stems this local breach** and reopens the mine. *(The true, ultimate
+   **Balrog** stays parked as the larger story's end-boss — decided 2026-06-29. ▶ Name the v1 boss:
+   a distinct lesser entity, e.g. a Balrog "herald"/"spawn"/gate-guardian — and avoid the Tolkien
+   word "Balrog" as the final canon name, WORLD_BIBLE §9.)*
+6. Return through the gate to town — the mine clears and reopens.
+
+> **Decisions locked (2026-06-29):**
+> - **Balrog role:** the v1 boss is a **first / lesser breach-boss**, not the ultimate Balrog. Beating
+>   it ends *this* breach; the realm, the heart, Han, and the true Balrog remain for the larger story.
+> - **Reveals: foreshadow only.** v1 ends on the single breach-boss kill. **Han de Seciro** appears at
+>   the crowd's edge eyeing the gate (Beat 4); **Orbo's** role as the unwitting gate-opener is only
+>   *hinted* (a clue / his unease), **not** revealed. The two-stage Han-takes-the-heart twist is
+>   **parked** (it belongs to the larger plot, WORLD_BIBLE §9).
+>
+> **Scope ripple — TODO:** this still pulls the **hell realm + a gate-guardian boss** into v1, which
+> GDD §9.6 and WORLD_BIBLE §9 currently scope as parked ("one local breach, one boss"). Update those
+> two sections to: v1 ends with the gate → a short hell stretch → a lesser breach-boss; the true
+> Balrog / heart / Han finale stays post-v1.
+>
+> **Remaining ▶:** the v1 breach-boss's name + look; exactly how the mine "reopens" on-screen
+> (the gate seals vs. is merely held); the clue that seeds Orbo's secret.
 
 ### Systems exercised
-Combat, the procedural dungeon (single theme), a boss/objective, exploration.
+Combat, the procedural dungeon (single theme), the hell-gate transition, a boss fight (the lesser
+breach-guardian), exploration.
 
 ### Branches & choices
 **Decided (2026-06-29): Sally is NOT a companion.** She sends you into the dungeon **alone** (no escort/ally AI to build) and **appears once it’s cleared to congratulate you** — the player **never sees her fight** (a line can imply she "took the other tunnel"). Sally’s larger role is the player’s **combat mentor**: she introduces new combat techniques and weapons as the game progresses (WORLD_BIBLE §8).
@@ -181,7 +212,11 @@ land. These set up the main plot that v1 leaves open (GDD §4.1).
   the game-facing `Dialogue` autoload: item, reputation, quest, flag, mood, time) — gating (e.g.
   finale unlock) uses a flag the hub sets.
 - **Open design calls (▶):** ~~the cave problem's exact nature~~ (RESOLVED 2026-06-29 — gem-eating
-  monsters, WORLD_BIBLE §9); the hub gate (all vs 2-of-3); ~~whether Sally is a companion~~ (RESOLVED
-  2026-06-29 — no; combat mentor only); the boss/objective at the dungeon's end.
+  monsters, WORLD_BIBLE §9); ~~the hub gate~~ (RESOLVED 2026-06-29 — 2a+2b required, 2c optional);
+  ~~whether Sally is a companion~~ (RESOLVED 2026-06-29 — no; combat mentor only); ~~the objective at
+  the dungeon's end~~ (RESOLVED 2026-06-29 — opened **gate to hell** → short **hell** stretch → a
+  **lesser breach-boss**, NOT the ultimate Balrog; reveals are **foreshadow-only**, the two-stage
+  Han/heart twist + Orbo-as-cause stay parked). Remaining ▶: name + look of the v1 breach-boss; how
+  the mine "reopens" on-screen; the clue that seeds Orbo's secret; keep the hell stretch tight.
 - **Cast/venue coverage:** all six v1 characters (Orbo, George, Barry, Kippie, Droghnaut, Sally) and
   all five venues appear. Zena (Orbo's wife) can add flavor at Town Hall but isn't required.

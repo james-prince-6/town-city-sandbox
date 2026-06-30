@@ -1,8 +1,8 @@
 # goe_character.gd
 # A reusable GoE character: wraps the exported model (skeleton + skinned meshes), wires up
-# the facial-expression controller, and exposes a small API. Body locomotion is played by an
-# AnimationPlayer once the model is humanoid-retargeted (see goe_arp_bonemap.tres + the import
-# step in docs). Drop this scene under an NPC/CharacterBody3D, or use it standalone.
+# the facial-expression controller, and exposes a small API. Body locomotion plays from the
+# idle/walk/run clips baked into the GLB (see docs/goe_character_pipeline.md §5 +
+# tools/blender/goe_bake_character.py). Drop this scene under an NPC/CharacterBody3D, or standalone.
 
 class_name GoeCharacter
 extends Node3D

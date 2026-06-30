@@ -1,0 +1,61 @@
+# George Coral — owner of George's General Store (the v1 shop/workshop; formerly "Gus").
+# Beat 2a "Bare Shelves": George asks the player to forage wild BITTERBERRY south of town,
+# then pays out + unlocks a recipe on delivery (one of the two REQUIRED hub errands).
+#
+# TODO(item): "bitterberry" must be added to the item database, and the help_the_town quest
+#   wants a COLLECT_ITEM objective for it. Required count assumed = 3 here; adjust to taste.
+# TODO(Beat 1): the first-meeting that hands over starter tools (the george_first card) isn't
+#   written yet — ~first_meeting is a stub until then.
+
+~ start
+if not GameState.get_flag("met_george")
+	do GameState.set_flag("met_george")
+	do QuestSystem.mark_flag("met_george")
+	=> first_meeting
+elif GameState.get_flag("errand_restock_started") and not GameState.get_flag("errand_restock_done") and Inventory.count_of("bitterberry") >= 3
+	=> restock_turnin
+elif GameState.get_flag("hub_assigned") and not GameState.get_flag("errand_restock_started")
+	=> restock_offer
+elif GameState.get_flag("errand_restock_started") and not GameState.get_flag("errand_restock_done")
+	=> restock_waiting
+else
+	=> hub
+
+~ first_meeting
+# TODO (Beat 1 / george_first): George welcomes the newcomer and hands over the basic starter
+# tools (pickaxe, axe, sword, bow) + a little money. Placeholder until that card is written.
+George: [#gesture=wave] Oh — hello there! Welcome to the store. Orbo send you over?
+George: [#gesture=talk] Have a look around. And come back any time you've got materials to sell.
+=> hub
+
+~ restock_offer
+George: [#gesture=wave] Hey there, buddy! Welcome in!
+George: [#gesture=talk] Unfortunately, you might've noticed the shelves are pretty bare. I usually carry the freshest, finest products...
+George: [#gesture=look] ...but those monsters are making it impossible to harvest anything!
+George: [#gesture=talk] Hey — you look like an honest, hard-working type. Would you be willing to do me a favor?
+do GameState.set_flag("errand_restock_started")
+George: [#gesture=talk] Could you head down south of town and pick me up some wild bitterberry? Tastes gross, but the healing's something special.
+George: [#gesture=look] Long stem, purple leaves at the end — you can't miss it. But be careful out there; you never know what's around the corner.
+=> END
+
+~ restock_waiting
+% George: [#gesture=talk] Any luck with that bitterberry? South of town — long stem, purple leaves.
+% George: [#gesture=idle] Still no berries? Take your time — just mind those monsters.
+=> END
+
+~ restock_turnin
+George: [#gesture=wave] You did it! Thank the gems that brought you — we might finally turn this place around!
+do Inventory.remove("bitterberry", 3)
+do GameState.add_money(60)
+do Reputation.add_reputation("george", 10)
+do GameState.set_flag("recipe_unlocked_basic")
+do GameState.set_flag("errand_restock_done")
+do QuestSystem.mark_flag("errand_restock_done")
+George: [#gesture=talk] I really appreciate the effort. I knew a strong adventurer like you would have no trouble out there.
+George: [#gesture=talk] Hey — if you're ever in the mood to make a few bucks, I could always use a forager. Stop by again if you're interested... or to shop, of course!
+=> END
+
+~ hub
+% George: [#gesture=idle] Need anything?
+% George: [#gesture=talk] Take a look around — what's left of it, anyway.
+=> END

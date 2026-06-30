@@ -1,31 +1,51 @@
-# Kippie Kip — wacky, high-energy arcade owner; 90s hippie vibe. GREYBOX (M-B): an
-# enthusiastic greeting + hub. His "Spirits Up" morale-beat hook (Beat 2c) is authored in M-F.
+# Kippie Kip — wacky, high-energy arcade owner; 90s hippie vibe.
+# Beat 2c "Spirits Up" (OPTIONAL morale beat): the player breaks an old high score to lift the
+# town's mood. This conversation is the intro (Kippie blows his own run when he notices you) +
+# handing over a free token. The reward + errand completion fire when a score is actually beaten
+# — see ~score_beaten, which the arcade game should jump to on a new high score.
 
 ~ start
 if not GameState.get_flag("met_kippie")
 	do GameState.set_flag("met_kippie")
-	=> greeting
+	=> intro
+elif GameState.get_flag("errand_morale_started") and not GameState.get_flag("errand_morale_done")
+	=> nudge
 else
 	=> hub
 
-~ greeting
-Kippie: [#gesture=cheer] Heyyy, a new face! Far out, man — welcome to Kippie's!
-Kippie: [#gesture=talk] Nobody's been comin' by lately. Everyone's too bummed to play. That's backwards, baby!
-=> hub
+~ intro
+# Kippie hasn't noticed you yet — he's deep in a game, hyped out of his mind.
+% Kippie: [#gesture=cheer] Let's GOOO!
+% Kippie: [#gesture=cheer] Oh YEAH!
+Kippie: [#gesture=cheer] ...annnnd THAT'S how it's done!
+# He finally notices you, looks away from the screen — and instantly loses.
+Kippie: [#gesture=look] Awwww, MAN!! Hey, brother, you'd better have a good reason for ruinin' my run! That coulda been a record!
+Kippie: [#gesture=talk] ...ah, who am I kiddin'. I suck.
+Kippie: [#gesture=cheer] Welcome to Kippie's Arcade — best arcade in the city!
+Kippie: [#gesture=talk] I'm Kippie. Owner of Kippie's, and arcade game master!... at least at some of 'em.
+=> offer
+
+~ offer
+Kippie: [#gesture=talk] Man, a lot of these machines haven't seen a new high score in years. It'd really cheer us all up if someone broke a few.
+do GameState.set_flag("errand_morale_started")
+Kippie: [#gesture=cheer] Maybe you can give 'em a whirl — they ain't easy, mind you. Here's a token on the house. Go on!
+=> END
+
+~ nudge
+% Kippie: [#gesture=talk] Beat any of those high scores yet? They're up there for the takin'!
+% Kippie: [#gesture=cheer] Come on, champ — one good run and the whole block lights up!
+=> END
+
+# Called by the arcade game when the player beats a tracked high score (morale beat complete).
+~ score_beaten
+do GameState.set_flag("errand_morale_done")
+do QuestSystem.mark_flag("errand_morale_done")
+do GameState.add_money(20)
+do Reputation.add_reputation("kippie", 8)
+Kippie: [#gesture=cheer] NO WAY! You actually did it! Hahaa — the whole town's gonna feel that one, baby!
+=> END
 
 ~ hub
-% Kippie: [#gesture=cheer] What's the move, champ?
-% Kippie: [#gesture=talk] You feelin' the good vibes yet?
-- What is this place?
-	=> about
-- Catch you later.
-	=> bye
-
-~ about
-Kippie: [#gesture=cheer] Best little arcade this side of the mountain! High scores, good times, zero bad vibes.
-=> hub
-
-~ bye
-% Kippie: [#gesture=wave] Stay groovy!
-% Kippie: [#gesture=cheer] Come back and beat that high score!
+% Kippie: [#gesture=idle] Good vibes only in here, brother.
+% Kippie: [#gesture=cheer] Stay groovy!
 => END
